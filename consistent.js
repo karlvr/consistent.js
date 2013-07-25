@@ -29,8 +29,7 @@
 
 	$.extend($.consistent, {
 		settings: {
-			defaultKeyDataAttribute: "data-consistent-key",
-			defaultAttributeDataPrefix: "data-consistent-attribute-"
+			defaultDataAttribute: "data-consistent"
 		}
 	});
 
@@ -43,22 +42,21 @@
 	var defaultDOMOptions = {
 
 		/** Apply the given model object to the given dom object */
-		'apply': function(dom, model) {
-			var key = this.key(dom);
+		'apply': function(dom, data, model) {
+			var key = this.key(dom, data);
 			if (typeof key !== typeof undefined) {
 				this.applyValue(dom, model[key]);
 			}
 
-			var attrs = dom.attributes;
-			for (var i = 0; i < attrs.length; i++) {
-				var name = attrs[i].name;
-				if (name.indexOf($consistent.settings.defaultAttributeDataPrefix) === 0) {
-					var targetAttribute = name.substring($consistent.settings.defaultAttributeDataPrefix.length);
-					var value = model[attrs[i].value];
+			/* Apply to attributes */
+			if (data != null && data.attributes != null) {
+				var attrs = data.attributes;
+				for (var i = 0; i < attrs.length; i++) {
+					var value = model[attrs[i].key];
 					if (value != null) {
-						dom.setAttribute(targetAttribute, value);
+						dom.setAttribute(attrs[i].name, value);
 					} else {
-						dom.removeAttribute(targetAttribute);
+						dom.removeAttribute(attrs[i].name);
 					}
 				}
 			}
@@ -75,7 +73,7 @@
 		},
 
 		/** Update the given model with the given dom object */
-		'update': function(dom, model) {
+		'update': function(dom, data, model) {
 			var key = this.key(dom);
 			if (typeof key !== typeof undefined) {
 				var value = this.getValue(dom);
@@ -94,15 +92,14 @@
 		},
 
 		/** Get the model key from the given dom object */
-		'key': function(dom) {
+		'key': function(dom, data) {
+			if (data != null && data.key !== undefined)
+				return data.key;
+
 			var nodeName = dom.nodeName;
 			if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 				return dom.getAttribute("name");
 			} else {
-				var key = dom.getAttribute($consistent.settings.defaultKeyDataAttribute);
-				if (key != null) {
-					return key;
-				}
 				return undefined;
 			}
 		}
@@ -118,7 +115,9 @@
 			var scope = scopes[scopeName];
 			if (typeof scope !== typeof undefined) {
 				self.each(function() {
-					scope.acquire(this, options);
+					var jsonData = this.getAttribute($consistent.settings.defaultDataAttribute);
+					var data = jsonData != null ? $.parseJSON(jsonData) : null;
+					scope.acquire(this, data, options);
 				});
 			} else {
 				console.log("no such scope " + scopeName);
@@ -152,12 +151,12 @@
 		for (var i = 0; i < n; i++) {
 			var node = this._nodes[i];
 			console.log("applying to", node.dom);
-			node.options.apply(node.dom, this._model);
+			node.options.apply(node.dom, node.data, this._model);
 		}
 	};
 
-	ConsistentScope.prototype.acquire = function(dom, options) {
-		this._nodes.push({ 'dom': dom, 'options': options });
+	ConsistentScope.prototype.acquire = function(dom, data, options) {
+		this._nodes.push({ 'dom': dom, 'data': data, 'options': options });
 
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
@@ -165,7 +164,7 @@
 
 			dom.addEventListener("change", function(ev) {
 				console.log("change event", ev);
-				options.update(dom, self._model);
+				options.update(dom, data, self._model);
 				self.apply();
 			}, false);
 		}

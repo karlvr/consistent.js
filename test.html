@@ -12,10 +12,10 @@ p.world {
 <body>
 <h1>Consistent.js</h1>
 
-<p class="consistent" data-consistent-key="hello">hello world</p>
+<p class="consistent" data-consistent='{"key":"hello"}'>hello world</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
-<p class="consistent" data-consistent-attribute-class="hello">hello world</p>
+<p class="consistent" data-consistent='{"attributes":[{"name":"class", "key":"hello"}]}'>hello world</p>
 
 <button id="action">Action</button>
 
