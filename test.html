@@ -2,6 +2,7 @@
 <html>
 <head>
 <script src="jquery-1.10.2.js"></script>
+<script src="hogan-2.0.0.js"></script>
 <script src="consistent.js"></script>
 <style type="text/css">
 p.world {
@@ -16,16 +17,18 @@ p.world {
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
 <p class="consistent" data-consistent-attribute-class="hello">hello world</p>
+<p class="consistent" data-consistent-template="{{hello}} {{world}}">hello world</p>
 
 <button id="action">Action</button>
 
 <script>
 $(function() {
-	$.consistent("my scope", { karl: 1 });
-	$.consistent("my scope").hello = "world";
+	var myScope = $.consistent("my scope", { templateEngine: Hogan });
+	myScope.hello = "world";
+	myScope.world = "spoiler";
+
 	$('.consistent').consistent("my scope");
 	$.consistent("my scope").apply();
-	$.consistent();
 
 	$('#action').click(function() {
 		var scope = $.consistent("my scope");

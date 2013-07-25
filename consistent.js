@@ -5,21 +5,24 @@
 
 (function($, undefined) {
 	var defaultOptions = {
-
+		templateEngine: null
 	};
 
 	var scopes = {};
 
 	$.consistent = function(scopeName, options) {
-		options = $.extend({}, defaultOptions, options);
 		
 		if (typeof scopeName === typeof undefined) {
 			console.log("no scope");
 		} else {
 			var scope = scopes[scopeName];
 			if (typeof scope === typeof undefined) {
-				scope = new ConsistentScope(scopeName);
+				options = $.extend({}, defaultOptions, options);
+
+				scope = new ConsistentScope(scopeName, options);
 				scopes[scopeName] = scope;
+			} else if (options !== undefined) {
+				throw new ConsistentException("Scope \"" + scopeName + "\" already created, but attempted to recreate with options.");
 			}
 			return scope._model;
 		}
@@ -30,6 +33,7 @@
 	$.extend($.consistent, {
 		settings: {
 			defaultKeyDataAttribute: "data-consistent-key",
+			defaultTemplateDataAttribute: "data-consistent-template",
 			defaultAttributeDataAttributePrefix: "data-consistent-attribute-"
 		}
 	});
@@ -43,14 +47,14 @@
 	var defaultDOMOptions = {
 
 		/** Apply the given model object to the given dom object */
-		'apply': function(dom, data, model) {
+		'apply': function(dom, data, model, options) {
 			var key = this.key(dom, data);
 			if (typeof key !== typeof undefined) {
 				this.applyValue(dom, model[key]);
 			}
 
 			/* Apply to attributes */
-			if (data != null && data.attributes != null) {
+			if (data.attributes != null) {
 				var attrs = data.attributes;
 				for (var i = 0; i < attrs.length; i++) {
 					var value = model[attrs[i].key];
@@ -60,6 +64,11 @@
 						dom.removeAttribute(attrs[i].name);
 					}
 				}
+			}
+
+			/* Template */
+			if (data.template != null) {
+				this.applyValue(dom, data.template.render(model));
 			}
 		},
 
@@ -74,7 +83,7 @@
 		},
 
 		/** Update the given model with the given dom object */
-		'update': function(dom, data, model) {
+		'update': function(dom, data, model, options) {
 			var key = this.key(dom, data);
 			if (typeof key !== typeof undefined) {
 				var value = this.getValue(dom);
@@ -116,7 +125,7 @@
 			var scope = scopes[scopeName];
 			if (typeof scope !== typeof undefined) {
 				self.each(function() {
-					scope.acquire(this, nodeData(this), options);
+					scope.acquire(this, options);
 				});
 			} else {
 				console.log("no such scope " + scopeName);
@@ -124,22 +133,31 @@
 		}
 	};
 
-	function nodeData(dom) {
+	function nodeData(dom, options) {
 		var data = {};
-		if (dom.getAttribute($consistent.settings.defaultKeyDataAttribute) !== undefined) {
-			data.key = dom.getAttribute($consistent.settings.defaultKeyDataAttribute);
-		}
-		
-		data.attributes = [];
+
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			if (name.indexOf($consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
+			if (name == $consistent.settings.defaultKeyDataAttribute) {
+				/* Key */
+				data.key = attrs[i].value;
+			} else if (name.indexOf($consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
+				/* Attribute */
 				var targetAttribute = name.substring($consistent.settings.defaultAttributeDataAttributePrefix.length);
+				if (data.attributes == null)
+					data.attributes = [];
 				data.attributes.push({
 					"name": targetAttribute,
 					"key": attrs[i].value
 				});
+			} else if (name == $consistent.settings.defaultTemplateDataAttribute) {
+				/* Template */
+				if (options.templateEngine != null) {
+					data.template = options.templateEngine.compile(attrs[i].value);
+				} else {
+					throw new ConsistentException("Template specified but no templateEngine configured in options");
+				}
 			}
 		}
 			
@@ -155,8 +173,9 @@
 
 	ConsistentScope.prototype = new Object();
 
-	function ConsistentScope(scopeName) {
+	function ConsistentScope(scopeName, options) {
 		this._scopeName = scopeName;
+		this._options = options;
 		this._nodes = [];
 
 		var self = this;
@@ -171,12 +190,13 @@
 		var n = this._nodes.length;
 		for (var i = 0; i < n; i++) {
 			var node = this._nodes[i];
-			console.log("applying to", node.dom);
-			node.options.apply(node.dom, node.data, this._model);
+			node.options.apply(node.dom, node.data, this._model, this._options);
 		}
 	};
 
-	ConsistentScope.prototype.acquire = function(dom, data, options) {
+	ConsistentScope.prototype.acquire = function(dom, options) {
+		var data = nodeData(dom, $.extend({}, this._options, options));
+
 		this._nodes.push({ 'dom': dom, 'data': data, 'options': options });
 
 		var nodeName = dom.nodeName;
@@ -184,11 +204,20 @@
 			var self = this;
 
 			dom.addEventListener("change", function(ev) {
-				console.log("change event", ev);
-				options.update(dom, data, self._model);
+				options.update(dom, data, self._model, self._options);
 				self.apply();
 			}, false);
 		}
+	};
+
+	ConsistentException.prototype = new Object();
+
+	function ConsistentException(message) {
+		this._message = message;
+	}
+
+	ConsistentException.prototype.toString = function() {
+		return "Consistent.js exception: " + this._message;
 	};
 
 })(jQuery);
