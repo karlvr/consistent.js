@@ -29,7 +29,8 @@
 
 	$.extend($.consistent, {
 		settings: {
-			defaultDataAttribute: "data-consistent"
+			defaultKeyDataAttribute: "data-consistent-key",
+			defaultAttributeDataAttributePrefix: "data-consistent-attribute-"
 		}
 	});
 
@@ -74,7 +75,7 @@
 
 		/** Update the given model with the given dom object */
 		'update': function(dom, data, model) {
-			var key = this.key(dom);
+			var key = this.key(dom, data);
 			if (typeof key !== typeof undefined) {
 				var value = this.getValue(dom);
 				model[key] = value;
@@ -93,7 +94,7 @@
 
 		/** Get the model key from the given dom object */
 		'key': function(dom, data) {
-			if (data != null && data.key !== undefined)
+			if (data.key !== null)
 				return data.key;
 
 			var nodeName = dom.nodeName;
@@ -115,15 +116,35 @@
 			var scope = scopes[scopeName];
 			if (typeof scope !== typeof undefined) {
 				self.each(function() {
-					var jsonData = this.getAttribute($consistent.settings.defaultDataAttribute);
-					var data = jsonData != null ? $.parseJSON(jsonData) : null;
-					scope.acquire(this, data, options);
+					scope.acquire(this, nodeData(this), options);
 				});
 			} else {
 				console.log("no such scope " + scopeName);
 			}
 		}
 	};
+
+	function nodeData(dom) {
+		var data = {};
+		if (dom.getAttribute($consistent.settings.defaultKeyDataAttribute) !== undefined) {
+			data.key = dom.getAttribute($consistent.settings.defaultKeyDataAttribute);
+		}
+		
+		data.attributes = [];
+		var attrs = dom.attributes;
+		for (var i = 0; i < attrs.length; i++) {
+			var name = attrs[i].name;
+			if (name.indexOf($consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
+				var targetAttribute = name.substring($consistent.settings.defaultAttributeDataAttributePrefix.length);
+				data.attributes.push({
+					"name": targetAttribute,
+					"key": attrs[i].value
+				});
+			}
+		}
+			
+		return data;
+	}
 
 
 	/* Scope */
