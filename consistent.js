@@ -103,7 +103,7 @@
 
 		/** Get the model key from the given dom object */
 		'key': function(dom, data) {
-			if (data.key !== null)
+			if (data.key !== undefined)
 				return data.key;
 
 			var nodeName = dom.nodeName;
