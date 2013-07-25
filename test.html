@@ -3,6 +3,11 @@
 <head>
 <script src="jquery-1.10.2.js"></script>
 <script src="consistent.js"></script>
+<style type="text/css">
+p.world {
+	background: pink;
+}
+</style>
 </head>
 <body>
 <h1>Consistent.js</h1>
@@ -10,6 +15,7 @@
 <p class="consistent" data-consistent-key="hello">hello world</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
+<p class="consistent" data-consistent-attribute-class="hello">hello world</p>
 
 <button id="action">Action</button>
 

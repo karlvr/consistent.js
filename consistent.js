@@ -29,7 +29,8 @@
 
 	$.extend($.consistent, {
 		settings: {
-			defaultKeyDataAttribute: "data-consistent-key"
+			defaultKeyDataAttribute: "data-consistent-key",
+			defaultAttributeDataPrefix: "data-consistent-attribute-"
 		}
 	});
 
@@ -46,6 +47,20 @@
 			var key = this.key(dom);
 			if (typeof key !== typeof undefined) {
 				this.applyValue(dom, model[key]);
+			}
+
+			var attrs = dom.attributes;
+			for (var i = 0; i < attrs.length; i++) {
+				var name = attrs[i].name;
+				if (name.indexOf($consistent.settings.defaultAttributeDataPrefix) === 0) {
+					var targetAttribute = name.substring($consistent.settings.defaultAttributeDataPrefix.length);
+					var value = model[attrs[i].value];
+					if (value != null) {
+						dom.setAttribute(targetAttribute, value);
+					} else {
+						dom.removeAttribute(targetAttribute);
+					}
+				}
 			}
 		},
 
