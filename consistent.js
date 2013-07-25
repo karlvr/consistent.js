@@ -34,7 +34,8 @@
 		settings: {
 			defaultKeyDataAttribute: "data-consistent-key",
 			defaultTemplateDataAttribute: "data-consistent-template",
-			defaultAttributeDataAttributePrefix: "data-consistent-attribute-"
+			defaultAttributeDataAttributePrefix: "data-consistent-attribute-",
+			defaultTemplateAttributeDataAttributePrefix: "data-consistent-template-attribute-"
 		}
 	});
 
@@ -57,7 +58,15 @@
 			if (data.attributes != null) {
 				var attrs = data.attributes;
 				for (var i = 0; i < attrs.length; i++) {
-					var value = model[attrs[i].key];
+					var value;
+					if (attrs[i].key !== undefined) {
+						value = model[attrs[i].key];
+					} else if (attrs[i].template !== undefined) {
+						value = attrs[i].template.render(model);
+					} else {
+						value = null;
+					}
+
 					if (value != null) {
 						dom.setAttribute(attrs[i].name, value);
 					} else {
@@ -145,7 +154,7 @@
 			} else if (name.indexOf($consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
 				/* Attribute */
 				var targetAttribute = name.substring($consistent.settings.defaultAttributeDataAttributePrefix.length);
-				if (data.attributes == null)
+				if (data.attributes === undefined)
 					data.attributes = [];
 				data.attributes.push({
 					"name": targetAttribute,
@@ -157,6 +166,19 @@
 					data.template = options.templateEngine.compile(attrs[i].value);
 				} else {
 					throw new ConsistentException("Template specified but no templateEngine configured in options");
+				}
+			} else if (name.indexOf($consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
+				/* Attribute template */
+				if (options.templateEngine != null) {
+					var targetAttribute = name.substring($consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
+					if (data.attributes === undefined)
+						data.attributes = [];
+					data.attributes.push({
+						"name": targetAttribute,
+						"template": options.templateEngine.compile(attrs[i].value)
+					});
+				} else {
+					throw new ConsistentException("Attribute template specified but no templateEngine configured in options");
 				}
 			}
 		}
