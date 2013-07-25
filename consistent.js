@@ -49,6 +49,7 @@
 
 		/** Apply the given model object to the given dom object */
 		'apply': function(dom, data, model, options) {
+			// TODO key is the only thing we allow a function to override, should allow override for other data points?
 			var key = this.key(dom, data);
 			if (typeof key !== typeof undefined) {
 				this.applyValue(dom, model[key]);
@@ -142,6 +143,9 @@
 		}
 	};
 
+
+	/* Node data */
+
 	function nodeData(dom, options) {
 		var data = {};
 
@@ -189,10 +193,6 @@
 
 	/* Scope */
 
-	var internalScopeKeys = [
-		"apply"
-	];
-
 	ConsistentScope.prototype = new Object();
 
 	function ConsistentScope(scopeName, options) {
@@ -208,6 +208,9 @@
 		};
 	}
 
+	/**
+	 * Apply the scope's model to the DOM.
+	 */
 	ConsistentScope.prototype.apply = function() {
 		var n = this._nodes.length;
 		for (var i = 0; i < n; i++) {
@@ -216,6 +219,16 @@
 		}
 	};
 
+	/**
+	  * TODO update the scope from the DOM.
+	  */
+	ConsistentScope.prototype.update = function() {
+
+	};
+
+	/**
+	 * Acquire a new DOM node in this scope.
+	 */
 	ConsistentScope.prototype.acquire = function(dom, options) {
 		var data = nodeData(dom, $.extend({}, this._options, options));
 
@@ -231,6 +244,9 @@
 			}, false);
 		}
 	};
+
+
+	/* Exceptions */
 
 	ConsistentException.prototype = new Object();
 
