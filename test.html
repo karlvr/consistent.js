@@ -1,0 +1,34 @@
+<!DOCTYPE html5>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<p class="consistent" data-consistent-key="hello">hello world</p>
+<input type="text" name="hello" value="hello world" class="consistent">
+<textarea name="hello" class="consistent"></textarea>
+
+<button id="action">Action</button>
+
+<script>
+$(function() {
+	$.consistent("my scope", { karl: 1 });
+	$.consistent("my scope").hello = "world";
+	$('.consistent').consistent("my scope");
+	$.consistent("my scope").apply();
+	$.consistent();
+
+	$('#action').click(function() {
+		var scope = $.consistent("my scope");
+		scope.hello = "cruel";
+		scope.apply();
+	});
+});
+
+</script>
+
+</body>
+</html>
