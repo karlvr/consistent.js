@@ -199,13 +199,25 @@
 		this._scopeName = scopeName;
 		this._options = options;
 		this._nodes = [];
+		this._domNodes = [];
+		this._watchers = {};
 
 		var self = this;
 		this._model = {
-			'apply': function() {
+			"apply": function() {
 				self.apply();
+			},
+			"nodes": function() {
+				return self._domNodes;
+			},
+			"watch": function(key, callback) {
+				return self.watch(key, callback);
+			},
+			"unwatch": function(key, callback) {
+				return self.unwatch(key, callback);
 			}
 		};
+		this._cleanModel = this._model;
 	}
 
 	/**
@@ -217,13 +229,33 @@
 			var node = this._nodes[i];
 			node.options.apply(node.dom, node.data, this._model, this._options);
 		}
+
+		/* Look for dirty */
+		for (var key in this._model) {
+			var value = this._model[key];
+			var cleanValue = this._cleanModel[key];
+			if (value !== cleanValue) {
+				this.notifyWatchers(key, value, cleanValue);
+			}
+		}
+
+		this._cleanModel = $.extend({}, this._model);
+	};
+
+	ConsistentScope.prototype.notifyWatchers = function(key, newValue, oldValue) {
+		var watchers = this._watchers[key];
+		if (watchers !== undefined) {
+			for (var i = 0; i < watchers.length; i++) {
+				watchers[i].call(this._model, key, newValue, oldValue);
+			}
+		}
 	};
 
 	/**
-	  * TODO update the scope from the DOM.
+	  * Update the scope from the DOM.
 	  */
 	ConsistentScope.prototype.update = function() {
-
+		// TODO
 	};
 
 	/**
@@ -233,6 +265,7 @@
 		var data = nodeData(dom, $.extend({}, this._options, options));
 
 		this._nodes.push({ 'dom': dom, 'data': data, 'options': options });
+		this._domNodes.push(dom);
 
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
@@ -242,6 +275,27 @@
 				options.update(dom, data, self._model, self._options);
 				self.apply();
 			}, false);
+		}
+	};
+
+	ConsistentScope.prototype.nodes = function() {
+		return _domNodes;
+	};
+
+	ConsistentScope.prototype.watch = function(key, callback) {
+		var watchers = this._watchers[key];
+		if (watchers === undefined) {
+			watchers = [];
+			this._watchers[key] = watchers;
+		}
+		watchers.push(callback);
+	};
+
+	ConsistentScope.prototype.unwatch = function(key, callback) {
+		var watchers = this._watchers[key];
+		if (watchers !== undefined) {
+			var i = watchers.indexOf(callback);
+			watchers.splice(i, 1);
 		}
 	};
 

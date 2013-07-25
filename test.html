@@ -36,6 +36,12 @@ $(function() {
 		scope.hello = "cruel";
 		scope.apply();
 	});
+
+	myScope.watch("hello", function(key, value, oldValue) {
+		if (value == "fade") {
+			$(myScope.nodes()).fadeOut();
+		}
+	});
 });
 
 </script>
