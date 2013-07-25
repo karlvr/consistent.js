@@ -85,7 +85,7 @@
 				return dom.getAttribute("name");
 			} else {
 				var key = dom.getAttribute($consistent.settings.defaultKeyDataAttribute);
-				if (typeof key !== typeof undefined) {
+				if (key != null) {
 					return key;
 				}
 				return undefined;
