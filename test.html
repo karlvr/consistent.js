@@ -16,7 +16,10 @@ p.world {
 <p class="consistent" data-consistent-key="hello">hello world</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
+
 <p class="consistent" data-consistent-attribute-class="hello">hello world</p>
+
+<!-- Templates -->
 <p class="consistent" data-consistent-template="{{hello}} {{world}}">hello world</p>
 <p class="consistent" data-consistent-template-attribute-class="{{hello}} {{world}}">hello world</p>
 
@@ -29,7 +32,7 @@ $(function() {
 	myScope.world = "spoiler";
 
 	$('.consistent').consistent("my scope");
-	$.consistent("my scope").apply();
+	myScope.apply();
 
 	$('#action').click(function() {
 		var scope = $.consistent("my scope");
@@ -40,6 +43,8 @@ $(function() {
 	myScope.watch("hello", function(key, value, oldValue) {
 		if (value == "fade") {
 			$(myScope.nodes()).fadeOut();
+		} else {
+			$(myScope.nodes()).fadeIn();
 		}
 	});
 });
