@@ -2,6 +2,7 @@
 <html>
 <head>
 <script src="jquery-1.10.2.js"></script>
+<script src="Hogan-2.0.0.js"></script>
 <script src="consistent.js"></script>
 <script src="jquery.consistent.js"></script>
 </head>
@@ -16,6 +17,8 @@
 	<div>
 		<h2 data-ct="title">Title</h2>
 		<p data-ct="body">Paragaph</p>
+		<p data-ct="rootProperty">Should be replaced</p>
+		<p data-ct-tmpl="{{rootProperty}}">Should also be replaced</p>
 		<p><a href="#" data-ct-bind-click="select">Select</a></p>
 	</div>
 </script>
@@ -25,7 +28,10 @@
 
 <script>
 $(function() {
+	Consistent.defaultOptions.templateEngine = Hogan;
+
 	var rootScope = $("#container").consistent();
+	rootScope.rootProperty = "From the parent scope";
 
 	var template = $("#myTemplate").html();
 	var scopes = [];

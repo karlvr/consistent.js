@@ -168,13 +168,13 @@
 			apply: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					/* Key */
-					var value = scope[options.key];
+					var value = scope.$.get(options.key);
 					if (value !== undefined) {
 						this.applyValue(dom, value);
 					}
 				} else if (options.template !== undefined) {
 					/* Template */
-					this.applyValue(dom, options.template.render(scope));
+					this.applyValue(dom, options.template.render(scope.$.export()));
 				}
 
 				/* Apply to attributes */
@@ -183,9 +183,9 @@
 					for (var i = 0; i < attrs.length; i++) {
 						var value;
 						if (attrs[i].key !== undefined) {
-							value = scope[attrs[i].key];
+							value = scope.$.get(attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
-							value = attrs[i].template.render(scope);
+							value = attrs[i].template.render(scope.$.export());
 						} else {
 							value = null;
 						}
@@ -405,8 +405,18 @@
 				merge: function(object) {
 					return merge(self._scope, object);
 				},
+
+				/**
+				 * Export a plain object with the values from the scope, excluding the $ object.
+				 * If there is a parent scope, the values from that scope are merged in.
+				 */
 				export: function(object) {
-					var temp = merge({}, self._scope);
+					var temp;
+					if (self._parentScope != null) {
+						temp = merge(self._parentScope.$.export(), self._scope);
+					} else {
+						temp = merge({}, self._scope);
+					}
 					delete temp.$;
 					return merge(object || {}, temp);
 				},
@@ -423,6 +433,15 @@
 				unwatch: function(key, callback) {
 					self.unwatch(key, callback);
 					return self._scope;
+				},
+				get: function(key) {
+					if (self._scope[key] !== undefined) {
+						return self._scope[key];
+					} else if (self._parentScope != null) {
+						return self._parentScope.$.get(key);
+					} else {
+						return undefined;
+					}
 				}
 			}
 		};
