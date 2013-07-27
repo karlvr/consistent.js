@@ -64,13 +64,13 @@
 
 	merge(Consistent, {
 		settings: {
-			defaultKeyDataAttribute: "data-ct",
-			defaultTemplateDataAttribute: "data-ct-tmpl",
-			defaultTemplateIdDataAttribute: "data-ct-tmpl-id",
-			defaultAttributeDataAttributePrefix: "data-ct-attr-",
-			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
-			defaultTemplateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
-			defaultBindDataAttributePrefix: "data-ct-bind-",
+			keyDataAttribute: "data-ct",
+			templateDataAttribute: "data-ct-tmpl",
+			templateIdDataAttribute: "data-ct-tmpl-id",
+			attributeDataAttributePrefix: "data-ct-attr-",
+			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
+			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
+			bindDataAttributePrefix: "data-ct-bind-",
 
 			scopeIdKey: "__ConsistentScopeID"
 		},
@@ -271,54 +271,55 @@
 			}
 		}
 
+		var settings = Consistent.settings;
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 			var value = attrs[i].value;
-			if (name == Consistent.settings.defaultKeyDataAttribute) {
+			if (name == settings.keyDataAttribute) {
 				/* Body */
 				result.key = value;
-			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
+			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
 				/* Attribute */
-				var targetAttribute = name.substring(Consistent.settings.defaultAttributeDataAttributePrefix.length);
+				var targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
 					"key": value
 				});
-			} else if (name == Consistent.settings.defaultTemplateDataAttribute) {
+			} else if (name == settings.templateDataAttribute) {
 				/* Template */
 				assertTemplateEngine();
 
 				result.template = options.templateEngine.compile(value);
-			} else if (name == Consistent.settings.defaultTemplateIdDataAttribute) {
+			} else if (name == settings.templateIdDataAttribute) {
 				/* Template by id */
 				assertTemplateEngine();
 
 				result.template = options.templateEngine.compile(templateById(value));
-			} else if (name.indexOf(Consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
+			} else if (name.indexOf(settings.templateAttributeDataAttributePrefix) === 0) {
 				/* Attribute template */
 				assertTemplateEngine();
 
-				var targetAttribute = name.substring(Consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
+				var targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
 					"template": options.templateEngine.compile(value)
 				});
-			} else if (name.indexOf(Consistent.settings.defaultTemplateIdAttributeDataAttributePrefix) === 0) {
+			} else if (name.indexOf(settings.templateIdAttributeDataAttributePrefix) === 0) {
 				/* Attribute template by id */
 				assertTemplateEngine();
 
-				var targetAttribute = name.substring(Consistent.settings.defaultTemplateIdAttributeDataAttributePrefix.length);
+				var targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
 					"template": options.templateEngine.compile(templateById(value))
 				});
-			} else if (name.indexOf(Consistent.settings.defaultBindDataAttributePrefix) === 0) {
+			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
 				/* Bind events */
-				var eventName = name.substring(Consistent.settings.defaultBindDataAttributePrefix.length).toLowerCase();
+				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
 				prepareEvents(eventName);
 				result.events[eventName].keys.push(value);
 			}
