@@ -214,6 +214,10 @@
 				apply: function() {
 					self.apply();
 				},
+				applyLater: function() {
+					window.clearTimeout(self._model.$._applyLaterTimeout);
+					self._model.$._applyLaterTimeout = window.setTimeout(self._model.$.apply, 0);
+				},
 				acquire: function(dom, options) {
 					self.acquire(dom, options);
 				},
