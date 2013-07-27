@@ -64,6 +64,12 @@ $(function() {
 	myScope.clickCount = 0;
 	myScope.nullKey = null;
 
+	var exp = myScope.$.export();
+	var undefined;
+	if (exp.$ !== undefined || exp.hello !== "world") {
+		console.log("Export faulty", exp);
+	}
+
 	myScope.clickHandler = function(ev) {
 		myScope.clickCount++;
 		myScope.$.apply();
