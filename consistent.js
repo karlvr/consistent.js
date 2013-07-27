@@ -331,6 +331,7 @@
 					}
 
 					self.apply();
+					return self._model;
 				},
 				applyLater: function(callback) {
 					if (callback !== undefined) {
@@ -339,12 +340,15 @@
 
 					window.clearTimeout(self._model.$._applyLaterTimeout);
 					self._model.$._applyLaterTimeout = window.setTimeout(self._model.$.apply, 0);
+					return self._model;
 				},
 				update: function() {
 					self.update();
+					return self._model;
 				},
 				acquire: function(dom, options) {
 					self.acquire(dom, options);
+					return self._model;
 				},
 				merge: function(object) {
 					return merge(self._model, object);
@@ -361,10 +365,12 @@
 					return self._parentScope;
 				},
 				watch: function(key, callback) {
-					return self.watch(key, callback);
+					self.watch(key, callback);
+					return self._model;
 				},
 				unwatch: function(key, callback) {
-					return self.unwatch(key, callback);
+					self.unwatch(key, callback);
+					return self._model;
 				}
 			}
 		};
