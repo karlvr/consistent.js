@@ -124,7 +124,7 @@
 			applyValue: function(dom, value) {
 				if (value === undefined)
 					return;
-				
+
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 					dom.value = value;
@@ -216,8 +216,8 @@
 				if (result.events === undefined)
 					result.events = {};
 				if (result.events[eventName] === undefined)
-					result.events[eventName] = [];
-				result.events[eventName].push(attrs[i].value);
+					result.events[eventName] = { keys: [] };
+				result.events[eventName].keys.push(attrs[i].value);
 			}
 		}
 			
@@ -320,7 +320,7 @@
 		/* Bind events */
 		for (var eventName in options.events) {
 			(function(eventName, keys) {
-				dom.addEventListener(eventName, function(ev) {
+				var listener = function(ev) {
 					for (var i = 0; i < keys.length; i++) {
 						var key = keys[i];
 						var func = self._model[key];
@@ -332,22 +332,44 @@
 							throw new ConsistentException("Bound " + eventName + " event wanted model function in key: " + key);
 						}
 					}
-				}, false);
-			})(eventName, options.events[eventName]);
+				};
+				options.events[eventName].listener = listener;
+				dom.addEventListener(eventName, listener, false);
+			})(eventName, options.events[eventName].keys);
 		}
 
 		/* Bind to changes */
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-			dom.addEventListener("change", function(ev) {
+			var listener = function(ev) {
 				options.$.update(dom, self._model, options);
 				self.apply();
-			}, false);
+			};
+			dom.addEventListener("change", listener, false);
+
+			options.$._changeListener = listener;
 		}
 	};
 
 	ConsistentScope.prototype.unacquire = function(dom) {
-		// TODO
+		var i = this._domNodes.indexOf(dom);
+		if (i !== -1) {
+			var node = this._nodes[i];
+			var options = node.options;
+
+			/* Unbind events */
+			for (var eventName in options.events) {
+				dom.removeEventListener(eventName, options.events[eventName].listener, false);
+			}
+
+			/* Unbind changes */
+			if (options.$._changeListener !== undefined) {
+				dom.removeEventListener("change", options.$._changeListener, false);
+			}
+
+			this._domNodes.slice(i, 1);
+			this._nodes.slice(i, 1);
+		}
 	};
 
 	ConsistentScope.prototype.nodes = function() {
