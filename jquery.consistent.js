@@ -19,12 +19,34 @@
   */
 
  (function($, window, undefined) {
- 	$.consistent = window.Consistent;
+ 	var Consistent = $.consistent = window.Consistent;
 
- 	$.fn.consistent = function(scope, options) {
- 		if (scope === undefined) {
- 			throw "Scope is required as first argument to consistent";
- 		}
+ 	/**
+ 	 * Argument scenarios:
+ 	 * 1) $(...).consistent(): create a new scope, acquire the selected nodes and return the new scope
+ 	 * 2) $(...).consistent(aScope): acquire the selected nodes for the given scope and return the scope
+ 	 * 3) $(...).consistent(options): create a new scope with the given options, acquire the selected nodes and return the new scope.
+ 	 * 4) $(...).consistent(aScope, options): acquire the selected nodes for the given scope with the given options and return the scope.
+ 	 */
+ 	$.fn.consistent = function() {
+ 		var scope, options;
+ 		if (arguments.length === 0) {
+ 			/* Create a new default scope */
+ 			scope = Consistent();
+ 		} else {
+ 			var arg0 = arguments[0];
+	 		if (Consistent.isScope(arg0)) {
+	 			/* Scope and maybe options */
+	 			scope = arg0;
+	 			options = arguments.length > 1 ? arguments[1] : null;
+	 		} else if (typeof arg0 === "object") {
+	 			/* Options */
+	 			scope = Consistent(arg0);
+	 			options = null;
+	 		} else {
+	 			throw "First argument to $.consistent was not an appropriate type: " + typeof arg0;
+	 		}
+	 	}
 
 		this.each(function() {
 			scope.$.acquire(this, options);
@@ -32,7 +54,7 @@
 
 		scope.$.apply();
 
-		return this;
+		return scope;
 	};
 
  })(jQuery, window);
