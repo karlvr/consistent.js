@@ -53,7 +53,8 @@
 			defaultBodyDataAttribute: "data-ct-body",
 			defaultTemplateDataAttribute: "data-ct-tmpl",
 			defaultAttributeDataAttributePrefix: "data-ct-attr-",
-			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-"
+			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
+			defaultBindDataAttributePrefix: "data-ct-bind-"
 		}
 	});
 
@@ -207,6 +208,13 @@
 				} else {
 					throw new ConsistentException("Attribute template specified but no templateEngine configured in options");
 				}
+			} else if (name.indexOf(Consistent.settings.defaultBindDataAttributePrefix) === 0) {
+				var eventName = name.substring(Consistent.settings.defaultBindDataAttributePrefix.length).toLowerCase();
+				if (result.events === undefined)
+					result.events = {};
+				if (result.events[eventName] === undefined)
+					result.events[eventName] = [];
+				result.events[eventName].push(attrs[i].value);
 			}
 		}
 			
@@ -304,15 +312,39 @@
 		this._nodes.push({ dom: dom, options: options });
 		this._domNodes.push(dom);
 
+		var self = this;
+
+		/* Bind events */
+		for (var eventName in options.events) {
+			(function(eventName, keys) {
+				dom.addEventListener(eventName, function(ev) {
+					for (var i = 0; i < keys.length; i++) {
+						var key = keys[i];
+						var func = self._model[key];
+						if (func !== undefined) {
+							var result = self._model[key].call(dom, ev);
+							if (result === false)
+								break;
+						} else {
+							throw new ConsistentException("Bound " + eventName + " event wanted model function in key: " + key);
+						}
+					}
+				}, false);
+			})(eventName, options.events[eventName]);
+		}
+
+		/* Bind to changes */
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-			var self = this;
-
 			dom.addEventListener("change", function(ev) {
 				options.$.update(dom, self._model, options);
 				self.apply();
 			}, false);
 		}
+	};
+
+	ConsistentScope.prototype.unacquire = function(dom) {
+		// TODO
 	};
 
 	ConsistentScope.prototype.nodes = function() {
