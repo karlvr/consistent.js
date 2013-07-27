@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<p data-ct="person.name">Name goes here</p>
+</div>
+
+<script>
+$(function() {
+	var scope = $("#container").consistent();
+	scope.$.update();
+	if (scope.person.name !== "Name goes here") {
+		console.log("Nested update failed", scope);
+	}
+	
+	scope.person = {
+		name: "Nathanial Hornblower"
+	};
+	scope.$.apply();
+});
+
+</script>
+
+</body>
+</html>

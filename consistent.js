@@ -241,7 +241,7 @@
 			update: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					var value = this.getValue(dom);
-					scope[options.key] = value;
+					scope.$.set(options.key, value);
 				}
 
 				if (options.attributes != null) {
@@ -249,7 +249,7 @@
 					for (var i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							var value = this.getAttributeValue(dom, attrs[i].name);
-							scope[attrs[i].key] = value;
+							scope.$.set(attrs[i].key, value);
 						}
 					}
 				}
@@ -258,7 +258,7 @@
 					var props = options.properties;
 					for (var i = 0; i < props.length; i++) {
 						var value = this.getPropertyValue(dom, props[i].name);
-						scope[props[i].key] = value;
+						scope.$.set(props[i].key, value);
 					}
 				}
 			},
@@ -493,13 +493,35 @@
 					return self._scope;
 				},
 				get: function(key) {
-					if (self._scope[key] !== undefined) {
-						return self._scope[key];
+					var local = this.getLocal(key);
+					if (local !== undefined) {
+						return local;
 					} else if (self._parentScope != null) {
 						return self._parentScope.$.get(key);
 					} else {
 						return undefined;
 					}
+				},
+				getLocal: function(key) {
+					var parts = key.split(".");
+					var current = self._scope;
+					for (var i = 0; i < parts.length && current !== undefined; i++) {
+						current = current[parts[i]];
+					}
+					return current;
+				},
+				set: function(key, value) {
+					var parts = key.split(".");
+					var current = self._scope;
+					for (var i = 0; i < parts.length - 1; i++) {
+						var next = current[parts[i]];
+						if (next === undefined) {
+							current = current[parts[i]] = {};
+						} else {
+							current = next;
+						}
+					}
+					current[parts[parts.length - 1]] = value;
 				}
 			}
 		};
