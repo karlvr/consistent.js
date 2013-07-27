@@ -424,6 +424,7 @@
 		this._options = options;
 		this._nodes = [];
 		this._domNodes = [];
+		this._rootDomNodes = [];
 		this._watchers = {};
 
 		var self = this;
@@ -476,6 +477,9 @@
 				},
 				nodes: function() {
 					return self._domNodes;
+				},
+				roots: function() {
+					return self._rootDomNodes;
 				},
 				parent: function() {
 					return self._parentScope;
@@ -547,7 +551,7 @@
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
-	ConsistentScopeManager.prototype.acquire = function(dom, options) {
+	ConsistentScopeManager.prototype.acquire = function(dom, options, parentDom) {
 		if (dom[Consistent.settings.scopeIdKey] === this._id) {
 			/* Already acquired */
 			return;
@@ -558,6 +562,9 @@
 
 		this._nodes.push({ dom: dom, options: options });
 		this._domNodes.push(dom);
+		if (parentDom === undefined) {
+			this._rootDomNodes.push(dom);
+		}
 
 		dom[Consistent.settings.scopeIdKey] = this._id;
 
@@ -603,7 +610,7 @@
 		var child = dom.firstChild;
 		while (child !== null) {
 			if (child.nodeType == 1) {
-				this.acquire(child, options);
+				this.acquire(child, options, dom);
 			}
 			child = child.nextSibling;
 		}
