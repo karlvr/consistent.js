@@ -1,0 +1,33 @@
+<!DOCTYPE html5>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<h2 data-ct="title">My title</h2>
+	<h3 data-ct="subtitle">Subtitle</h3>
+</div>
+
+<script>
+$(function() {
+	var scope = Consistent();
+	$('#container').consistent(scope);
+
+	/* Populate the scope from the DOM */
+	scope.$.update();
+
+	/* Copy the title to the subtitle */
+	scope.subtitle = scope.title + " has been copied";
+	scope.title += " has been added to the scope and modified";
+	scope.$.apply();
+});
+
+</script>
+
+</body>
+</html>

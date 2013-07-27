@@ -186,7 +186,7 @@
 			update: function(dom, model, options) {
 				if (options.key !== undefined) {
 					var value = this.getValue(dom);
-					model[key] = value;
+					model[options.key] = value;
 				}
 			},
 
@@ -331,6 +331,9 @@
 					window.clearTimeout(self._model.$._applyLaterTimeout);
 					self._model.$._applyLaterTimeout = window.setTimeout(self._model.$.apply, 0);
 				},
+				update: function() {
+					self.update();
+				},
 				acquire: function(dom, options) {
 					self.acquire(dom, options);
 				},
@@ -369,27 +372,31 @@
 			var value = this._model[key];
 			var cleanValue = this._cleanModel[key];
 			if (value !== cleanValue) {
-				this.notifyWatchers(key, value, cleanValue);
+				this._notifyWatchers(key, value, cleanValue);
 			}
 		}
 
 		this._cleanModel = merge({}, this._model);
 	};
 
-	ConsistentScope.prototype.notifyWatchers = function(key, newValue, oldValue) {
+	/**
+	  * Update the scope from the DOM.
+	  */
+	ConsistentScope.prototype.update = function() {
+		var n = this._nodes.length;
+		for (var i = 0; i < n; i++) {
+			var node = this._nodes[i];
+			node.options.$.update(node.dom, this._model, node.options);
+		}
+	};
+
+	ConsistentScope.prototype._notifyWatchers = function(key, newValue, oldValue) {
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
 				watchers[i].call(this._model, key, newValue, oldValue);
 			}
 		}
-	};
-
-	/**
-	  * Update the scope from the DOM.
-	  */
-	ConsistentScope.prototype.update = function() {
-		// TODO
 	};
 
 	/**
