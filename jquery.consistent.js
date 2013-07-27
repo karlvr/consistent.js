@@ -23,10 +23,10 @@
 
  	/**
  	 * Argument scenarios:
- 	 * 1) $(...).consistent(): create a new scope, acquire the selected nodes and return the new scope
- 	 * 2) $(...).consistent(aScope): acquire the selected nodes for the given scope and return the scope
- 	 * 3) $(...).consistent(options): create a new scope with the given options, acquire the selected nodes and return the new scope.
- 	 * 4) $(...).consistent(aScope, options): acquire the selected nodes for the given scope with the given options and return the scope.
+ 	 * 1) $(...).consistent(): create a new scope, bind the selected nodes and return the new scope
+ 	 * 2) $(...).consistent(aScope): bind the selected nodes for the given scope and return the scope
+ 	 * 3) $(...).consistent(options): create a new scope with the given options, bind the selected nodes and return the new scope.
+ 	 * 4) $(...).consistent(aScope, options): bind the selected nodes for the given scope with the given options and return the scope.
  	 */
  	$.fn.consistent = function() {
  		var scope, options;
@@ -49,7 +49,7 @@
 	 	}
 
 		this.each(function() {
-			scope.$.acquire(this, options);
+			scope.$.bind(this, options);
 		});
 
 		scope.$.apply();

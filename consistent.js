@@ -30,7 +30,7 @@
 	 * * None, just create a new Consistent scope and return it.
 	 * * An existing Consistent scope, create a child scope and return it. Optionally followed by a second argument for options.
 	 * * An object containing key value pairs, used for the configuration of the new scope.
-	 * * A dom node; returns the scope that acquired that node, or null.
+	 * * A dom node; returns the scope that bound that node, or null.
 	 */
 	var Consistent = window.Consistent = function() {
 		/* Parse arguments */
@@ -294,7 +294,7 @@
 
 	/** Default get node options function. This extends the provided options with options derived from the dom node such as
 	  * in data attributes. This function may be overriden to implement a custom way to discover options from a dom node.
-	  * @param options The options given when the scope's acquire method was called and the scope's own options.
+	  * @param options The options given when the scope's bind method was called and the scope's own options.
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
 	Consistent.getNodeOptions = Consistent.defaultGetNodeOptions = function(dom, options) {
@@ -453,8 +453,8 @@
 					self.update();
 					return self._scope;
 				},
-				acquire: function(dom, options) {
-					self.acquire(dom, options);
+				bind: function(dom, options) {
+					self.bind(dom, options);
 					return self._scope;
 				},
 				merge: function(object) {
@@ -573,9 +573,9 @@
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
-	ConsistentScopeManager.prototype.acquire = function(dom, options, parentDom) {
+	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
 		if (dom[Consistent.settings.scopeIdKey] === this._id) {
-			/* Already acquired */
+			/* Already bound */
 			return;
 		}
 
@@ -632,13 +632,13 @@
 		var child = dom.firstChild;
 		while (child !== null) {
 			if (child.nodeType == 1) {
-				this.acquire(child, options, dom);
+				this.bind(child, options, dom);
 			}
 			child = child.nextSibling;
 		}
 	};
 
-	ConsistentScopeManager.prototype.unacquire = function(dom) {
+	ConsistentScopeManager.prototype.unbind = function(dom) {
 		var i = this._domNodes.indexOf(dom);
 		if (i !== -1) {
 			var node = this._nodes[i];
