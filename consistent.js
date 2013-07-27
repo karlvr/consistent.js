@@ -42,13 +42,13 @@
 			throw new ConsistentException("First argument to Consistent was neither a parent scope or an options object.");
 		}
 
-		options = $.extend({}, Consistent.defaultOptions, options);
+		options = merge({}, Consistent.defaultOptions, options);
 
 		var scope = new ConsistentScope(parentScope, options);
 		return scope._model;
 	};
 
-	$.extend(Consistent, {
+	merge(Consistent, {
 		settings: {
 			defaultKeyDataAttribute: "data-consistent-key",
 			defaultTemplateDataAttribute: "data-consistent-template",
@@ -57,10 +57,24 @@
 		}
 	});
 
+	function merge() {
+		var target = arguments[0];
+		for (var i = 1; i < arguments.length; i++) {
+			var source = arguments[i];
+			for (var name in source) {
+				var value = source[name];
+				if (value !== undefined) {
+					target[name] = value;
+				}
+			}
+		}
+		return target;
+	}
+
 	/* Node data */
 
 	Consistent.defaultNodeOptions = function(dom, options) {
-		var result = $.extend({}, options);
+		var result = merge({}, options);
 
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
@@ -256,7 +270,7 @@
 			}
 		}
 
-		this._cleanModel = $.extend({}, this._model);
+		this._cleanModel = merge({}, this._model);
 	};
 
 	ConsistentScope.prototype.notifyWatchers = function(key, newValue, oldValue) {
@@ -279,7 +293,7 @@
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScope.prototype.acquire = function(dom, options) {
-		options = $.extend({}, this._options, options);
+		options = merge({}, this._options, options);
 		options = options.$.nodeOptions(dom, options);
 
 		this._nodes.push({ 'dom': dom, 'options': options });
