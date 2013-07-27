@@ -98,8 +98,18 @@
 
 	function merge() {
 		var target = arguments[0];
+		if (typeof target !== "object" && typeof target !== "function") {
+			throw new ConsistentException("First argument to merge is not appropriate: " + typeof target);
+		}
 		for (var i = 1; i < arguments.length; i++) {
 			var source = arguments[i];
+			if (source === undefined) {
+				continue;
+			}
+
+			if (typeof source !== "object" && typeof source !== "function") {
+				throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+			}
 			for (var name in source) {
 				var value = source[name];
 				if (value !== undefined) {
@@ -319,6 +329,9 @@
 				},
 				acquire: function(dom, options) {
 					self.acquire(dom, options);
+				},
+				merge: function(object) {
+					return merge(self._model, object);
 				},
 				nodes: function() {
 					return self._domNodes;
