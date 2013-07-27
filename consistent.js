@@ -441,6 +441,9 @@
 				this._scope.$._applyLaterTimeout = window.setTimeout(this._scope.$.apply, 0);
 				return this._scope;
 			},
+			needsApply: function() {
+				return this._manager.needsApply();
+			},
 			update: function() {
 				this._manager.update();
 				return this._scope;
@@ -532,6 +535,8 @@
 		this._rootDomNodes = [];
 		this._watchers = {};
 		this._notifyingWatchers = {};
+		this._nodesDirty = false;
+		this._needsApply = false;
 
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
 		this._scope.$._manager = this;
@@ -550,7 +555,8 @@
 			node.options.$.apply(node.dom, this._scope, node.options);
 		}
 
-		this.dirtyCheck();
+		this._handleDirty();
+		this._nodesDirty = this._needsApply = false;
 	};
 
 	/**
@@ -563,10 +569,28 @@
 			node.options.$.update(node.dom, this._scope, node.options);
 		}
 
-		this.dirtyCheck();
+		if (this._handleDirty()) {
+			this._needsApply = true;
+		}
 	};
 
-	ConsistentScopeManager.prototype.dirtyCheck = function() {
+	ConsistentScopeManager.prototype.needsApply = function() {
+		if (this._nodesDirty || this._needsApply) {
+			return true;
+		}
+
+		for (var key in this._scope) {
+			var value = this._scope[key];
+			var cleanValue = this._cleanScope[key];
+			if (value !== cleanValue) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	ConsistentScopeManager.prototype._handleDirty = function() {
 		/* Look for dirty */
 		var dirty = [];
 		for (var key in this._scope) {
@@ -579,9 +603,11 @@
 		}
 		if (dirty.length > 0) {
 			this._notifyWatchAlls(dirty, this._scope, this._cleanScope);
+			this._cleanScope = merge({}, this._scope);
+			return true;
+		} else {
+			return false;
 		}
-
-		this._cleanScope = merge({}, this._scope);
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue) {
@@ -646,6 +672,7 @@
 		if (parentDom === undefined) {
 			this._rootDomNodes.push(dom);
 		}
+		this._nodesDirty = true;
 
 		dom[Consistent.settings.scopeIdKey] = this._id;
 
