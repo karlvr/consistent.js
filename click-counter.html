@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+<p>An example based on <a href="http://knockoutjs.com/examples/clickCounter.html">the Knockout.js click counter example</a>.</p>
+
+<div id="container">
+	<div>You’ve clicked <span data-ct="numberOfClicks"></span> times</div>
+	<button data-ct-bind-click="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
+	<div data-ct-attr-style="tooManyClicksStyle">
+	    That’s too many clicks! Please stop before you wear out your fingers.
+	    <button data-ct-bind-click="resetClicks">Reset clicks</button>
+	</div>
+</div>
+
+<script>
+$(function() {
+	var scope = $("#container").consistent();
+	scope.$.apply(function() {
+		this.numberOfClicks = 0;
+		this.tooManyClicksStyle = "display:none";
+
+		// TODO maybe separate event handlers from model values, or change export to exclude them?
+		this.registerClick = function(ev, scope) {
+			scope.$.apply(function() {
+				this.numberOfClicks++;
+				if (this.numberOfClicks >= 3) {
+					this.tooManyClicksStyle = "display:";
+					this.clickMeDisabled = "disabled";
+				}
+			});
+		};
+
+		this.resetClicks = function(ev, scope) {
+			scope.$.apply(function() {
+				this.numberOfClicks = 0;
+				this.tooManyClicksStyle = "display:none";
+				this.clickMeDisabled = null;
+			});
+		};
+	});
+});
+
+</script>
+
+</body>
+</html>
