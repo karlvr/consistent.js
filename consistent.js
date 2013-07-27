@@ -60,6 +60,7 @@
 	};
 
 	var scopes = {};
+	var SCOPE_TYPE = "ConsistentScope";
 
 	merge(Consistent, {
 		settings: {
@@ -75,22 +76,22 @@
 		},
 
 		isScope: function(object) {
-			return object !== undefined && object.$ !== undefined && object.$.type === "ConsistentScope";
+			return object !== undefined && object.$ !== undefined && object.$._type === SCOPE_TYPE;
 		},
 
 		createScope: function(parentScope, options) {
 			/* Create scope */
 			options = merge({}, Consistent.defaultOptions, options);
 
-			var scope = new ConsistentScope(parentScope, options);
+			var scope = new ConsistentScopeManager(parentScope, options);
 			scopes[scope._id] = scope;
-			return scope._model;
+			return scope._scope;
 		},
 
 		findScopeForNode: function(dom) {
 			var scopeId = dom[Consistent.settings.scopeIdKey];
 			if (scopeId !== undefined) {
-				return scopes[scopeId]._model;
+				return scopes[scopeId]._scope;
 			} else {
 				return null;
 			}
@@ -309,10 +310,11 @@
 
 	/* Scope */
 
-	ConsistentScope.prototype = new Object();
+	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
-	function ConsistentScope(parentScope, options) {
+
+	function ConsistentScopeManager(parentScope, options) {
 		this._id = "ConsistentScope" + (scopeId++);
 		this._parentScope = parentScope;
 		this._options = options;
@@ -321,40 +323,40 @@
 		this._watchers = {};
 
 		var self = this;
-		this._model = {
+		this._scope = {
 			"$": {
-				type: "ConsistentScope",
+				_type: SCOPE_TYPE,
 
 				apply: function(callback) {
 					if (callback !== undefined) {
-						callback.call(self._model);
+						callback.call(self._scope);
 					}
 
 					self.apply();
-					return self._model;
+					return self._scope;
 				},
 				applyLater: function(callback) {
 					if (callback !== undefined) {
-						callback.call(self._model);
+						callback.call(self._scope);
 					}
 
-					window.clearTimeout(self._model.$._applyLaterTimeout);
-					self._model.$._applyLaterTimeout = window.setTimeout(self._model.$.apply, 0);
-					return self._model;
+					window.clearTimeout(self._scope.$._applyLaterTimeout);
+					self._scope.$._applyLaterTimeout = window.setTimeout(self._scope.$.apply, 0);
+					return self._scope;
 				},
 				update: function() {
 					self.update();
-					return self._model;
+					return self._scope;
 				},
 				acquire: function(dom, options) {
 					self.acquire(dom, options);
-					return self._model;
+					return self._scope;
 				},
 				merge: function(object) {
-					return merge(self._model, object);
+					return merge(self._scope, object);
 				},
 				export: function(object) {
-					var temp = merge({}, self._model);
+					var temp = merge({}, self._scope);
 					delete temp.$;
 					return merge(object || {}, temp);
 				},
@@ -366,55 +368,55 @@
 				},
 				watch: function(key, callback) {
 					self.watch(key, callback);
-					return self._model;
+					return self._scope;
 				},
 				unwatch: function(key, callback) {
 					self.unwatch(key, callback);
-					return self._model;
+					return self._scope;
 				}
 			}
 		};
-		this._cleanModel = merge({}, this._model);
+		this._cleanScope = merge({}, this._scope);
 	}
 
 	/**
 	 * Apply the scope's model to the DOM.
 	 */
-	ConsistentScope.prototype.apply = function() {
+	ConsistentScopeManager.prototype.apply = function() {
 		var n = this._nodes.length;
 		for (var i = 0; i < n; i++) {
 			var node = this._nodes[i];
-			node.options.$.apply(node.dom, this._model, node.options);
+			node.options.$.apply(node.dom, this._scope, node.options);
 		}
 
 		/* Look for dirty */
-		for (var key in this._model) {
-			var value = this._model[key];
-			var cleanValue = this._cleanModel[key];
+		for (var key in this._scope) {
+			var value = this._scope[key];
+			var cleanValue = this._cleanScope[key];
 			if (value !== cleanValue) {
 				this._notifyWatchers(key, value, cleanValue);
 			}
 		}
 
-		this._cleanModel = merge({}, this._model);
+		this._cleanScope = merge({}, this._scope);
 	};
 
 	/**
 	  * Update the scope from the DOM.
 	  */
-	ConsistentScope.prototype.update = function() {
+	ConsistentScopeManager.prototype.update = function() {
 		var n = this._nodes.length;
 		for (var i = 0; i < n; i++) {
 			var node = this._nodes[i];
-			node.options.$.update(node.dom, this._model, node.options);
+			node.options.$.update(node.dom, this._scope, node.options);
 		}
 	};
 
-	ConsistentScope.prototype._notifyWatchers = function(key, newValue, oldValue) {
+	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue) {
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
-				watchers[i].call(this._model, key, newValue, oldValue);
+				watchers[i].call(this._scope, key, newValue, oldValue);
 			}
 		}
 	};
@@ -422,7 +424,7 @@
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
-	ConsistentScope.prototype.acquire = function(dom, options) {
+	ConsistentScopeManager.prototype.acquire = function(dom, options) {
 		if (dom[Consistent.settings.scopeIdKey] === this._id) {
 			/* Already acquired */
 			return;
@@ -444,9 +446,9 @@
 				var listener = function(ev) {
 					for (var i = 0; i < keys.length; i++) {
 						var key = keys[i];
-						var func = self._model[key];
+						var func = self._scope[key];
 						if (func !== undefined) {
-							var result = self._model[key].call(dom, ev);
+							var result = self._scope[key].call(dom, ev);
 							if (result === false)
 								break;
 						} else {
@@ -463,8 +465,8 @@
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 			var listener = function(ev) {
-				options.$.update(dom, self._model, options);
-				self._model.$.apply();
+				options.$.update(dom, self._scope, options);
+				self._scope.$.apply();
 			};
 			dom.addEventListener("change", listener, false);
 
@@ -481,7 +483,7 @@
 		}
 	};
 
-	ConsistentScope.prototype.unacquire = function(dom) {
+	ConsistentScopeManager.prototype.unacquire = function(dom) {
 		var i = this._domNodes.indexOf(dom);
 		if (i !== -1) {
 			var node = this._nodes[i];
@@ -502,11 +504,11 @@
 		}
 	};
 
-	ConsistentScope.prototype.nodes = function() {
+	ConsistentScopeManager.prototype.nodes = function() {
 		return _domNodes;
 	};
 
-	ConsistentScope.prototype.watch = function(key, callback) {
+	ConsistentScopeManager.prototype.watch = function(key, callback) {
 		var watchers = this._watchers[key];
 		if (watchers === undefined) {
 			watchers = [];
@@ -515,7 +517,7 @@
 		watchers.push(callback);
 	};
 
-	ConsistentScope.prototype.unwatch = function(key, callback) {
+	ConsistentScopeManager.prototype.unwatch = function(key, callback) {
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			var i = watchers.indexOf(callback);
