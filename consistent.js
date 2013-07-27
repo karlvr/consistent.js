@@ -598,9 +598,9 @@
 				var listener = function(ev) {
 					for (var i = 0; i < keys.length; i++) {
 						var key = keys[i];
-						var func = self._scope[key];
+						var func = self._scope.$.get(key);
 						if (func !== undefined) {
-							var result = self._scope[key].call(dom, ev, self._scope);
+							var result = func.call(dom, ev, self._scope);
 							if (result === false)
 								break;
 						} else {
