@@ -232,7 +232,7 @@
 				var parts = name.split(".");
 				var current = dom;
 				for (var i = 0; i < parts.length - 1; i++) {
-					current = dom[parts[i]];
+					current = current[parts[i]];
 				}
 				current[parts[parts.length - 1]] = value;
 			},
@@ -281,7 +281,7 @@
 				var parts = name.split(".");
 				var current = dom;
 				for (var i = 0; i < parts.length; i++) {
-					current = dom[parts[i]];
+					current = current[parts[i]];
 				}
 				return current;
 			}
