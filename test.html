@@ -57,7 +57,7 @@ p.world {
 
 <script>
 $(function() {
-	var myScope = $.consistent({ templateEngine: Hogan });
+	var myScope = Consistent({ templateEngine: Hogan });
 	myScope.hello = "world";
 	myScope.world = "spoiler";
 	myScope.clickCount = 0;
@@ -85,10 +85,10 @@ $(function() {
 		}
 	});
 
-	if ($.consistent(document.getElementById("aDomNode")).hello !== "world") {
+	if (Consistent(document.getElementById("aDomNode")).hello !== "world") {
 		console.log("Get scope for aDomNode failed");
 	}
-	if ($.consistent(document.getElementById("anInconsistentNode")) !== null) {
+	if (Consistent(document.getElementById("anInconsistentNode")) !== null) {
 		console.log("Get scope for anInconsistentNode returned an unexpected result");
 	}
 });
