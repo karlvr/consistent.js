@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<p>The selected title is <span data-ct="selected">not yet determined</span>.</p>
+</div>
+
+<script id="myTemplate" type="text/x-hogan-template">
+	<div>
+		<h2 data-ct="title">Title</h2>
+		<p data-ct="body">Paragaph</p>
+		<p><a href="#" data-ct-bind-click="select">Select</a></p>
+	</div>
+</script>
+
+<button id="add">Add</button>
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var rootScope = $("#container").consistent();
+
+	var template = $("#myTemplate").html();
+	var scopes = [];
+
+	$('#add').click(function(ev) {
+		$.ajax("ajax.txt", {
+			dataType: "json",
+			success: function(data) {
+				var scope = Consistent(rootScope);
+				scope.$.merge(data);
+				scope.select = function(ev) {
+					ev.preventDefault();
+
+					scope.$.parent().$.apply(function() {
+						this.selected = scope.title;
+					});
+				};
+				$(template).appendTo("#container").consistent(scope);
+				scopes.push(scope);
+			},
+			error: function(jqXHR, textStatus) {
+				console.log("Ajax failure: " + textStatus);
+			}
+		});
+	});
+
+	$('#change').click(function(ev) {
+		for (var i = 0; i < scopes.length; i++) {
+			var scope = scopes[i];
+			scope.title = "A random number " + Math.random();
+			scope.$.apply();
+		}
+	});
+});
+
+</script>
+
+</body>
+</html>
