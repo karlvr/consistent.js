@@ -24,7 +24,11 @@ p.world {
 <p class="consistent" data-ct-tmpl="{{hello}} {{world}}">My text changes, using a template.</p>
 <p class="consistent" data-ct-tmpl-attr-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
 
+<!-- Binding -->
 <p class="consistent" data-ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" data-ct-body="clickCount">0</span> times.</p>
+<p>
+	<a class="consistent" href="fail" data-ct-bind-click="clickHandler">Click to update the above too</a>
+</p>
 
 <button id="action">Action</button>
 
@@ -46,6 +50,7 @@ $(function() {
 	myScope.clickHandler = function(ev) {
 		myScope.clickCount++;
 		myScope.$.apply();
+		ev.preventDefault();
 	};
 
 	$('.consistent').consistent(myScope);
