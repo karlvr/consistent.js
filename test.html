@@ -24,13 +24,17 @@ p.world {
 <p class="consistent" data-ct-tmpl="{{hello}} {{world}}">My text changes, using a template.</p>
 <p class="consistent" data-ct-tmpl-attr-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
 
+<button id="action">Action</button>
+
 <!-- Binding -->
 <p class="consistent" data-ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" data-ct-body="clickCount">0</span> times.</p>
 <p>
 	<a class="consistent" href="fail" data-ct-bind-click="clickHandler">Click to update the above too</a>
 </p>
 
-<button id="action">Action</button>
+<!-- Undefined -->
+<p class="consistent" data-ct-body="undefinedKey">This text should not be changed to "undefined"</p>
+<p class="consistent" data-ct-body="nullKey">This text should be hidden as it is set to null</p>
 
 <!-- Possible new configuration styles:
 
@@ -47,6 +51,8 @@ $(function() {
 	myScope.hello = "world";
 	myScope.world = "spoiler";
 	myScope.clickCount = 0;
+	myScope.nullKey = null;
+
 	myScope.clickHandler = function(ev) {
 		myScope.clickCount++;
 		myScope.$.apply();

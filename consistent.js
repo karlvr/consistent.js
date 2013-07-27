@@ -122,6 +122,9 @@
 
 			/** Apply the given value to the given dom object */
 			applyValue: function(dom, value) {
+				if (value === undefined)
+					return;
+				
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 					dom.value = value;
