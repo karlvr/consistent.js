@@ -59,7 +59,7 @@
 
 	merge(Consistent, {
 		settings: {
-			defaultBodyDataAttribute: "data-ct-body",
+			defaultKeyDataAttribute: "data-ct",
 			defaultTemplateDataAttribute: "data-ct-tmpl",
 			defaultTemplateIdDataAttribute: "data-ct-tmpl-id",
 			defaultAttributeDataAttributePrefix: "data-ct-attr-",
@@ -119,10 +119,12 @@
 
 			/** Apply the given model object to the given dom object */
 			apply: function(dom, model, options) {
-				// TODO key is the only thing we allow a function to override, should allow override for other data points?
-				var key = this.key(dom, options);
-				if (typeof key !== typeof undefined) {
-					this.applyValue(dom, model[key]);
+				if (options.key !== undefined) {
+					/* Key */
+					this.applyValue(dom, model[options.key]);
+				} else if (options.template !== undefined) {
+					/* Template */
+					this.applyValue(dom, options.template.render(model));
 				}
 
 				/* Apply to attributes */
@@ -145,11 +147,6 @@
 						}
 					}
 				}
-
-				/* Template */
-				if (options.template != null) {
-					this.applyValue(dom, options.template.render(model));
-				}
 			},
 
 			/** Apply the given value to the given dom object */
@@ -167,8 +164,7 @@
 
 			/** Update the given model with the given dom object */
 			update: function(dom, model, options) {
-				var key = this.key(dom, options);
-				if (typeof key !== typeof undefined) {
+				if (options.key !== undefined) {
 					var value = this.getValue(dom);
 					model[key] = value;
 				}
@@ -182,20 +178,8 @@
 				} else {
 					return dom.innerHTML;
 				}
-			},
-
-			/** Get the model key from the given dom object */
-			key: function(dom, options) {
-				if (options.key !== undefined)
-					return options.key;
-
-				var nodeName = dom.nodeName;
-				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					return dom.getAttribute("name");
-				} else {
-					return undefined;
-				}
 			}
+
 		}
 
 	};
@@ -208,30 +192,39 @@
 	Consistent.defaultNodeOptions = function(dom, options) {
 		var result = merge({}, options);
 
+		var nodeName = dom.nodeName;
+		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+			if (result.key === undefined) {
+				/* Default key for input and textarea elements */
+				result.key = dom.getAttribute("name");
+			}
+		}
+
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			if (name == Consistent.settings.defaultBodyDataAttribute) {
+			var value = attrs[i].value;
+			if (name == Consistent.settings.defaultKeyDataAttribute) {
 				/* Body */
-				result.key = attrs[i].value;
+				result.key = value;
 			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
 				/* Attribute */
 				var targetAttribute = name.substring(Consistent.settings.defaultAttributeDataAttributePrefix.length);
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
-					"key": attrs[i].value
+					"key": value
 				});
 			} else if (name == Consistent.settings.defaultTemplateDataAttribute) {
 				/* Template */
 				assertTemplateEngine();
 
-				result.template = options.templateEngine.compile(attrs[i].value);
+				result.template = options.templateEngine.compile(value);
 			} else if (name == Consistent.settings.defaultTemplateIdDataAttribute) {
 				/* Template by id */
 				assertTemplateEngine();
 
-				result.template = options.templateEngine.compile(templateById(attrs[i].value));
+				result.template = options.templateEngine.compile(templateById(value));
 			} else if (name.indexOf(Consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
 				/* Attribute template */
 				assertTemplateEngine();
@@ -240,7 +233,7 @@
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
-					"template": options.templateEngine.compile(attrs[i].value)
+					"template": options.templateEngine.compile(value)
 				});
 			} else if (name.indexOf(Consistent.settings.defaultTemplateIdAttributeDataAttributePrefix) === 0) {
 				/* Attribute template by id */
@@ -250,13 +243,13 @@
 				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
-					"template": options.templateEngine.compile(templateById(attrs[i].value))
+					"template": options.templateEngine.compile(templateById(value))
 				});
 			} else if (name.indexOf(Consistent.settings.defaultBindDataAttributePrefix) === 0) {
 				/* Bind events */
 				var eventName = name.substring(Consistent.settings.defaultBindDataAttributePrefix.length).toLowerCase();
 				prepareEvents(eventName);
-				result.events[eventName].keys.push(attrs[i].value);
+				result.events[eventName].keys.push(value);
 			}
 		}
 

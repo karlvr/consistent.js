@@ -14,7 +14,7 @@ p.world {
 <body>
 <h1>Consistent.js</h1>
 
-<p id="aDomNode" class="consistent" data-ct-body="hello">My text changes.</p>
+<p id="aDomNode" class="consistent" data-ct="hello">My text changes.</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
 
@@ -27,14 +27,14 @@ p.world {
 <button id="action">Action</button>
 
 <!-- Binding -->
-<p class="consistent" data-ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" data-ct-body="clickCount">0</span> times.</p>
+<p class="consistent" data-ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" data-ct="clickCount">0</span> times.</p>
 <p>
 	<a class="consistent" href="fail" data-ct-bind-click="clickHandler">Click to update the above too</a>
 </p>
 
 <!-- Undefined -->
-<p class="consistent" data-ct-body="undefinedKey">This text should not be changed to "undefined"</p>
-<p class="consistent" data-ct-body="nullKey">This text should be hidden as it is set to null</p>
+<p class="consistent" data-ct="undefinedKey">This text should not be changed to "undefined"</p>
+<p class="consistent" data-ct="nullKey">This text should be hidden as it is set to null</p>
 
 <!-- Template by id -->
 <p class="consistent" data-ct-tmpl-id="myTemplate">Text should have changed</p>
