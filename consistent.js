@@ -240,6 +240,9 @@
 				nodes: function() {
 					return self._domNodes;
 				},
+				parent: function() {
+					return self._parentScope._model;
+				},
 				watch: function(key, callback) {
 					return self.watch(key, callback);
 				},
@@ -296,7 +299,7 @@
 		options = merge({}, this._options, options);
 		options = options.$.nodeOptions(dom, options);
 
-		this._nodes.push({ 'dom': dom, 'options': options });
+		this._nodes.push({ dom: dom, options: options });
 		this._domNodes.push(dom);
 
 		var nodeName = dom.nodeName;
