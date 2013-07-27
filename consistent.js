@@ -222,6 +222,17 @@
 					var value = this.getValue(dom);
 					scope[options.key] = value;
 				}
+
+				if (options.attributes != null) {
+					var attrs = options.attributes;
+					for (var i = 0; i < attrs.length; i++) {
+						var value;
+						if (attrs[i].key !== undefined) {
+							var value = this.getAttributeValue(dom, attrs[i].name);
+							scope[attrs[i].key] = value;
+						}
+					}
+				}
 			},
 
 			/** Get the current value from the given dom object */
@@ -232,6 +243,10 @@
 				} else {
 					return dom.innerHTML;
 				}
+			},
+
+			getAttributeValue: function(dom, name) {
+				return dom.getAttribute(name);
 			}
 
 		}
