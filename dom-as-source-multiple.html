@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="hogan-2.0.0.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+<style type="text/css">
+#container {
+	width: 40%;
+	float: left;
+	padding: 15px;
+}
+#sidebar {
+	width: 40%;
+	float: left;
+	padding: 15px;
+}
+
+.highlighted {
+	background: #ddd;
+}
+
+.lowlighted {
+	background: #bbb;
+}
+</style>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<h2 data-ct="title">My title</h2>
+</div>
+
+<div id="sidebar">
+	<h2>Controls</h2>
+</div>
+
+<script id="myTemplate" type="text/x-hogan-template">
+	{{#objects}}
+		<div class="object" data-object-id="{{id}}" data-ct-tmpl-id-attr-class="object-class-template">
+			<h3 data-ct="title">{{title}}</h2>
+			<p data-ct="body">{{body}}</p>
+			<p data-ct="status">{{status}}</p>
+		</div>
+	{{/objects}}
+</script>
+
+<script id="myTemplateSide" type="text/x-hogan-template">
+	{{#objects}}
+		<div class="object" data-object-id="{{id}}" data-ct-tmpl-id-attr-class="object-class-template">
+			<h4 data-ct="title">{{title}}</h4>
+			<button data-ct-bind-click="handleClick" data-ct="buttonLabel">Change</button>
+		</div>
+	{{/objects}}
+</script>
+
+<!-- We have to use a template by id rather than an inline template as we're using templates to render the markup in the
+	 first place, and there doesn't appear to be a way to escape mustache syntax. -->
+<script id="object-class-template" type="text/x-hogan-template">object {{displayClass}}</script>
+
+<script>
+$(function() {
+	/* First create the DOM, we use templates but we treat the DOM as if it was static */
+	var n = 10;
+
+	var objects = [];
+	for (var i = 0; i < n; i++) {
+		objects.push({
+			id: "object" + i,
+			title: "Object #" + i,
+			body: "Lorizzle you son of a bizzle fo shizzle my shizz amizzle, owned adipiscing elit. I'm in the shizzle sapien shizzlin dizzle, its fo rizzle volutpizzle, suscipit quizzle, gravida break yo neck, yall, check it out. Pellentesque rizzle tortor. Shut the shizzle up erizzle. Shizzlin dizzle we gonna chung sizzle dapibizzle sure tempizzle hizzle. Maurizzle pellentesque nibh izzle turpizzle. Bow wow wow gangster tortor. Pellentesque funky fresh rhoncizzle dawg. In hac pot platea dictumst. Yippiyo dapibus. Izzle i saw beyonces tizzles and my pizzle went crizzle tellivizzle, pretizzle eu, mattis ac, eleifend vitae, nunc. Phat suscipit. Integizzle semper shizzlin dizzle sizzle doggy.",
+			status: Math.random() < 0.5 ? "on" : "off"
+		});
+	}
+
+	var ctx = {
+		objects: objects
+	};
+
+	$("#container").append(Hogan.compile($("#myTemplate").html()).render(ctx));
+
+	$("#sidebar").append(Hogan.compile($("#myTemplateSide").html()).render(ctx));
+
+
+	/* Now attach scopes */
+
+	Consistent.defaultOptions.templateEngine = Hogan;
+
+	var scopesByObjectId = {};
+
+	$("div.object").each(function() {
+		var objectId = $(this).data("objectId");
+		var scope = scopesByObjectId[objectId];
+		if (scope == null) {
+			/* Create scope */
+			scope = scopesByObjectId[objectId] = $(this).consistent();
+
+			/* Click handler to toggle the status */
+			scope.handleClick = function(ev) {
+				scope.$.apply(function() {
+					this.status = this.status == "on" ? "off" : "on";
+				});
+			};
+
+			/* Watch on status to update the derived properties */
+			scope.$.watch("status", function() {
+				if (this.status == "on") {
+					this.displayClass = "highlighted";
+					this.buttonLabel = "Turn Off";
+				} else {
+					this.displayClass = "lowlighted";
+					this.buttonLabel = "Turn On";
+				}
+				this.$.apply(); /* Note the slightly different style, rather than passing a function to apply as above. No difference. */
+			});
+
+			/* Import the current state from the dom. As we've already added the watch this will update the derived
+			 * properties based on the status in the dom.
+			 */
+			scope.$.update();
+		} else {
+			/* Bind existing scope */
+			$(this).consistent(scope);
+		}
+
+	});
+});
+
+</script>
+
+</body>
+</html>
