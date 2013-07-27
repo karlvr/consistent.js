@@ -14,7 +14,7 @@ p.world {
 <body>
 <h1>Consistent.js</h1>
 
-<p class="consistent" data-ct-body="hello">My text changes.</p>
+<p id="aDomNode" class="consistent" data-ct-body="hello">My text changes.</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
 
@@ -43,6 +43,8 @@ p.world {
 </script>
 <p class="consistent" data-ct-tmpl-id-attr-class="myClassTemplate">Should be pink when hello=world</p>
 <script id="myClassTemplate" type="text/x-hogan-template">{{hello}}</script>
+
+<div id="anInconsistentNode"></div>
 
 <!-- Possible new configuration styles:
 
@@ -82,6 +84,13 @@ $(function() {
 			$(myScope.$.nodes()).fadeIn();
 		}
 	});
+
+	if ($.consistent(document.getElementById("aDomNode")).hello !== "world") {
+		console.log("Get scope for aDomNode failed");
+	}
+	if ($.consistent(document.getElementById("anInconsistentNode")) !== null) {
+		console.log("Get scope for anInconsistentNode returned an unexpected result");
+	}
 });
 
 </script>

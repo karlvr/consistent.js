@@ -22,31 +22,40 @@
 
 	/**
 	 * Single point of entry for Consistent.
-	 * @argument None, just create a new Consistent scope and return it.
-	 * @argument An existing Consistent scope, create a child scope and return it. Optionally followed by a second argument for options.
-	 * @argument An object containing key value pairs, used for the configuration of the new scope.
+	 * Arguments be be:
+	 * * None, just create a new Consistent scope and return it.
+	 * * An existing Consistent scope, create a child scope and return it. Optionally followed by a second argument for options.
+	 * * An object containing key value pairs, used for the configuration of the new scope.
+	 * * A dom node; returns the scope that acquired that node, or null.
 	 */
-	var Consistent = window.Consistent = function(parentScope, options) {
-		if (parentScope !== undefined) {
-			if (parentScope["$type"] != "ConsistentScope") {
-				if (options === undefined) {
-					options = parentScope;
-					parentScope = null;
+	var Consistent = window.Consistent = function() {
+		/* Parse arguments */
+		var arg0 = arguments[0];
+		if (arg0 !== undefined) {
+			if (arg0["$type"] === "ConsistentScope") {
+				/* Parent scope */
+				if (arguments[1] !== undefined) {
+					/* with options */
+					return Consistent.createScope(arg0, arguments[1]);
+				} else {
+					return Consistent.createScope(arg0, null);
 				}
+			} else if (arg0.nodeName !== undefined) {
+				/* DOM node */
+				return Consistent.findScopeForNode(arg0);
+			} else if (typeof arg0 == "object") {
+				/* Options only */
+				return Consistent.createScope(null, arg0);
+			} else {
+				throw new ConsistentException("Unexpected argument to Consistent(): " + arg0);
 			}
 		} else {
-			parentScope = null;
+			/* No arguments */
+			return Consistent.createScope(null, null);
 		}
-
-		if (typeof parentScope !== "object") {
-			throw new ConsistentException("First argument to Consistent was neither a parent scope or an options object.");
-		}
-
-		options = merge({}, Consistent.defaultOptions, options);
-
-		var scope = new ConsistentScope(parentScope, options);
-		return scope._model;
 	};
+
+	var scopes = {};
 
 	merge(Consistent, {
 		settings: {
@@ -56,8 +65,29 @@
 			defaultAttributeDataAttributePrefix: "data-ct-attr-",
 			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
 			defaultTemplateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
-			defaultBindDataAttributePrefix: "data-ct-bind-"
+			defaultBindDataAttributePrefix: "data-ct-bind-",
+
+			scopeIdKey: "__ConsistentScopeID"
+		},
+
+		createScope: function(parentScope, options) {
+			/* Create scope */
+			options = merge({}, Consistent.defaultOptions, options);
+
+			var scope = new ConsistentScope(parentScope, options);
+			scopes[scope._id] = scope;
+			return scope._model;
+		},
+
+		findScopeForNode: function(dom) {
+			var scopeId = dom[Consistent.settings.scopeIdKey];
+			if (scopeId !== undefined) {
+				return scopes[scopeId]._model;
+			} else {
+				return null;
+			}
 		}
+
 	});
 
 	function merge() {
@@ -223,6 +253,7 @@
 					"template": options.templateEngine.compile(templateById(attrs[i].value))
 				});
 			} else if (name.indexOf(Consistent.settings.defaultBindDataAttributePrefix) === 0) {
+				/* Bind events */
 				var eventName = name.substring(Consistent.settings.defaultBindDataAttributePrefix.length).toLowerCase();
 				prepareEvents(eventName);
 				result.events[eventName].keys.push(attrs[i].value);
@@ -267,7 +298,9 @@
 
 	ConsistentScope.prototype = new Object();
 
+	var scopeId = 0;
 	function ConsistentScope(parentScope, options) {
+		this._id = "ConsistentScope" + (scopeId++);
 		this["$type"] = "ConsistentScope";
 		this._parentScope = parentScope;
 		this._options = options;
@@ -352,6 +385,8 @@
 
 		this._nodes.push({ dom: dom, options: options });
 		this._domNodes.push(dom);
+
+		dom[Consistent.settings.scopeIdKey] = this._id;
 
 		var self = this;
 
