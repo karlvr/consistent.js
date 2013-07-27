@@ -71,57 +71,10 @@
 		return target;
 	}
 
-	/* Node data */
-
-	Consistent.defaultNodeOptions = function(dom, options) {
-		var result = merge({}, options);
-
-		var attrs = dom.attributes;
-		for (var i = 0; i < attrs.length; i++) {
-			var name = attrs[i].name;
-			if (name == Consistent.settings.defaultKeyDataAttribute) {
-				/* Key */
-				result.key = attrs[i].value;
-			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
-				/* Attribute */
-				var targetAttribute = name.substring(Consistent.settings.defaultAttributeDataAttributePrefix.length);
-				if (result.attributes === undefined)
-					result.attributes = [];
-				result.attributes.push({
-					"name": targetAttribute,
-					"key": attrs[i].value
-				});
-			} else if (name == Consistent.settings.defaultTemplateDataAttribute) {
-				/* Template */
-				if (options.templateEngine != null) {
-					result.template = options.templateEngine.compile(attrs[i].value);
-				} else {
-					throw new ConsistentException("Template specified but no templateEngine configured in options");
-				}
-			} else if (name.indexOf(Consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
-				/* Attribute template */
-				if (options.templateEngine != null) {
-					var targetAttribute = name.substring(Consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
-					if (result.attributes === undefined)
-						result.attributes = [];
-					result.attributes.push({
-						"name": targetAttribute,
-						"template": options.templateEngine.compile(attrs[i].value)
-					});
-				} else {
-					throw new ConsistentException("Attribute template specified but no templateEngine configured in options");
-				}
-			}
-		}
-			
-		return result;
-	};
-
-	/* DOM node acquisition */
-	/* TODO consider whether we should have separate defaultDOMOptions for the different nodeNames,
-	   rather than detecting at runtime.
-	 */
-
+	/**
+	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
+	  * the model to the DOM.
+	  */
 	Consistent.defaultOptions = {
 
 		templateEngine: null,
@@ -209,6 +162,55 @@
 			}
 		}
 
+	};
+
+	/** Default node options function. This extends the provided options with options derived from the dom node such as
+	  * in data attributes. This function may be overriden to implement a custom way to discover options from a dom node.
+	  * @param options The options given when the scope's acquire method was called and the scope's own options.
+	  * @return The merged options based on options discovered from the dom and the given options.
+	  */
+	Consistent.defaultNodeOptions = function(dom, options) {
+		var result = merge({}, options);
+
+		var attrs = dom.attributes;
+		for (var i = 0; i < attrs.length; i++) {
+			var name = attrs[i].name;
+			if (name == Consistent.settings.defaultKeyDataAttribute) {
+				/* Key */
+				result.key = attrs[i].value;
+			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
+				/* Attribute */
+				var targetAttribute = name.substring(Consistent.settings.defaultAttributeDataAttributePrefix.length);
+				if (result.attributes === undefined)
+					result.attributes = [];
+				result.attributes.push({
+					"name": targetAttribute,
+					"key": attrs[i].value
+				});
+			} else if (name == Consistent.settings.defaultTemplateDataAttribute) {
+				/* Template */
+				if (options.templateEngine != null) {
+					result.template = options.templateEngine.compile(attrs[i].value);
+				} else {
+					throw new ConsistentException("Template specified but no templateEngine configured in options");
+				}
+			} else if (name.indexOf(Consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
+				/* Attribute template */
+				if (options.templateEngine != null) {
+					var targetAttribute = name.substring(Consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
+					if (result.attributes === undefined)
+						result.attributes = [];
+					result.attributes.push({
+						"name": targetAttribute,
+						"template": options.templateEngine.compile(attrs[i].value)
+					});
+				} else {
+					throw new ConsistentException("Attribute template specified but no templateEngine configured in options");
+				}
+			}
+		}
+			
+		return result;
 	};
 
 
