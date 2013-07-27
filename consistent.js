@@ -75,7 +75,7 @@
 		},
 
 		isScope: function(object) {
-			return object.$.type === "ConsistentScope";
+			return object !== undefined && object.$ !== undefined && object.$.type === "ConsistentScope";
 		},
 
 		createScope: function(parentScope, options) {
