@@ -22,9 +22,17 @@
  	$.consistent = window.Consistent;
 
  	$.fn.consistent = function(scope, options) {
+ 		if (scope === undefined) {
+ 			throw "Scope is required as first argument to consistent";
+ 		}
+
 		this.each(function() {
 			scope.$.acquire(this, options);
 		});
+
+		scope.$.apply();
+
+		return this;
 	};
 
  })(jQuery, window);
