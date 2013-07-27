@@ -81,7 +81,7 @@
 
 		createScope: function(parentScope, options) {
 			/* Create scope */
-			options = merge({}, Consistent.defaultOptions, options);
+			options = mergeOptions({}, Consistent.defaultOptions, options);
 
 			var scope = new ConsistentScopeManager(parentScope, options);
 			scopes[scope._id] = scope;
@@ -106,6 +106,9 @@
 		if (typeof target !== "object" && typeof target !== "function") {
 			throw new ConsistentException("First argument to merge is not appropriate: " + typeof target);
 		}
+		if (target === null) {
+			throw new ConsistentException("First argument to merge is not appropriate: " + target);
+		}
 		for (var i = 1; i < arguments.length; i++) {
 			var source = arguments[i];
 			if (source === undefined) {
@@ -123,6 +126,29 @@
 			}
 		}
 		return target;
+	}
+
+	/**
+	 * A special merge that also does a merge on the objects under the $ keys. This is so that the
+	 * user can supply some replacement functions under the $ key and still have the default ones inserted.
+	 */
+	function mergeOptions() {
+		var $s = [];
+		for (var i = 0; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (arg != null) {
+				$s.push(arguments[i].$);
+			}
+		}
+
+		/* Correct the first element, as if it is null or undefined the merge will throw an exception */
+		if ($s[0] == null) {
+			$s[0] = {};
+		}
+
+		var result = merge.apply(this, arguments);
+		result.$ = merge.apply(this, $s);
+		return result;
 	}
 
 	/**
@@ -211,7 +237,7 @@
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
 	Consistent.nodeOptions = Consistent.defaultNodeOptions = function(dom, options) {
-		var result = merge({}, options);
+		var result = mergeOptions({}, options);
 
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
@@ -430,7 +456,7 @@
 			return;
 		}
 
-		options = merge({}, this._options, options);
+		options = mergeOptions({}, this._options, options);
 		options = options.$.nodeOptions(dom, options);
 
 		this._nodes.push({ dom: dom, options: options });
