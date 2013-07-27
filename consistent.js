@@ -232,6 +232,8 @@
 
 	};
 
+	Consistent.defaultOptions.$.$original = Consistent.defaultOptions.$;
+
 	/** Default get node options function. This extends the provided options with options derived from the dom node such as
 	  * in data attributes. This function may be overriden to implement a custom way to discover options from a dom node.
 	  * @param options The options given when the scope's acquire method was called and the scope's own options.
