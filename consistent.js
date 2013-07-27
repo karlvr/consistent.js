@@ -168,7 +168,10 @@
 			apply: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					/* Key */
-					this.applyValue(dom, scope[options.key]);
+					var value = scope[options.key];
+					if (value !== undefined) {
+						this.applyValue(dom, value);
+					}
 				} else if (options.template !== undefined) {
 					/* Template */
 					this.applyValue(dom, options.template.render(scope));
@@ -187,10 +190,8 @@
 							value = null;
 						}
 
-						if (value != null) {
-							dom.setAttribute(attrs[i].name, value);
-						} else {
-							dom.removeAttribute(attrs[i].name);
+						if (value !== undefined) {
+							this.applyAttributeValue(dom, attrs[i].name, value);
 						}
 					}
 				}
@@ -199,14 +200,19 @@
 			/** Apply the given value to the given dom object.
 			  */
 			applyValue: function(dom, value) {
-				if (value === undefined)
-					return;
-
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 					dom.value = value;
 				} else {
 					dom.innerHTML = value;
+				}
+			},
+
+			applyAttributeValue: function(dom, name, value) {
+				if (value != null) {
+					dom.setAttribute(name, value);
+				} else {
+					dom.removeAttribute(name);
 				}
 			},
 
