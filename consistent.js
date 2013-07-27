@@ -325,10 +325,18 @@
 			"$": {
 				type: "ConsistentScope",
 
-				apply: function() {
+				apply: function(callback) {
+					if (callback !== undefined) {
+						callback.call(self._model);
+					}
+
 					self.apply();
 				},
-				applyLater: function() {
+				applyLater: function(callback) {
+					if (callback !== undefined) {
+						callback.call(self._model);
+					}
+
 					window.clearTimeout(self._model.$._applyLaterTimeout);
 					self._model.$._applyLaterTimeout = window.setTimeout(self._model.$.apply, 0);
 				},
