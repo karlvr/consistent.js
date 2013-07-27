@@ -75,7 +75,7 @@
 		},
 
 		isScope: function(object) {
-			return object["$type"] === "ConsistentScope";
+			return object.$.type === "ConsistentScope";
 		},
 
 		createScope: function(parentScope, options) {
@@ -314,7 +314,6 @@
 	var scopeId = 0;
 	function ConsistentScope(parentScope, options) {
 		this._id = "ConsistentScope" + (scopeId++);
-		this["$type"] = "ConsistentScope";
 		this._parentScope = parentScope;
 		this._options = options;
 		this._nodes = [];
@@ -324,6 +323,8 @@
 		var self = this;
 		this._model = {
 			"$": {
+				type: "ConsistentScope",
+
 				apply: function() {
 					self.apply();
 				},
