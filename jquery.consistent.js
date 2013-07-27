@@ -22,8 +22,6 @@
  	$.consistent = window.Consistent;
 
  	$.fn.consistent = function(scope, options) {
-		options = $.extend({}, $.consistent.defaultDOMOptions, options);
-
 		this.each(function() {
 			scope.$.acquire(this, options);
 		});
