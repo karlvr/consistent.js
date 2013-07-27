@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container"></div>
+
+<script id="myTemplate" type="text/x-hogan-template">
+	<div>
+		<h2 data-ct="title">Title</h2>
+		<p data-ct="body">Paragaph</p>
+	</div>
+</script>
+
+<button id="start">Start</button>
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var C = Consistent;
+	var template = $("#myTemplate").html();
+	var scopes = [];
+
+	$("#start").click(function(ev) {
+		ev.preventDefault();
+
+		go();
+	});
+
+	$('#change').click(function(ev) {
+		var startTime = new Date().getTime();
+		for (var i = 0; i < scopes.length; i++) {
+			var scope = scopes[i];
+			scope.title = "A random number " + Math.random();
+			scope.$.apply();
+		}
+		var markTime = new Date().getTime();
+		console.log("It took " + (markTime - startTime) + " ms to apply updated scope");
+	});
+
+	function go() {
+		var startTime = new Date().getTime();
+		var n = 1000;
+		var objects = [];
+		for (var i = 0; i < n; i++) {
+			objects.push({
+				title: "Object #" + i,
+				body: "This is a story about object #" + i
+			});
+		}
+
+		var markTime = new Date().getTime();
+		console.log("It took " + (markTime - startTime) + " ms to create objects");
+		startTime = markTime;
+
+		for (var i = 0; i < objects.length; i++) {
+			$(template).appendTo("#container");
+		}
+
+		markTime = new Date().getTime();
+		console.log("It took " + (markTime - startTime) + " ms to create DOM nodes");
+		startTime = markTime;
+
+		$('#container div').each(function(i) {
+			var scope = C().$.merge(objects[i]);
+			scopes.push(scope);
+		});
+
+		markTime = new Date().getTime();
+		console.log("It took " + (markTime - startTime) + " ms to create scopes");
+		startTime = markTime;
+
+		$('#container div').each(function(i) {
+			$(this).consistent(scopes[i]);
+		});
+
+		markTime = new Date().getTime();
+		console.log("It took " + (markTime - startTime) + " ms to apply consistent");
+		startTime = markTime;
+	}
+});
+
+</script>
+
+</body>
+</html>
