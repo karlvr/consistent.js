@@ -345,7 +345,7 @@
 					return self._domNodes;
 				},
 				parent: function() {
-					return self._parentScope._model;
+					return self._parentScope;
 				},
 				watch: function(key, callback) {
 					return self.watch(key, callback);
