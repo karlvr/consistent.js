@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<h2 data-ct="title">My title</h2>
+	<h3 data-ct="subtitle">Subtitle</h3>
+	<p data-ct="status"></p>
+</div>
+
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var scope = $('#container').consistent();
+
+	/* Watch all scope changes */
+	scope.$.watch(function(keys, newScope, oldScope) {
+		this.$.apply(function() {
+			this.status = "Changed " + keys;
+		});
+	});
+
+	scope.$.update();
+
+	$("#change").click(function() {
+		scope.$.apply(function() {
+			if (Math.random() < 0.5) {
+				this.title = "Random title " + Math.random();
+			}
+			if (Math.random() < 0.5) {
+				this.subtitle = "Another random subtitle " + Math.random();
+			}
+		});
+	});
+});
+
+</script>
+
+</body>
+</html>

@@ -521,6 +521,7 @@
 	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
+	var WATCH_ALL_KEY = "$all";
 
 	function ConsistentScopeManager(parentScope, options) {
 		this._id = "ConsistentScope" + (scopeId++);
@@ -530,6 +531,7 @@
 		this._domNodes = [];
 		this._rootDomNodes = [];
 		this._watchers = {};
+		this._notifyingWatchers = {};
 
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
 		this._scope.$._manager = this;
@@ -548,16 +550,7 @@
 			node.options.$.apply(node.dom, this._scope, node.options);
 		}
 
-		/* Look for dirty */
-		for (var key in this._scope) {
-			var value = this._scope[key];
-			var cleanValue = this._cleanScope[key];
-			if (value !== cleanValue) {
-				this._notifyWatchers(key, value, cleanValue);
-			}
-		}
-
-		this._cleanScope = merge({}, this._scope);
+		this.dirtyCheck();
 	};
 
 	/**
@@ -569,13 +562,69 @@
 			var node = this._nodes[i];
 			node.options.$.update(node.dom, this._scope, node.options);
 		}
+
+		this.dirtyCheck();
+	};
+
+	ConsistentScopeManager.prototype.dirtyCheck = function() {
+		/* Look for dirty */
+		var dirty = [];
+		for (var key in this._scope) {
+			var value = this._scope[key];
+			var cleanValue = this._cleanScope[key];
+			if (value !== cleanValue) {
+				dirty.push(key);
+				this._notifyWatchers(key, value, cleanValue);
+			}
+		}
+		if (dirty.length > 0) {
+			this._notifyWatchAlls(dirty, this._scope, this._cleanScope);
+		}
+
+		this._cleanScope = merge({}, this._scope);
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue) {
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
-				watchers[i].call(this._scope, key, newValue, oldValue);
+				var notifying = this._notifyingWatchers[key];
+				if (notifying === undefined) {
+					notifying = [];
+					this._notifyingWatchers[key] = notifying;
+				}
+
+				var watcher = watchers[i];
+
+				/* Prevent inifinite loops if a watcher function causes a change in the scope */
+				if (notifying.indexOf(watcher) === -1) {
+					notifying.push(watcher);
+					watcher.call(this._scope, key, newValue, oldValue);
+					notifying.splice(notifying.indexOf(watcher), 1);
+				}
+
+			}
+		}
+	};
+
+	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, newValue, oldValue) {
+		var watchers = this._watchers[WATCH_ALL_KEY];
+		if (watchers !== undefined) {
+			for (var i = 0; i < watchers.length; i++) {
+				var notifying = this._notifyingWatchers[WATCH_ALL_KEY];
+				if (notifying === undefined) {
+					notifying = [];
+					this._notifyingWatchers[WATCH_ALL_KEY] = notifying;
+				}
+
+				var watcher = watchers[i];
+
+				/* Prevent inifinite loops if a watcher function causes a change in the scope */
+				if (notifying.indexOf(watcher) === -1) {
+					notifying.push(watcher);
+					watchers[i].call(this._scope, keys, newValue, oldValue);
+					notifying.splice(notifying.indexOf(watcher), 1);
+				}
 			}
 		}
 	};
@@ -674,6 +723,12 @@
 	};
 
 	ConsistentScopeManager.prototype.watch = function(key, callback) {
+		if (typeof key === "function" && callback === undefined) {
+			/* Watch all */
+			callback = key;
+			key = WATCH_ALL_KEY;
+		}
+
 		var watchers = this._watchers[key];
 		if (watchers === undefined) {
 			watchers = [];
@@ -683,6 +738,12 @@
 	};
 
 	ConsistentScopeManager.prototype.unwatch = function(key, callback) {
+		if (typeof key === "function" && callback === undefined) {
+			/* Watch all */
+			callback = key;
+			key = WATCH_ALL_KEY;
+		}
+
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			var i = watchers.indexOf(callback);
