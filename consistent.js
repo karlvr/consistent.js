@@ -32,7 +32,7 @@
 		/* Parse arguments */
 		var arg0 = arguments[0];
 		if (arg0 !== undefined) {
-			if (arg0["$type"] === "ConsistentScope") {
+			if (Consistent.isScope(arg0)) {
 				/* Parent scope */
 				if (arguments[1] !== undefined) {
 					/* with options */
@@ -70,6 +70,10 @@
 			scopeIdKey: "__ConsistentScopeID"
 		},
 
+		isScope: function(object) {
+			return object["$type"] === "ConsistentScope";
+		},
+
 		createScope: function(parentScope, options) {
 			/* Create scope */
 			options = merge({}, Consistent.defaultOptions, options);
@@ -86,7 +90,9 @@
 			} else {
 				return null;
 			}
-		}
+		},
+
+		merge: merge
 
 	});
 
@@ -114,7 +120,7 @@
 
 		"$": {
 			nodeOptions: function(node, options) {
-				return Consistent.defaultNodeOptions(node, options);
+				return Consistent.nodeOptions(node, options);
 			},
 
 			/** Apply the given model object to the given dom object */
@@ -189,7 +195,7 @@
 	  * @param options The options given when the scope's acquire method was called and the scope's own options.
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
-	Consistent.defaultNodeOptions = function(dom, options) {
+	Consistent.nodeOptions = Consistent.defaultNodeOptions = function(dom, options) {
 		var result = merge({}, options);
 
 		var nodeName = dom.nodeName;
@@ -373,6 +379,11 @@
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScope.prototype.acquire = function(dom, options) {
+		if (dom[Consistent.settings.scopeIdKey] === this._id) {
+			/* Already acquired */
+			return;
+		}
+
 		options = merge({}, this._options, options);
 		options = options.$.nodeOptions(dom, options);
 
@@ -414,6 +425,15 @@
 			dom.addEventListener("change", listener, false);
 
 			options.$._changeListener = listener;
+		}
+
+		/* Acquire children */
+		var child = dom.firstChild;
+		while (child !== null) {
+			if (child.nodeType == 1) {
+				this.acquire(child, options);
+			}
+			child = child.nextSibling;
 		}
 	};
 
