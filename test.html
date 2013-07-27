@@ -14,15 +14,15 @@ p.world {
 <body>
 <h1>Consistent.js</h1>
 
-<p class="consistent" data-consistent-key="hello">My text changes.</p>
+<p class="consistent" data-ct-key="hello">My text changes.</p>
 <input type="text" name="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
 
-<p class="consistent" data-consistent-attribute-class="hello">My text doesn't change but my class does.</p>
+<p class="consistent" data-ct-attr-class="hello">My text doesn't change but my class does.</p>
 
 <!-- Templates -->
-<p class="consistent" data-consistent-template="{{hello}} {{world}}">My text changes, using a template.</p>
-<p class="consistent" data-consistent-template-attribute-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
+<p class="consistent" data-ct-tmpl="{{hello}} {{world}}">My text changes, using a template.</p>
+<p class="consistent" data-ct-tmpl-attr-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
 
 <button id="action">Action</button>
 

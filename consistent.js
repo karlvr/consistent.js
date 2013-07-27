@@ -50,10 +50,10 @@
 
 	merge(Consistent, {
 		settings: {
-			defaultKeyDataAttribute: "data-consistent-key",
-			defaultTemplateDataAttribute: "data-consistent-template",
-			defaultAttributeDataAttributePrefix: "data-consistent-attribute-",
-			defaultTemplateAttributeDataAttributePrefix: "data-consistent-template-attribute-"
+			defaultBodyDataAttribute: "data-ct-body",
+			defaultTemplateDataAttribute: "data-ct-tmpl",
+			defaultAttributeDataAttributePrefix: "data-ct-attr-",
+			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-"
 		}
 	});
 
@@ -175,8 +175,8 @@
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			if (name == Consistent.settings.defaultKeyDataAttribute) {
-				/* Key */
+			if (name == Consistent.settings.defaultBodyDataAttribute) {
+				/* Body */
 				result.key = attrs[i].value;
 			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
 				/* Attribute */
