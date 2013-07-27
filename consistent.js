@@ -68,6 +68,7 @@
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
 			attributeDataAttributePrefix: "data-ct-attr-",
+			propertyDataAttributePrefix: "data-ct-prop-",
 			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
 			bindDataAttributePrefix: "data-ct-bind-",
@@ -195,6 +196,17 @@
 						}
 					}
 				}
+
+				/* Apply to properties */
+				if (options.properties != null) {
+					var props = options.properties;
+					for (var i = 0; i < props.length; i++) {
+						var value = scope.$.get(props[i].key);
+						if (value !== undefined) {
+							this.applyPropertyValue(dom, props[i].name, value);
+						}
+					}
+				}
 			},
 
 			/** Apply the given value to the given dom object.
@@ -216,6 +228,15 @@
 				}
 			},
 
+			applyPropertyValue: function(dom, name, value) {
+				var parts = name.split(".");
+				var current = dom;
+				for (var i = 0; i < parts.length - 1; i++) {
+					current = dom[parts[i]];
+				}
+				current[parts[parts.length - 1]] = value;
+			},
+
 			/** Update the given scope with the given dom object */
 			update: function(dom, scope, options) {
 				if (options.key !== undefined) {
@@ -226,11 +247,18 @@
 				if (options.attributes != null) {
 					var attrs = options.attributes;
 					for (var i = 0; i < attrs.length; i++) {
-						var value;
 						if (attrs[i].key !== undefined) {
 							var value = this.getAttributeValue(dom, attrs[i].name);
 							scope[attrs[i].key] = value;
 						}
+					}
+				}
+
+				if (options.properties != null) {
+					var props = options.properties;
+					for (var i = 0; i < props.length; i++) {
+						var value = this.getPropertyValue(dom, props[i].name);
+						scope[props[i].key] = value;
 					}
 				}
 			},
@@ -247,6 +275,15 @@
 
 			getAttributeValue: function(dom, name) {
 				return dom.getAttribute(name);
+			},
+
+			getPropertyValue: function(dom, name) {
+				var parts = name.split(".");
+				var current = dom;
+				for (var i = 0; i < parts.length; i++) {
+					current = dom[parts[i]];
+				}
+				return current;
 			}
 
 		}
@@ -317,6 +354,16 @@
 					"name": targetAttribute,
 					"template": options.templateEngine.compile(templateById(value))
 				});
+			} else if (name.indexOf(settings.propertyDataAttributePrefix) === 0) {
+				/* Property */
+				var targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
+				targetProperty = targetProperty.replace(/-/g, ".");
+
+				prepareProperties();
+				result.properties.push({
+					"name": targetProperty,
+					"key": value
+				});
 			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
 				/* Bind events */
 				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
@@ -343,6 +390,12 @@
 		function prepareAttributes() {
 			if (result.attributes === undefined) {
 				result.attributes = [];
+			}
+		}
+
+		function prepareProperties() {
+			if (result.properties === undefined) {
+				result.properties = [];
 			}
 		}
 
