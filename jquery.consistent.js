@@ -1,5 +1,5 @@
 /*! 
- * consistent.js 0.1
+ * Consistent.js jQuery plugin 0.1
  * @author Karl von Randow
  */
  /*!

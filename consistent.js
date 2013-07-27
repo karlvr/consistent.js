@@ -1,5 +1,5 @@
 /*! 
- * consistent.js 0.1
+ * Consistent.js 0.1
  * @author Karl von Randow
  */
  /*!
@@ -18,6 +18,10 @@
    limitations under the License.
   */
 
+/**
+ * Set global configuration:
+ * eg. Consistent.defaultOptions.templateEngine = Hogan;
+ */
 (function(window, undefined) {
 
 	/**
