@@ -196,17 +196,24 @@
 				}
 			},
 
-			/** Apply the given value to the given dom object */
-			applyValue: function(dom, value) {
+			/** Apply the given value to the given dom object. During the node acquisition
+			  * process this is set to an appropriate applyValueTo* method if it hasn't already
+			  * been set in the supplied options.
+			  */
+			applyValue: null,
+
+			applyValueToInnerHTML: function(dom, value) {
 				if (value === undefined)
 					return;
 
-				var nodeName = dom.nodeName;
-				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					dom.value = value;
-				} else {
-					dom.innerHTML = value;
-				}
+				dom.innerHTML = value;
+			},
+
+			applyValueToValueAttribute: function(dom, value) {
+				if (value === undefined)
+					return;
+
+				dom.value = value;
 			},
 
 			/** Update the given scope with the given dom object */
@@ -218,13 +225,14 @@
 			},
 
 			/** Get the current value from the given dom object */
-			getValue: function(dom) {
-				var nodeName = dom.nodeName;
-				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					return dom.value;
-				} else {
-					return dom.innerHTML;
-				}
+			getValue: null,
+
+			getValueFromInnerHTML: function(dom) {
+				return dom.innerHTML;
+			},
+
+			getValueFromValueAttribute: function(dom) {
+				return dom.value;
 			}
 
 		}
@@ -487,9 +495,12 @@
 			})(eventName, options.events[eventName].keys);
 		}
 
-		/* Bind to changes */
+		/* Handle specific nodes differently */
 		var nodeName = dom.nodeName;
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+			/* For input and textarea nodes we bind to their change event by default, and we need to use an
+			 * alternative applyValue method.
+			 */
 			var listener = function(ev) {
 				options.$.update(dom, self._scope, options);
 				self._scope.$.apply();
@@ -497,6 +508,13 @@
 			dom.addEventListener("change", listener, false);
 
 			options.$._changeListener = listener;
+
+			if (options.$.applyValue === null) {
+				options.$.applyValue = options.$.applyValueToValueAttribute;
+			}
+			if (options.$.getValue === null) {
+				options.$.getValue = options.$.getValueFromValueAttribute;
+			}
 		}
 
 		/* Acquire children */
@@ -506,6 +524,14 @@
 				this.acquire(child, options);
 			}
 			child = child.nextSibling;
+		}
+
+		/* Default applyValue implementation */
+		if (options.$.applyValue === null) {
+			options.$.applyValue = options.$.applyValueToInnerHTML;
+		}
+		if (options.$.getValue === null) {
+			options.$.getValue = options.$.getValueFromInnerHTML;
 		}
 	};
 
