@@ -349,6 +349,11 @@
 				merge: function(object) {
 					return merge(self._model, object);
 				},
+				export: function(object) {
+					var temp = merge({}, self._model);
+					delete temp.$;
+					return merge(object || {}, temp);
+				},
 				nodes: function() {
 					return self._domNodes;
 				},
