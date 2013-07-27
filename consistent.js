@@ -374,7 +374,7 @@
 				}
 			}
 		};
-		this._cleanModel = this._model;
+		this._cleanModel = merge({}, this._model);
 	}
 
 	/**
