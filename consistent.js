@@ -160,8 +160,8 @@
 		templateEngine: null,
 
 		"$": {
-			nodeOptions: function(node, options) {
-				return Consistent.nodeOptions(node, options);
+			getNodeOptions: function(node, options) {
+				return Consistent.getNodeOptions(node, options);
 			},
 
 			/** Apply the given scope object to the given dom object */
@@ -239,12 +239,12 @@
 
 	};
 
-	/** Default node options function. This extends the provided options with options derived from the dom node such as
+	/** Default get node options function. This extends the provided options with options derived from the dom node such as
 	  * in data attributes. This function may be overriden to implement a custom way to discover options from a dom node.
 	  * @param options The options given when the scope's acquire method was called and the scope's own options.
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
-	Consistent.nodeOptions = Consistent.defaultNodeOptions = function(dom, options) {
+	Consistent.getNodeOptions = Consistent.defaultGetNodeOptions = function(dom, options) {
 		var result = mergeOptions({}, options);
 
 		var nodeName = dom.nodeName;
@@ -465,7 +465,7 @@
 		}
 
 		options = mergeOptions({}, this._options, options);
-		options = options.$.nodeOptions(dom, options);
+		options = options.$.getNodeOptions(dom, options);
 
 		this._nodes.push({ dom: dom, options: options });
 		this._domNodes.push(dom);
