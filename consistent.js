@@ -196,24 +196,18 @@
 				}
 			},
 
-			/** Apply the given value to the given dom object. During the node acquisition
-			  * process this is set to an appropriate applyValueTo* method if it hasn't already
-			  * been set in the supplied options.
+			/** Apply the given value to the given dom object.
 			  */
-			applyValue: null,
-
-			applyValueToInnerHTML: function(dom, value) {
+			applyValue: function(dom, value) {
 				if (value === undefined)
 					return;
 
-				dom.innerHTML = value;
-			},
-
-			applyValueToValueAttribute: function(dom, value) {
-				if (value === undefined)
-					return;
-
-				dom.value = value;
+				var nodeName = dom.nodeName;
+				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+					dom.value = value;
+				} else {
+					dom.innerHTML = value;
+				}
 			},
 
 			/** Update the given scope with the given dom object */
@@ -225,14 +219,13 @@
 			},
 
 			/** Get the current value from the given dom object */
-			getValue: null,
-
-			getValueFromInnerHTML: function(dom) {
-				return dom.innerHTML;
-			},
-
-			getValueFromValueAttribute: function(dom) {
-				return dom.value;
+			getValue: function(dom) {
+				var nodeName = dom.nodeName;
+				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+					return dom.value;
+				} else {
+					return dom.innerHTML;
+				}
 			}
 
 		}
@@ -508,13 +501,6 @@
 			dom.addEventListener("change", listener, false);
 
 			options.$._changeListener = listener;
-
-			if (options.$.applyValue === null) {
-				options.$.applyValue = options.$.applyValueToValueAttribute;
-			}
-			if (options.$.getValue === null) {
-				options.$.getValue = options.$.getValueFromValueAttribute;
-			}
 		}
 
 		/* Acquire children */
@@ -524,14 +510,6 @@
 				this.acquire(child, options);
 			}
 			child = child.nextSibling;
-		}
-
-		/* Default applyValue implementation */
-		if (options.$.applyValue === null) {
-			options.$.applyValue = options.$.applyValueToInnerHTML;
-		}
-		if (options.$.getValue === null) {
-			options.$.getValue = options.$.getValueFromInnerHTML;
 		}
 	};
 
