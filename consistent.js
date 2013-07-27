@@ -127,7 +127,7 @@
 
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
-	  * the model to the DOM.
+	  * the scope to the DOM.
 	  */
 	Consistent.defaultOptions = {
 
@@ -138,14 +138,14 @@
 				return Consistent.nodeOptions(node, options);
 			},
 
-			/** Apply the given model object to the given dom object */
-			apply: function(dom, model, options) {
+			/** Apply the given scope object to the given dom object */
+			apply: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					/* Key */
-					this.applyValue(dom, model[options.key]);
+					this.applyValue(dom, scope[options.key]);
 				} else if (options.template !== undefined) {
 					/* Template */
-					this.applyValue(dom, options.template.render(model));
+					this.applyValue(dom, options.template.render(scope));
 				}
 
 				/* Apply to attributes */
@@ -154,9 +154,9 @@
 					for (var i = 0; i < attrs.length; i++) {
 						var value;
 						if (attrs[i].key !== undefined) {
-							value = model[attrs[i].key];
+							value = scope[attrs[i].key];
 						} else if (attrs[i].template !== undefined) {
-							value = attrs[i].template.render(model);
+							value = attrs[i].template.render(scope);
 						} else {
 							value = null;
 						}
@@ -183,11 +183,11 @@
 				}
 			},
 
-			/** Update the given model with the given dom object */
-			update: function(dom, model, options) {
+			/** Update the given scope with the given dom object */
+			update: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					var value = this.getValue(dom);
-					model[options.key] = value;
+					scope[options.key] = value;
 				}
 			},
 
@@ -380,7 +380,7 @@
 	}
 
 	/**
-	 * Apply the scope's model to the DOM.
+	 * Apply the scope to the DOM.
 	 */
 	ConsistentScopeManager.prototype.apply = function() {
 		var n = this._nodes.length;
@@ -452,7 +452,7 @@
 							if (result === false)
 								break;
 						} else {
-							throw new ConsistentException("Bound " + eventName + " event wanted model function in key: " + key);
+							throw new ConsistentException("Bound " + eventName + " event wanted scope function in key: " + key);
 						}
 					}
 				};
