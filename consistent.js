@@ -414,6 +414,110 @@
 
 	/* Scope */
 
+	Consistent.defaultEmptyScope = {
+		$: {
+			_type: SCOPE_TYPE,
+
+			/* The root of the scope */
+			_scope: null,
+
+			/* The manager */
+			_manager: null,
+
+			apply: function(callback) {
+				if (callback !== undefined) {
+					callback.call(this._scope);
+				}
+
+				this._manager.apply();
+				return this._scope;
+			},
+			applyLater: function(callback) {
+				if (callback !== undefined) {
+					callback.call(this._scope);
+				}
+
+				window.clearTimeout(this._scope.$._applyLaterTimeout);
+				this._scope.$._applyLaterTimeout = window.setTimeout(this._scope.$.apply, 0);
+				return this._scope;
+			},
+			update: function() {
+				this._manager.update();
+				return this._scope;
+			},
+			bind: function(dom, options) {
+				this._manager.bind(dom, options);
+				return this._scope;
+			},
+			merge: function(object) {
+				return merge(this._scope, object);
+			},
+
+			/**
+			 * Export a plain object with the values from the scope, excluding the $ object.
+			 * If there is a parent scope, the values from that scope are merged in.
+			 */
+			export: function(object) {
+				var temp;
+				if (this._manager._parentScope != null) {
+					temp = merge(this._manager._parentScope.$.export(), this._scope);
+				} else {
+					temp = merge({}, this._scope);
+				}
+				delete temp.$;
+				return merge(object || {}, temp);
+			},
+			nodes: function() {
+				return this._manager._domNodes;
+			},
+			roots: function() {
+				return this._manager._rootDomNodes;
+			},
+			parent: function() {
+				return this._manager._parentScope;
+			},
+			watch: function(key, callback) {
+				this._manager.watch(key, callback);
+				return this._scope;
+			},
+			unwatch: function(key, callback) {
+				this._manager.unwatch(key, callback);
+				return this._scope;
+			},
+			get: function(key) {
+				var local = this.getLocal(key);
+				if (local !== undefined) {
+					return local;
+				} else if (this._manager._parentScope != null) {
+					return this._manager._parentScope.$.get(key);
+				} else {
+					return undefined;
+				}
+			},
+			getLocal: function(key) {
+				var parts = key.split(".");
+				var current = this._scope;
+				for (var i = 0; i < parts.length && current !== undefined; i++) {
+					current = current[parts[i]];
+				}
+				return current;
+			},
+			set: function(key, value) {
+				var parts = key.split(".");
+				var current = this._scope;
+				for (var i = 0; i < parts.length - 1; i++) {
+					var next = current[parts[i]];
+					if (next === undefined) {
+						current = current[parts[i]] = {};
+					} else {
+						current = next;
+					}
+				}
+				current[parts[parts.length - 1]] = value;
+			}
+		}
+	};
+
 	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
@@ -427,104 +531,10 @@
 		this._rootDomNodes = [];
 		this._watchers = {};
 
-		var self = this;
-		this._scope = {
-			"$": {
-				_type: SCOPE_TYPE,
+		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
+		this._scope.$._manager = this;
+		this._scope.$._scope = this._scope;
 
-				apply: function(callback) {
-					if (callback !== undefined) {
-						callback.call(self._scope);
-					}
-
-					self.apply();
-					return self._scope;
-				},
-				applyLater: function(callback) {
-					if (callback !== undefined) {
-						callback.call(self._scope);
-					}
-
-					window.clearTimeout(self._scope.$._applyLaterTimeout);
-					self._scope.$._applyLaterTimeout = window.setTimeout(self._scope.$.apply, 0);
-					return self._scope;
-				},
-				update: function() {
-					self.update();
-					return self._scope;
-				},
-				bind: function(dom, options) {
-					self.bind(dom, options);
-					return self._scope;
-				},
-				merge: function(object) {
-					return merge(self._scope, object);
-				},
-
-				/**
-				 * Export a plain object with the values from the scope, excluding the $ object.
-				 * If there is a parent scope, the values from that scope are merged in.
-				 */
-				export: function(object) {
-					var temp;
-					if (self._parentScope != null) {
-						temp = merge(self._parentScope.$.export(), self._scope);
-					} else {
-						temp = merge({}, self._scope);
-					}
-					delete temp.$;
-					return merge(object || {}, temp);
-				},
-				nodes: function() {
-					return self._domNodes;
-				},
-				roots: function() {
-					return self._rootDomNodes;
-				},
-				parent: function() {
-					return self._parentScope;
-				},
-				watch: function(key, callback) {
-					self.watch(key, callback);
-					return self._scope;
-				},
-				unwatch: function(key, callback) {
-					self.unwatch(key, callback);
-					return self._scope;
-				},
-				get: function(key) {
-					var local = this.getLocal(key);
-					if (local !== undefined) {
-						return local;
-					} else if (self._parentScope != null) {
-						return self._parentScope.$.get(key);
-					} else {
-						return undefined;
-					}
-				},
-				getLocal: function(key) {
-					var parts = key.split(".");
-					var current = self._scope;
-					for (var i = 0; i < parts.length && current !== undefined; i++) {
-						current = current[parts[i]];
-					}
-					return current;
-				},
-				set: function(key, value) {
-					var parts = key.split(".");
-					var current = self._scope;
-					for (var i = 0; i < parts.length - 1; i++) {
-						var next = current[parts[i]];
-						if (next === undefined) {
-							current = current[parts[i]] = {};
-						} else {
-							current = next;
-						}
-					}
-					current[parts[parts.length - 1]] = value;
-				}
-			}
-		};
 		this._cleanScope = merge({}, this._scope);
 	}
 
