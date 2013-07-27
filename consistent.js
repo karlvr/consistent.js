@@ -437,7 +437,7 @@
 		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 			var listener = function(ev) {
 				options.$.update(dom, self._model, options);
-				self.apply();
+				self._model.$.apply();
 			};
 			dom.addEventListener("change", listener, false);
 
