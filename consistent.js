@@ -517,7 +517,7 @@
 						var key = keys[i];
 						var func = self._scope[key];
 						if (func !== undefined) {
-							var result = self._scope[key].call(dom, ev);
+							var result = self._scope[key].call(dom, ev, self._scope);
 							if (result === false)
 								break;
 						} else {
