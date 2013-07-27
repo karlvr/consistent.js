@@ -52,8 +52,10 @@
 		settings: {
 			defaultBodyDataAttribute: "data-ct-body",
 			defaultTemplateDataAttribute: "data-ct-tmpl",
+			defaultTemplateIdDataAttribute: "data-ct-tmpl-id",
 			defaultAttributeDataAttributePrefix: "data-ct-attr-",
 			defaultTemplateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
+			defaultTemplateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
 			defaultBindDataAttributePrefix: "data-ct-bind-"
 		}
 	});
@@ -185,39 +187,75 @@
 			} else if (name.indexOf(Consistent.settings.defaultAttributeDataAttributePrefix) === 0) {
 				/* Attribute */
 				var targetAttribute = name.substring(Consistent.settings.defaultAttributeDataAttributePrefix.length);
-				if (result.attributes === undefined)
-					result.attributes = [];
+				prepareAttributes();
 				result.attributes.push({
 					"name": targetAttribute,
 					"key": attrs[i].value
 				});
 			} else if (name == Consistent.settings.defaultTemplateDataAttribute) {
 				/* Template */
-				if (options.templateEngine != null) {
-					result.template = options.templateEngine.compile(attrs[i].value);
-				} else {
-					throw new ConsistentException("Template specified but no templateEngine configured in options");
-				}
+				assertTemplateEngine();
+
+				result.template = options.templateEngine.compile(attrs[i].value);
+			} else if (name == Consistent.settings.defaultTemplateIdDataAttribute) {
+				/* Template by id */
+				assertTemplateEngine();
+
+				result.template = options.templateEngine.compile(templateById(attrs[i].value));
 			} else if (name.indexOf(Consistent.settings.defaultTemplateAttributeDataAttributePrefix) === 0) {
 				/* Attribute template */
-				if (options.templateEngine != null) {
-					var targetAttribute = name.substring(Consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
-					if (result.attributes === undefined)
-						result.attributes = [];
-					result.attributes.push({
-						"name": targetAttribute,
-						"template": options.templateEngine.compile(attrs[i].value)
-					});
-				} else {
-					throw new ConsistentException("Attribute template specified but no templateEngine configured in options");
-				}
+				assertTemplateEngine();
+
+				var targetAttribute = name.substring(Consistent.settings.defaultTemplateAttributeDataAttributePrefix.length);
+				prepareAttributes();
+				result.attributes.push({
+					"name": targetAttribute,
+					"template": options.templateEngine.compile(attrs[i].value)
+				});
+			} else if (name.indexOf(Consistent.settings.defaultTemplateIdAttributeDataAttributePrefix) === 0) {
+				/* Attribute template by id */
+				assertTemplateEngine();
+
+				var targetAttribute = name.substring(Consistent.settings.defaultTemplateIdAttributeDataAttributePrefix.length);
+				prepareAttributes();
+				result.attributes.push({
+					"name": targetAttribute,
+					"template": options.templateEngine.compile(templateById(attrs[i].value))
+				});
 			} else if (name.indexOf(Consistent.settings.defaultBindDataAttributePrefix) === 0) {
 				var eventName = name.substring(Consistent.settings.defaultBindDataAttributePrefix.length).toLowerCase();
-				if (result.events === undefined)
-					result.events = {};
-				if (result.events[eventName] === undefined)
-					result.events[eventName] = { keys: [] };
+				prepareEvents(eventName);
 				result.events[eventName].keys.push(attrs[i].value);
+			}
+		}
+
+		function assertTemplateEngine() {
+			if (options.templateEngine == null) {
+				throw new ConsistentException("templateEngine not configured in options");
+			}
+		}
+
+		function templateById(templateId) {
+			var templateElement = document.getElementById(templateId);
+			if (templateElement !== null) {
+				return templateElement.innerHTML;
+			} else {
+				throw new ConsistentException("Template not found with id: " + templateId);
+			}
+		}
+
+		function prepareAttributes() {
+			if (result.attributes === undefined) {
+				result.attributes = [];
+			}
+		}
+
+		function prepareEvents(eventName) {
+			if (result.events === undefined) {
+				result.events = {};
+			}
+			if (result.events[eventName] === undefined) {
+				result.events[eventName] = { keys: [] };
 			}
 		}
 			

@@ -36,6 +36,14 @@ p.world {
 <p class="consistent" data-ct-body="undefinedKey">This text should not be changed to "undefined"</p>
 <p class="consistent" data-ct-body="nullKey">This text should be hidden as it is set to null</p>
 
+<!-- Template by id -->
+<p class="consistent" data-ct-tmpl-id="myTemplate">Text should have changed</p>
+<script id="myTemplate" type="text/x-hogan-template">
+	<strong>Template by id worked</strong>
+</script>
+<p class="consistent" data-ct-tmpl-id-attr-class="myClassTemplate">Should be pink when hello=world</p>
+<script id="myClassTemplate" type="text/x-hogan-template">{{hello}}</script>
+
 <!-- Possible new configuration styles:
 
 	Also allow specifying the configuration in Javascript when you do the binding, so you can take advantage of
