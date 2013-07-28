@@ -31,7 +31,7 @@ $(function() {
 			success: function(data) {
 				var scope = Consistent();
 				scope.$.merge(data);
-				$(template).appendTo("#container").consistent(scope);
+				$(template).appendTo("#container").consistent(scope).$.apply();
 				scopes.push(scope);
 			},
 			error: function(jqXHR, textStatus) {

@@ -118,15 +118,19 @@ $(function() {
 
 			/* Import the current state from the dom. */
 			scope.$.update();
-
-			/* Apply the scope to trigger the watcher function and update the DOM */
-			scope.$.apply();
 		} else {
 			/* Bind existing scope */
 			$(this).consistent(scope);
 		}
 
 	});
+
+	for (var objectId in scopesByObjectId) {
+		var scope = scopesByObjectId[objectId];
+		
+		/* Apply the scope to trigger the watcher function and update the DOM */
+		scope.$.apply();
+	}
 });
 
 </script>

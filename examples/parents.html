@@ -49,7 +49,7 @@ $(function() {
 						this.selected = scope.title;
 					});
 				};
-				$(template).appendTo("#container").consistent(scope);
+				$(template).appendTo("#container").consistent(scope).$.apply();
 				scopes.push(scope);
 			},
 			error: function(jqXHR, textStatus) {

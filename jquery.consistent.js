@@ -72,8 +72,6 @@
 			scope.$.bind(this, options);
 		});
 
-		scope.$.apply();
-
 		return scope;
 	};
 
