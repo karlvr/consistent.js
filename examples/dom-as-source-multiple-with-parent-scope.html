@@ -97,6 +97,19 @@ $(function() {
 		});
 	};
 
+	/* Watch on status to update the derived properties */
+	rootScope.$.watch("status", function() {
+		/* _this_ is set to the scope that received the change, rather than the rootScope */
+		if (this.status == "on") {
+			this.displayClass = "highlighted";
+			this.buttonLabel = "Turn Off";
+		} else {
+			this.displayClass = "lowlighted";
+			this.buttonLabel = "Turn On";
+		}
+		/* No need to apply inside a watcher callback */
+	});
+
 	var scopesByObjectId = {};
 
 	$("div.object").each(function() {
@@ -106,18 +119,6 @@ $(function() {
 			/* Create scope */
 			var scope = $.consistent(rootScope);
 			scope = scopesByObjectId[objectId] = $(this).consistent(scope);
-
-			/* Watch on status to update the derived properties */
-			scope.$.watch("status", function() {
-				if (this.status == "on") {
-					this.displayClass = "highlighted";
-					this.buttonLabel = "Turn Off";
-				} else {
-					this.displayClass = "lowlighted";
-					this.buttonLabel = "Turn On";
-				}
-				/* No need to apply inside a watcher callback */
-			});
 
 			/* Import the current state from the dom. */
 			scope.$.update();

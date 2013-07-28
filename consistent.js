@@ -597,7 +597,6 @@
 		this._domNodes = [];
 		this._rootDomNodes = [];
 		this._watchers = {};
-		this._notifyingWatchers = {};
 		this._nodesDirty = false;
 		this._needsApply = false;
 		this._applying = false;
@@ -669,6 +668,7 @@
 		var notified = true;
 		var loops = 0;
 		var currentCleanScope = this._cleanScope;
+		var notifyingState = {};
 
 		while (notified) {
 			var nextCleanScope = cloneScope(this._scope);
@@ -687,19 +687,19 @@
 					if (dirty.indexOf(key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, this._scope.$.get(key), currentCleanScope.$.get(key));
+					notified |= this._notifyWatchers(key, this._scope.$.get(key), currentCleanScope.$.get(key), 
+						this._scope, notifyingState);
 				}
 			}
 
 			if (dirty.length > 0) {
-				notified |= this._notifyWatchAlls(dirty, this._scope, currentCleanScope);
+				notified |= this._notifyWatchAlls(dirty, this._scope, currentCleanScope, notifyingState);
 				someDirty = true;
 			}
 
 			currentCleanScope = nextCleanScope;
 		}
 
-		this._notifyingWatchers = {};
 		if (someDirty) {
 			this._cleanScope = cloneScope(this._scope);
 			return true;
@@ -708,14 +708,14 @@
 		}
 	};
 
-	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue) {
+	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue, scope, notifyingState) {
 		var notified = false;
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
-				var notifying = this._notifyingWatchers[key];
+				var notifying = notifyingState[key];
 				if (notifying === undefined) {
-					this._notifyingWatchers[key] = notifying = {};
+					notifyingState[key] = notifying = {};
 				}
 
 				var watcher = watchers[i];
@@ -728,7 +728,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || notifying[watcherId].cleanValue !== newValue) {
-					watcher.call(this._scope, key, newValue, oldValue);
+					watcher.call(scope, key, newValue, oldValue);
 
 					notifying[watcherId] = { cleanValue: this._scope.$.get(key) };
 					notified = true;
@@ -736,17 +736,21 @@
 			}
 		}
 
+		if (this._parentScope != null) {
+			this._parentScope.$._manager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+		}
+
 		return notified;
 	};
 
-	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, newScope, oldScope) {
+	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, scope, oldScope, notifyingState) {
 		var notified = false;
 		var watchers = this._watchers[WATCH_ALL_KEY];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
-				var notifying = this._notifyingWatchers[WATCH_ALL_KEY];
+				var notifying = notifyingState[WATCH_ALL_KEY];
 				if (notifying === undefined) {
-					this._notifyingWatchers[WATCH_ALL_KEY] = notifying = {};
+					notifyingState[WATCH_ALL_KEY] = notifying = {};
 				}
 
 				var watcher = watchers[i];
@@ -758,13 +762,17 @@
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcherId] === undefined || differentScopeKeys(newScope, notifying[watcherId].cleanScope).length !== 0) {
-					watchers[i].call(this._scope, keys, newScope, oldScope);
+				if (notifying[watcherId] === undefined || differentScopeKeys(scope, notifying[watcherId].cleanScope).length !== 0) {
+					watchers[i].call(scope, keys, scope, oldScope);
 					
-					notifying[watcherId] = { cleanScope: cloneScope(this._scope) };
+					notifying[watcherId] = { cleanScope: cloneScope(scope) };
 					notified = true;
 				}
 			}
+		}
+
+		if (this._parentScope != null) {
+			this._parentScope.$._manager._notifyWatchAlls(keys, scope, oldScope, notifyingState);
 		}
 
 		return notified;
