@@ -426,17 +426,17 @@
 			/* The manager */
 			_manager: null,
 
-			apply: function(callback) {
-				if (callback !== undefined) {
-					callback.call(this._scope);
+			apply: function(func) {
+				if (func !== undefined) {
+					func.call(this._scope);
 				}
 
 				this._manager.apply();
 				return this._scope;
 			},
-			applyLater: function(callback) {
-				if (callback !== undefined) {
-					callback.call(this._scope);
+			applyLater: function(func) {
+				if (func !== undefined) {
+					func.call(this._scope);
 				}
 
 				window.clearTimeout(this._scope.$._applyLaterTimeout);
