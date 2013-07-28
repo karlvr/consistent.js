@@ -398,8 +398,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 * `$.consistent` is synonymous with the `Consistent` function above and can be used in the same way.
 * `$(selector).consistent()` checks the nodes to see if they have been bound to a scope. If they’ve all been bound to the same scope, it returns that scope. If they’ve been bound to different scopes (or some have been bound and some haven’t) this throws an exception. If they haven’t been bound to a scope a new scope is created, the nodes are bound and the scope is returned.
-* `$(selector).consistent(options) creates a new scope with the given options, binds the nodes to it and returns the scope.
-* `$(selector).consistent(scope [, options]) binds the nodes to the given scope, with the options if provided and returns the scope.
+* `$(selector).consistent(options)` creates a new scope with the given options, binds the nodes to it and returns the scope.
+* `$(selector).consistent(scope [, options])` binds the nodes to the given scope, with the options if provided and returns the scope.
 
 What Consistent doesn’t do
 --------------------------
