@@ -235,6 +235,38 @@ It is possible for watch handlers to cause an infinite loop, if the scope does n
 excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
 `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
+### Populating the scope from another object
+
+Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope
+using the `merge` function.
+
+```javascript
+var scope = $("#item").consistent();
+$.ajax({
+	success: function(data) {
+		scope.$.merge(data);
+	}
+})
+```
+
+Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing
+and values that are already there. If your scope has nested objects, they are replaced rather than merged.
+
+### Exporting the scope to a Javascript object
+
+The scope contains some extra properties required for Consistent. In order to obtain a Javascript object with
+just the scope properties use the `export` function.
+
+```javascript
+var scope = $("#item").consistent();
+scope.$.update();
+$.ajax({
+	data: scope.$.export()
+});
+```
+
+The `export` function includes properties from parent scopes. If you don’t want to include parent scopes use `exportLocal` instead.
+
 Advanced
 --------
 
@@ -309,7 +341,8 @@ the event handler is declared in a parent scope.
 
 ```javascript
 rootScope.handleClick = function(ev, scope) {
-	// scope === childScope	
+	// scope === childScope
+	scope.title += ".";
 };
 ```
 

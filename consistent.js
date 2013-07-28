@@ -463,7 +463,7 @@
 			 * Export a plain object with the values from the scope, excluding the $ object.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
-			export: function(object) {
+			export: function() {
 				var temp;
 				if (this._manager._parentScope != null) {
 					temp = merge(this._manager._parentScope.$.export(), this._scope);
@@ -471,7 +471,12 @@
 					temp = merge({}, this._scope);
 				}
 				delete temp.$;
-				return merge(object || {}, temp);
+				return temp;
+			},
+			exportLocal: function() {
+				var temp = merge({}, this._scope);
+				delete temp.$;
+				return temp;
 			},
 			nodes: function() {
 				return this._manager._domNodes;
