@@ -26,7 +26,7 @@
 
 	/**
 	 * Single point of entry for Consistent.
-	 * Arguments be be:
+	 * Arguments can be:
 	 * * None, just create a new Consistent scope and return it.
 	 * * An existing Consistent scope, create a child scope and return it. Optionally followed by a second argument for options.
 	 * * An object containing key value pairs, used for the configuration of the new scope.
