@@ -487,12 +487,12 @@
 			parent: function() {
 				return this._manager._parentScope;
 			},
-			watch: function(key, callback) {
-				this._manager.watch(key, callback);
+			watch: function(key, handler) {
+				this._manager.watch(key, handler);
 				return this._scope;
 			},
-			unwatch: function(key, callback) {
-				this._manager.unwatch(key, callback);
+			unwatch: function(key, handler) {
+				this._manager.unwatch(key, handler);
 				return this._scope;
 			},
 			get: function(key) {

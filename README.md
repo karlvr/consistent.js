@@ -186,7 +186,7 @@ $(".container").each(function() {
 });
 ```
 
-### Finding the scope for a DOM node
+### Getting the scope for a DOM node
 
 If you need to get the existing scope for a node, you can follow the exact same pattern. Calling `.consistent()` again
 will return the existing scope.
@@ -297,6 +297,9 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want
+to fall back to a parent scope use `getLocal` instead.
+
 ### Parent scopes
 
 You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given
@@ -346,6 +349,43 @@ rootScope.handleClick = function(ev, scope) {
 };
 ```
 
+### Getting the nodes bound to a scope
+
+If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes` which returns
+all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound as opposed
+to those that were bound as they are children of the explicitly bound nodes.
+
+```javascript
+$(scope.$.nodes()).addClass("found");
+$(scope.$.roots()).addClass("found");
+```
+
+### Options
+
+
+Reference
+---------
+
+### Scope functions
+
+All scope functions are nested inside the `$` object, and therefore you call them, eg. `scope.$.apply()`.
+
+* `apply([function])` applies the scope to the DOM, if the function argument is provided the function is called with `this` set to the scope before the scope is applied.
+* `applyLater([function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
+* `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
+* `update()` updates the scope by reading keys and values from the DOM.
+* `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
+* `merge(object)` merges properties in the given object into the scope.
+* `export()` returns a Javascript object containing the scope’s properties without its functionality.
+* `exportLocal()` as for `export` but doesn’t include parent scopes.
+* `nodes()` returns an array of DOM nodes that are bound to this scope.
+* `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
+* `parent()` returns the parent scope, or null if there is no parent scope.
+* `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
+* `unwatch([key,] function)` unbinds the watch function.
+* `get(key)` returns the value in the scope for the given key. Supports nested keys (ie. that contain dot notation) and falls back to parent scopes.
+* `getLocal(key)` as for `get` but doesn’t include parent scopes.
+* `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
 
 What Consistent doesn’t do
 --------------------------
