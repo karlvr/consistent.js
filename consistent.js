@@ -73,7 +73,9 @@
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
 			bindDataAttributePrefix: "data-ct-bind-",
 
-			scopeIdKey: "__ConsistentScopeID"
+			scopeIdKey: "__ConsistentScopeID",
+
+			maxWatcherLoops: 100
 		},
 
 		isScope: function(object) {
@@ -521,6 +523,35 @@
 		}
 	};
 
+	/**
+	 * Compares two objects and returns an array of keys with values that don't match between
+	 * the two of them.
+	 */
+	function dirtyKeys(a, b) {
+		var result = [];
+
+		for (var key in a) {
+			if (key === "$") {
+				continue;
+			}
+
+			if (a[key] !== b[key]) {
+				result.push(key);
+			}
+		}
+		for (var key in b) {
+			if (key === "$") {
+				continue;
+			}
+
+			if (a[key] === undefined) {
+				result.push(key);
+			}
+		}
+
+		return result;
+	}
+
 	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
@@ -537,6 +568,7 @@
 		this._notifyingWatchers = {};
 		this._nodesDirty = false;
 		this._needsApply = false;
+		this._applying = false;
 
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
 		this._scope.$._manager = this;
@@ -549,14 +581,24 @@
 	 * Apply the scope to the DOM.
 	 */
 	ConsistentScopeManager.prototype.apply = function() {
-		var n = this._nodes.length;
-		for (var i = 0; i < n; i++) {
-			var node = this._nodes[i];
-			node.options.$.apply(node.dom, this._scope, node.options);
+		/* Prevent re-entry into apply */
+		if (this._applying) {
+			return;
+		}
+		this._applying = true;
+
+		if (this._handleDirty() || this._nodesDirty || this._needsApply) {
+			/* Apply to the DOM */
+			var n = this._nodes.length;
+			for (var i = 0; i < n; i++) {
+				var node = this._nodes[i];
+				node.options.$.apply(node.dom, this._scope, node.options);
+			}
+
+			this._nodesDirty = this._needsApply = false;
 		}
 
-		this._handleDirty();
-		this._nodesDirty = this._needsApply = false;
+		this._applying = false;
 	};
 
 	/**
@@ -569,7 +611,7 @@
 			node.options.$.update(node.dom, this._scope, node.options);
 		}
 
-		if (this._handleDirty()) {
+		if (this.isDirty()) {
 			this._needsApply = true;
 		}
 	};
@@ -579,30 +621,53 @@
 			return true;
 		}
 
-		for (var key in this._scope) {
-			var value = this._scope[key];
-			var cleanValue = this._cleanScope[key];
-			if (value !== cleanValue) {
-				return true;
-			}
-		}
+		return this.isDirty();
+	},
 
-		return false;
+	ConsistentScopeManager.prototype.isDirty = function() {
+		return dirtyKeys(this._scope, this._cleanScope).length !== 0;
 	},
 
 	ConsistentScopeManager.prototype._handleDirty = function() {
 		/* Look for dirty */
-		var dirty = [];
-		for (var key in this._scope) {
-			var value = this._scope[key];
-			var cleanValue = this._cleanScope[key];
-			if (value !== cleanValue) {
-				dirty.push(key);
-				this._notifyWatchers(key, value, cleanValue);
+		// TODO nested objects in the scope
+
+		var someDirty = false;
+		var dirty;
+		var notified = true;
+		var loops = 0;
+
+		while (notified) {
+			var newCleanScope = merge({}, this._scope);
+
+			dirty = [];
+
+			while (notified) {
+				notified = false;
+				if (loops++ >= Consistent.settings.maxWatcherLoops) {
+					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
+				}
+
+				var keys = dirtyKeys(this._scope, this._cleanScope);
+				for (var i = 0; i < keys.length; i++) {
+					var key = keys[i];
+					if (dirty.indexOf(key) === -1) {
+						dirty.push(key);
+					}
+					notified |= this._notifyWatchers(key, this._scope[key], this._cleanScope[key]);
+				}
 			}
+
+			if (dirty.length > 0) {
+				notified |= this._notifyWatchAlls(dirty, this._scope, this._cleanScope);
+				someDirty = true;
+			}
+
+			this._cleanScope = newCleanScope;
 		}
-		if (dirty.length > 0) {
-			this._notifyWatchAlls(dirty, this._scope, this._cleanScope);
+
+		this._notifyingWatchers = {};
+		if (someDirty) {
 			this._cleanScope = merge({}, this._scope);
 			return true;
 		} else {
@@ -611,48 +676,57 @@
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue) {
+		var notified = false;
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
 				var notifying = this._notifyingWatchers[key];
 				if (notifying === undefined) {
-					notifying = [];
-					this._notifyingWatchers[key] = notifying;
+					this._notifyingWatchers[key] = notifying = {};
 				}
 
 				var watcher = watchers[i];
 
-				/* Prevent inifinite loops if a watcher function causes a change in the scope */
-				if (notifying.indexOf(watcher) === -1) {
-					notifying.push(watcher);
+				/* Manage loops. Don't notify again if the value hasn't changed since after the last time we
+				 * called this watcher. So it won't be notified of its own changes.
+				 */
+				if (notifying[watcher] === undefined || notifying[watcher].cleanValue !== newValue) {
 					watcher.call(this._scope, key, newValue, oldValue);
-					notifying.splice(notifying.indexOf(watcher), 1);
-				}
 
+					notifying[watcher] = { cleanValue: this._scope[key] };
+					notified = true;
+				}
 			}
 		}
+
+		return notified;
 	};
 
-	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, newValue, oldValue) {
+	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, newScope, oldScope) {
+		var notified = false;
 		var watchers = this._watchers[WATCH_ALL_KEY];
 		if (watchers !== undefined) {
 			for (var i = 0; i < watchers.length; i++) {
 				var notifying = this._notifyingWatchers[WATCH_ALL_KEY];
 				if (notifying === undefined) {
-					notifying = [];
-					this._notifyingWatchers[WATCH_ALL_KEY] = notifying;
+					this._notifyingWatchers[WATCH_ALL_KEY] = notifying = {};
 				}
 
 				var watcher = watchers[i];
 
-				/* Prevent inifinite loops if a watcher function causes a change in the scope */
-				if (notifying.indexOf(watcher) === -1) {
-					notifying.push(watcher);
-					watchers[i].call(this._scope, keys, newValue, oldValue);
-					notifying.splice(notifying.indexOf(watcher), 1);
+				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
+				 * called this watcher. So it won't be notified of its own changes.
+				 */
+				if (notifying[watcher] === undefined || dirtyKeys(newScope, notifying[watcher].cleanScope).length !== 0) {
+					watchers[i].call(this._scope, keys, newScope, oldScope);
+					
+					notifying[watcher] = { cleanScope: merge({}, this._scope)};
+					notified = true;
 				}
 			}
 		}
+
+		return notified;
 	};
 
 	/**
