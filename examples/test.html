@@ -64,10 +64,10 @@ $(function() {
 	myScope.clickCount = 0;
 	myScope.nullKey = null;
 
-	var exp = myScope.$.export();
+	var exp = myScope.$.extract();
 	var undefined;
 	if (exp.$ !== undefined || exp.hello !== "world") {
-		console.log("Export faulty", exp);
+		console.log("Extract faulty", exp);
 	}
 
 	myScope.clickHandler = function(ev) {

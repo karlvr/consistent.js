@@ -178,7 +178,7 @@
 					}
 				} else if (options.template !== undefined) {
 					/* Template */
-					this.applyValue(dom, options.template.render(scope.$.export()));
+					this.applyValue(dom, options.template.render(scope.$.extract()));
 				}
 
 				/* Apply to attributes */
@@ -189,7 +189,7 @@
 						if (attrs[i].key !== undefined) {
 							value = scope.$.get(attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
-							value = attrs[i].template.render(scope.$.export());
+							value = attrs[i].template.render(scope.$.extract());
 						} else {
 							value = null;
 						}
@@ -460,20 +460,20 @@
 			},
 
 			/**
-			 * Export a plain object with the values from the scope, excluding the $ object.
+			 * Extract a plain object with the values from the scope, excluding the $ object.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
-			export: function() {
+			extract: function() {
 				var temp;
 				if (this._manager._parentScope != null) {
-					temp = merge(this._manager._parentScope.$.export(), this._scope);
+					temp = merge(this._manager._parentScope.$.extract(), this._scope);
 				} else {
 					temp = merge({}, this._scope);
 				}
 				delete temp.$;
 				return temp;
 			},
-			exportLocal: function() {
+			extractLocal: function() {
 				var temp = merge({}, this._scope);
 				delete temp.$;
 				return temp;
@@ -818,7 +818,13 @@
 					}
 				};
 				options.events[eventName].listener = listener;
-				dom.addEventListener(eventName, listener, false);
+				if (dom.addEventListener) {
+					dom.addEventListener(eventName, listener, false);
+				} else if (dom.attachEvent) {
+					dom.attachEvent("on" + eventName, listener);
+				} else {
+					throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
+				}
 			})(eventName, options.events[eventName].keys);
 		}
 
@@ -915,3 +921,17 @@
 	};
 
 })(window);
+
+// Add ECMA262-5 Array methods if not supported natively
+//
+if (!('indexOf' in Array.prototype)) {
+    Array.prototype.indexOf= function(find, i /*opt*/) {
+        if (i===undefined) i= 0;
+        if (i<0) i+= this.length;
+        if (i<0) i= 0;
+        for (var n= this.length; i<n; i++)
+            if (i in this && this[i]===find)
+                return i;
+        return -1;
+    };
+}

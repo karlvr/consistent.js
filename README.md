@@ -252,20 +252,20 @@ $.ajax({
 Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing
 and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
-### Exporting the scope to a Javascript object
+### Extracting the scope to a Javascript object
 
 The scope contains some extra properties required for Consistent. In order to obtain a Javascript object with
-just the scope properties use the `export` function.
+just the scope properties use the `extract` function.
 
 ```javascript
 var scope = $("#item").consistent();
 scope.$.update();
 $.ajax({
-	data: scope.$.export()
+	data: scope.$.extract()
 });
 ```
 
-The `export` function includes properties from parent scopes. If you don’t want to include parent scopes use `exportLocal` instead.
+The `extract` function includes properties from parent scopes. If you don’t want to include parent scopes use `extractLocal` instead.
 
 Advanced
 --------
@@ -376,8 +376,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
 * `merge(object)` merges properties in the given object into the scope.
-* `export()` returns a Javascript object containing the scope’s properties without its functionality.
-* `exportLocal()` as for `export` but doesn’t include parent scopes.
+* `extract()` returns a Javascript object containing the scope’s properties without its functionality.
+* `extractLocal()` as for `extract` but doesn’t include parent scopes.
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 * `parent()` returns the parent scope, or null if there is no parent scope.
@@ -409,4 +409,4 @@ engine such as Mustache or Hogan (which I’ve used in the examples). You can ea
 scope to them.
 
 Consistent doesn’t do any Ajax. Consistent scopes provide easy access to populate from an Ajax JSON response or to extract data for sending
-to a server. Look at the `scope.$.merge(object)` and `scope.$.export()` functions.
+to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions.

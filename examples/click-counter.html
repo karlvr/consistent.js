@@ -26,7 +26,7 @@ $(function() {
 		this.numberOfClicks = 0;
 		this.tooManyClicksDisplay = "none";
 
-		// TODO maybe separate event handlers from model values, or change export to exclude them?
+		// TODO maybe separate event handlers from model values, or change extract() to exclude them?
 		this.registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
