@@ -527,28 +527,58 @@
 	 * Compares two objects and returns an array of keys with values that don't match between
 	 * the two of them.
 	 */
-	function dirtyKeys(a, b) {
-		var result = [];
+	function differentScopeKeys(aScope, bScope, prefix, depth, result, seen) {
+		if (prefix === undefined) {
+			prefix = "";
+		}
+		if (depth === undefined) {
+			depth = 0;
+		}
+		if (result === undefined) {
+			result = [];
+		}
+		if (seen === undefined) {
+			seen = [];
+		}
 
-		for (var key in a) {
+		/* Prevent an infinite loop if there is a cycle in the graph */
+		if (seen.indexOf(aScope) !== -1 || seen.indexOf(bScope) !== -1) {
+			return result;
+		}
+		seen.push(aScope);
+		seen.push(bScope);
+
+		for (var key in aScope) {
+			if (key === "$" && depth == 0) {
+				continue;
+			}
+
+			if (aScope[key] !== bScope[key]) {
+				if (typeof aScope[key] === "object" && typeof bScope[key] === "object") {
+					differentScopeKeys(aScope[key], bScope[key], prefix + key + ".", depth + 1, result, seen);
+				} else {
+					result.push(prefix + key);
+				}
+			}
+		}
+
+		/* Collect anything that exists in bScope but isn't in aScope */
+		for (var key in bScope) {
 			if (key === "$") {
 				continue;
 			}
 
-			if (a[key] !== b[key]) {
-				result.push(key);
-			}
-		}
-		for (var key in b) {
-			if (key === "$") {
-				continue;
-			}
-
-			if (a[key] === undefined) {
-				result.push(key);
+			if (aScope[key] === undefined) {
+				result.push(prefix + key);
 			}
 		}
 
+		return result;
+	}
+
+	function cloneScope(scope) {
+		var result = mergeOptions({}, scope);
+		result.$._scope = result;
 		return result;
 	}
 
@@ -574,7 +604,7 @@
 		this._scope.$._manager = this;
 		this._scope.$._scope = this._scope;
 
-		this._cleanScope = merge({}, this._scope);
+		this._cleanScope = cloneScope(this._scope);
 	}
 
 	/**
@@ -625,7 +655,7 @@
 	},
 
 	ConsistentScopeManager.prototype.isDirty = function() {
-		return dirtyKeys(this._scope, this._cleanScope).length !== 0;
+		return differentScopeKeys(this._scope, this._cleanScope).length !== 0;
 	},
 
 	ConsistentScopeManager.prototype._handleDirty = function() {
@@ -636,9 +666,10 @@
 		var dirty;
 		var notified = true;
 		var loops = 0;
+		var currentCleanScope = this._cleanScope;
 
 		while (notified) {
-			var newCleanScope = merge({}, this._scope);
+			var nextCleanScope = cloneScope(this._scope);
 
 			dirty = [];
 
@@ -648,27 +679,27 @@
 					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
-				var keys = dirtyKeys(this._scope, this._cleanScope);
+				var keys = differentScopeKeys(this._scope, currentCleanScope);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (dirty.indexOf(key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, this._scope[key], this._cleanScope[key]);
+					notified |= this._notifyWatchers(key, this._scope.$.get(key), currentCleanScope.$.get(key));
 				}
 			}
 
 			if (dirty.length > 0) {
-				notified |= this._notifyWatchAlls(dirty, this._scope, this._cleanScope);
+				notified |= this._notifyWatchAlls(dirty, this._scope, currentCleanScope);
 				someDirty = true;
 			}
 
-			this._cleanScope = newCleanScope;
+			currentCleanScope = nextCleanScope;
 		}
 
 		this._notifyingWatchers = {};
 		if (someDirty) {
-			this._cleanScope = merge({}, this._scope);
+			this._cleanScope = cloneScope(this._scope);
 			return true;
 		} else {
 			return false;
@@ -693,7 +724,7 @@
 				if (notifying[watcher] === undefined || notifying[watcher].cleanValue !== newValue) {
 					watcher.call(this._scope, key, newValue, oldValue);
 
-					notifying[watcher] = { cleanValue: this._scope[key] };
+					notifying[watcher] = { cleanValue: this._scope.$.get(key) };
 					notified = true;
 				}
 			}
@@ -717,10 +748,10 @@
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcher] === undefined || dirtyKeys(newScope, notifying[watcher].cleanScope).length !== 0) {
+				if (notifying[watcher] === undefined || differentScopeKeys(newScope, notifying[watcher].cleanScope).length !== 0) {
 					watchers[i].call(this._scope, keys, newScope, oldScope);
 					
-					notifying[watcher] = { cleanScope: merge({}, this._scope)};
+					notifying[watcher] = { cleanScope: cloneScope(this._scope) };
 					notified = true;
 				}
 			}

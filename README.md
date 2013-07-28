@@ -235,6 +235,34 @@ It is possible for watch handlers to cause an infinite loop, if the scope does n
 excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
 `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
+### Nested properties
+
+You can use nested properties in the scope.
+
+```html
+<h1 data-ct="person.fullName"></h1>
+```
+
+```javascript
+var scope = $("h1").consistent();
+scope.person = {
+	fullName: "Nathanial Hornblower"
+};
+scope.$.apply();
+```
+
+Watch handler functions will be called with the `key` as the nested property name, eg. `person.fullName`. For convenience
+the scope declares two functions for working with nested property names.
+
+```javascript
+var nestedPropertyName = "person.fullName";
+scope.$.get(nestedPropertyName);
+scope.$.set(nestedPropertyName, value);
+```
+
+If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
+
+
 What Consistent doesn’t do
 --------------------------
 

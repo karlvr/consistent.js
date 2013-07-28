@@ -9,12 +9,34 @@
 <h1>Consistent.js</h1>
 
 <div id="container">
-	<p data-ct="person.name">Name goes here</p>
+	<p id="personName" data-ct="person.name">Name goes here</p>
+	<p data-ct="person.email"></p>
+	<p data-ct="person.phone"></p>
 </div>
 
 <script>
 $(function() {
 	var scope = $("#container").consistent();
+	var personChanged = false;
+	var personNameChanged = false;
+
+	scope.$.watch(function(keys) {
+		console.log("Keys changed: " + keys);
+		if (keys[0] === "person.name") {
+			personNameChanged = true;
+		} else if (keys[0] == "person") {
+			personChanged = true;
+		}
+	});
+
+	scope.$.watch("person.name", function(key, newValue, oldValue) {
+		console.log(key, " changed from ", oldValue, " to ", newValue);
+	});
+
+	scope.$.watch("person", function(key, newValue, oldValue) {
+		console.log(key, " changed from ", oldValue, " to ", newValue);
+	});
+
 	scope.$.update();
 	if (scope.person.name !== "Name goes here") {
 		console.log("Nested update failed", scope);
@@ -24,6 +46,34 @@ $(function() {
 		name: "Nathanial Hornblower"
 	};
 	scope.$.apply();
+
+	if ($("#personName").html() !== scope.person.name) {
+		console.log("Set name failed");
+	}
+	if (!personChanged || personNameChanged) {
+		/* Because we didn't apply after the update above, the watchers are notified of the difference in the scope
+		 * from the previous apply (never, so the initial state) and since then we've added the whole person key, so
+		 * we just get the notification that "person" was added.
+		 */
+		console.log("Nested property watch failed");
+	}
+	personNameChanged = personChanged = false;
+
+	/* Test scope.$.set */
+	delete scope.person;
+	scope.$.set("person.name", "John Appleseed");
+	scope.$.apply();
+
+	if ($("#personName").html() !== scope.person.name) {
+		console.log("Set name failed");
+	}
+	if (!personNameChanged || personChanged) {
+		/* Now we get the notification that "person.name" was changed. */
+		console.log("Nested property watch failed");
+	}
+	personNameChanged = personChanged = false;
+
+
 });
 
 </script>
