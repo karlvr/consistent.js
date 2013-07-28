@@ -21,10 +21,8 @@ $(function() {
 	var scope = $('#container').consistent();
 
 	/* Watch all scope changes */
-	scope.$.watch(function(keys, newScope, oldScope) {
-		this.$.apply(function() {
-			this.status = "Changed " + keys;
-		});
+	scope.$.watch(function(keys, scope, oldScope) {
+		this.status = "Changed " + keys;
 	});
 
 	scope.$.update().$.apply();
