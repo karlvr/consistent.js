@@ -62,6 +62,19 @@
 	var scopes = {};
 	var SCOPE_TYPE = "ConsistentScope";
 
+	var support = (function() {
+		var result = {};
+
+		/* IE6 and 7 have a strange setAttribute implementation that needs the property name for
+		 * some properties.
+		 */
+		var div = document.createElement("div");
+		div.setAttribute("className", "test");
+		result.badGetSetAttribute = (div.className === "test");
+
+		return result;
+	})();
+
 	merge(Consistent, {
 		settings: {
 			keyDataAttribute: "data-ct",
@@ -155,6 +168,18 @@
 		return result;
 	}
 
+	function mungeBadAttributeProperty(name) {
+		if (!support.badGetSetAttribute) {
+			return name;
+		}
+
+		if (name === "class") {
+			return "className";
+		} else {
+			return name;
+		}
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -224,6 +249,7 @@
 			},
 
 			applyAttributeValue: function(dom, name, value) {
+				name = mungeBadAttributeProperty(name);
 				if (value != null) {
 					dom.setAttribute(name, value);
 				} else {
@@ -277,6 +303,7 @@
 			},
 
 			getAttributeValue: function(dom, name) {
+				name = mungeBadAttributeProperty(name);
 				return dom.getAttribute(name);
 			},
 
