@@ -113,6 +113,80 @@ argument to the function which is the scope, in case you need it.
 Note that we don’t need to call `apply` as we don’t need to change the DOM. The event listeners are added when the DOM nodes
 are bound, you just have to make sure the handler functions are defined by the time they are needed.
 
+### Binding to DOM nodes
+
+In the examples above we’ve specifically targetted the example nodes, this isn’t very realistic in practice.
+When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container
+element.
+
+	<div id="container">
+		<h3 data-ct="name"></h3>
+		<p data-ct="body"></p>
+	</div>
+
+Now bind the scope.
+
+	$("#container").consistent();
+
+Often you will have multiple blocks on the page and you’ll need to have an individual scope for each of them.
+
+	<div class="container">
+		<p data-ct="body"></p>
+	</div>
+	<div class="container">
+		<p data-ct="body"></p>
+	</div>
+
+Now bind each to a new scope.
+
+	$(".container").each(function() {
+		var scope = $(this).consistent();
+		scope.body = "Lorem ipsum";
+		scope.$.apply();
+	});
+
+### Finding the scope for a DOM node
+
+If you need to get the existing scope for a node, you can follow the exact same pattern. Calling `.consistent()` again
+will return the existing scope.
+
+	$(".container").each(function() {
+		var scope = $(this).consistent();
+		scope.body = "Change the body";
+		scope.$.apply();
+	});
+
+You can also call the `Consistent.findScopeForNode(node)` function, if you just want to check if there’s a scope rather than
+create one.
+
+### Updating the scope from the DOM
+
+Consistent can inspect the DOM to populate the scope.
+
+	var scope = $("#container").consistent();
+	scope.$.update();
+
+Note this doesn’t work for any properties that are using templates.
+
+### Watching for changes in the scope
+
+Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler
+functions are called when `apply` is called on the scope, **before** the DOM has been updated.
+
+	scope.$.watch("title", function(key, newValue, oldValue) {
+		this.shortTitle = this.title.substring(0, 10);
+	});
+
+	scope.$.watch(function(changedKeys, newScope, oldScope) {
+		this.changeSummary = "The following keys were changed: " + changedKeys;
+	});
+
+Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called
+multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
+
+It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. Consistent detects
+excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
+`Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
 What Consistent doesn’t do
 --------------------------
