@@ -603,7 +603,6 @@
 		this._rootDomNodes = [];
 		this._watchers = {};
 		this._nodesDirty = false;
-		this._needsApply = false;
 		this._applying = false;
 
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
@@ -623,7 +622,7 @@
 		}
 		this._applying = true;
 
-		if (this._handleDirty() || this._nodesDirty || this._needsApply) {
+		if (this._handleDirty() || this._nodesDirty) {
 			/* Apply to the DOM */
 			var n = this._nodes.length;
 			for (var i = 0; i < n; i++) {
@@ -631,7 +630,7 @@
 				node.options.$.apply(node.dom, this._scope, node.options);
 			}
 
-			this._nodesDirty = this._needsApply = false;
+			this._nodesDirty = false;
 		}
 
 		this._applying = false;
@@ -646,14 +645,10 @@
 			var node = this._nodes[i];
 			node.options.$.update(node.dom, this._scope, node.options);
 		}
-
-		if (this.isDirty()) {
-			this._needsApply = true;
-		}
 	};
 
 	ConsistentScopeManager.prototype.needsApply = function() {
-		if (this._nodesDirty || this._needsApply) {
+		if (this._nodesDirty) {
 			return true;
 		}
 
