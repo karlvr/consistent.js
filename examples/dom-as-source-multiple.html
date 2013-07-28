@@ -113,13 +113,14 @@ $(function() {
 					this.displayClass = "lowlighted";
 					this.buttonLabel = "Turn On";
 				}
-				this.$.apply(); /* Note the slightly different style, rather than passing a function to apply as above. No difference. */
+				/* No need to apply inside a watcher callback */
 			});
 
-			/* Import the current state from the dom. As we've already added the watch this will update the derived
-			 * properties based on the status in the dom.
-			 */
+			/* Import the current state from the dom. */
 			scope.$.update();
+
+			/* Apply the scope to trigger the watcher function and update the DOM */
+			scope.$.apply();
 		} else {
 			/* Bind existing scope */
 			$(this).consistent(scope);
