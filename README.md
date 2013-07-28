@@ -72,7 +72,47 @@ Now configure Consistent to use Hogan as its templating engine, and populate the
 	var scope = $("h1").consistent();
 	scope.name = "Consistent.js";
 	scope.$.apply();
-	
+
+You can also references templates by an id, rather than writing them inline.
+
+	<h1 data-ct-tmpl-id="h1-template"></h1>
+
+	<script id="h1-template" type="text/x-hogan-template">
+		Welcome to {{name}}
+	</script>
+
+You can also use templates to update attributes.
+
+	<h1 data-ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
+
+	<h1 data-ct-tmpl-id-attr-class="h1-class-template">Title</h1>
+	<script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
+
+### Events
+
+Consistent can add event listeners to DOM nodes which call functions in the scope.
+
+	<a href="#" data-ct-bind-click="handleClick">Click me</a>
+
+Now create a scope and provide the click handler.
+
+	var scope = $("a").consistent();
+	scope.handleClick = function(ev) {
+		ev.preventDefault();
+
+		alert("Click!");
+	};
+
+The handler function is called with `this` as the element that received the event, as in jQuery. There is also a second
+argument to the function which is the scope, in case you need it.
+
+	scope.handleClick = function(ev, scope) {
+
+	};
+
+Note that we don’t need to call `apply` as we don’t need to change the DOM. The event listeners are added when the DOM nodes
+are bound, you just have to make sure the handler functions are defined by the time they are needed.
+
 
 What Consistent doesn’t do
 --------------------------
