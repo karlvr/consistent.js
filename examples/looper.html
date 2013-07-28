@@ -2,8 +2,8 @@
 <html>
 <head>
 <script src="jquery-1.10.2.js"></script>
-<script src="consistent.js"></script>
-<script src="jquery.consistent.js"></script>
+<script src="../consistent.js"></script>
+<script src="../jquery.consistent.js"></script>
 </head>
 <body>
 <h1>Consistent.js</h1>
@@ -17,28 +17,27 @@
 	</div>
 </script>
 
-<button id="add">Add</button>
 <button id="change">Change</button>
 
 <script>
 $(function() {
+	var C = Consistent;
 	var template = $("#myTemplate").html();
 	var scopes = [];
 
-	$('#add').click(function(ev) {
-		$.ajax("ajax.txt", {
-			dataType: "json",
-			success: function(data) {
-				var scope = Consistent();
-				scope.$.merge(data);
-				$(template).appendTo("#container").consistent(scope);
-				scopes.push(scope);
-			},
-			error: function(jqXHR, textStatus) {
-				console.log("Ajax failure: " + textStatus);
-			}
+	var objects = [];
+	for (var i = 0; i < 10; i++) {
+		objects.push({
+			title: "Object #" + i,
+			body: "This is a story about object #" + i
 		});
-	});
+	}
+
+	for (var i = 0; i < objects.length; i++) {
+		var scope = C().$.merge(objects[i]);
+		$(template).appendTo("#container").consistent(scope);
+		scopes.push(scope);
+	}
 
 	$('#change').click(function(ev) {
 		for (var i = 0; i < scopes.length; i++) {
