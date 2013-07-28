@@ -74,6 +74,7 @@
 			bindDataAttributePrefix: "data-ct-bind-",
 
 			scopeIdKey: "__ConsistentScopeID",
+			functionIdKey: "__ConsistentFunctionID",
 
 			maxWatcherLoops: 100
 		},
@@ -585,6 +586,7 @@
 	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
+	var functionId = 0;
 	var WATCH_ALL_KEY = "$all";
 
 	function ConsistentScopeManager(parentScope, options) {
@@ -717,14 +719,18 @@
 				}
 
 				var watcher = watchers[i];
+				var watcherId = watcher[Consistent.settings.functionIdKey];
+				if (watcherId === undefined) {
+					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId++;
+				}
 
 				/* Manage loops. Don't notify again if the value hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcher] === undefined || notifying[watcher].cleanValue !== newValue) {
+				if (notifying[watcherId] === undefined || notifying[watcherId].cleanValue !== newValue) {
 					watcher.call(this._scope, key, newValue, oldValue);
 
-					notifying[watcher] = { cleanValue: this._scope.$.get(key) };
+					notifying[watcherId] = { cleanValue: this._scope.$.get(key) };
 					notified = true;
 				}
 			}
@@ -744,14 +750,18 @@
 				}
 
 				var watcher = watchers[i];
+				var watcherId = watcher[Consistent.settings.functionIdKey];
+				if (watcherId === undefined) {
+					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId++;
+				}
 
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcher] === undefined || differentScopeKeys(newScope, notifying[watcher].cleanScope).length !== 0) {
+				if (notifying[watcherId] === undefined || differentScopeKeys(newScope, notifying[watcherId].cleanScope).length !== 0) {
 					watchers[i].call(this._scope, keys, newScope, oldScope);
 					
-					notifying[watcher] = { cleanScope: cloneScope(this._scope) };
+					notifying[watcherId] = { cleanScope: cloneScope(this._scope) };
 					notified = true;
 				}
 			}
