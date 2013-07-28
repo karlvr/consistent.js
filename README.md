@@ -235,6 +235,9 @@ It is possible for watch handlers to cause an infinite loop, if the scope does n
 excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
 `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
+Advanced
+--------
+
 ### Nested properties
 
 You can use nested properties in the scope.
@@ -261,6 +264,54 @@ scope.$.set(nestedPropertyName, value);
 ```
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
+
+### Parent scopes
+
+You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given
+property key, in order to populate a DOM node or when looking for an event handler function. Watch handler functions
+added to parent scopes will also be fired for changes in child scopes.
+
+```javascript
+var rootScope = $.consistent(); /* Create the root scope */
+var childScope = $.consistent(rootScope); /* Create a child scope */
+$("#item").consistent(childScope); /* Bind a DOM node to the child scope */
+```
+
+Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as
+we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it
+treats that as the scope to bind to. You have to call the `$.consistent` function in order to create a new scope
+with a parent. Note that `$.consistent` and `Consistent` are the same function.
+
+Now the following will work.
+
+```html
+<div id="item">
+	<h2 data-ct="title"></h2>
+</div>
+```
+
+```javascript
+rootScope.title = "Default title";
+childScope.$.apply();
+```
+
+Then if you add a title to the childScope and apply again it, it will override the title property in the parent.
+
+Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is
+particularly important when using parent scopes, as that argument will contain the originating scope, even if
+the event handler is declared in a parent scope.
+
+```html
+<div id="item">
+	<h2 data-ct="title" data-ct-bind-click="handleClick"></h2>
+</div>
+```
+
+```javascript
+rootScope.handleClick = function(ev, scope) {
+	// scope === childScope	
+};
+```
 
 
 What Consistent doesn’t do
