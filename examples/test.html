@@ -79,6 +79,10 @@ $(function() {
 	$('.consistent').consistent(myScope);
 	myScope.$.apply();
 
+	if (myScope !== $('.consistent').consistent()) {
+		console.log("Failed to find existing scope");
+	}
+
 	$('#action').click(function() {
 		myScope.hello = "cruel";
 		myScope.$.apply();
