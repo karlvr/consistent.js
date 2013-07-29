@@ -115,6 +115,14 @@ You can also use templates to update attributes.
 <script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
 ```
 
+Note that Consistent will re-render the templates each time the scope is applied.
+
+The intention of templates in Consistent is not to create lots of DOM nodes, including using looping and other template
+features. This is because Consistent will re-render the template each time the scope is applied, and thus recreate
+the DOM. If you are using templates to create a lot of DOM nodes it may be preferrable to render the template outside of
+Consistent, and then to bind the scope to the rendered nodes.
+
+
 ### Events
 
 Consistent can add event listeners to DOM nodes which call functions in the scope.
@@ -397,16 +405,16 @@ All scope functions are nested inside the `$` object, and therefore you call the
 ### jQuery plugin
 
 * `$.consistent` is synonymous with the `Consistent` function above and can be used in the same way.
-* `$(selector).consistent()` checks the nodes to see if they have been bound to a scope. If they’ve all been bound to the same scope, it returns that scope. If they’ve been bound to different scopes (or some have been bound and some haven’t) this throws an exception. If they haven’t been bound to a scope a new scope is created, the nodes are bound and the scope is returned.
-* `$(selector).consistent(options)` creates a new scope with the given options, binds the nodes to it and returns the scope.
-* `$(selector).consistent(scope [, options])` binds the nodes to the given scope, with the options if provided and returns the scope.
+* `$(selector).consistent()` checks the selected elements to see if they have been bound to a scope. If they’ve all been bound to the same scope, it returns that scope. If they’ve been bound to different scopes (or some have been bound and some haven’t) this throws an exception. If they haven’t been bound to a scope a new scope is created, the elements are bound and the scope is returned.
+* `$(selector).consistent(options)` creates a new scope with the given options, binds the selected elements to it and returns the scope.
+* `$(selector).consistent(scope [, options])` binds the selected nodes to the given scope, with the options if provided and returns the scope.
 
 What Consistent doesn’t do
 --------------------------
 
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating
 engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent
-scope to them.
+scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the templating section for advice about that.
 
 Consistent doesn’t do any Ajax. Consistent scopes provide easy access to populate from an Ajax JSON response or to extract data for sending
 to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions.
