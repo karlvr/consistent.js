@@ -809,71 +809,69 @@
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
-		if (dom[Consistent.settings.scopeIdKey] === this._id) {
-			/* Already bound */
-			return;
-		}
+		/* Check this node is not already bound */
+		if (dom[Consistent.settings.scopeIdKey] !== this._id) {
+			var nodeOptions = mergeOptions({}, this._options, options);
+			nodeOptions = nodeOptions.$.getNodeOptions(dom, nodeOptions);
 
-		options = mergeOptions({}, this._options, options);
-		options = options.$.getNodeOptions(dom, options);
+			this._nodes.push({ dom: dom, options: nodeOptions });
+			this._domNodes.push(dom);
+			if (parentDom === undefined) {
+				this._rootDomNodes.push(dom);
+			}
+			this._nodesDirty = true;
 
-		this._nodes.push({ dom: dom, options: options });
-		this._domNodes.push(dom);
-		if (parentDom === undefined) {
-			this._rootDomNodes.push(dom);
-		}
-		this._nodesDirty = true;
+			dom[Consistent.settings.scopeIdKey] = this._id;
 
-		dom[Consistent.settings.scopeIdKey] = this._id;
+			var self = this;
 
-		var self = this;
-
-		/* Bind events */
-		for (var eventName in options.events) {
-			(function(eventName, keys) {
-				var listener = function(ev) {
-					for (var i = 0; i < keys.length; i++) {
-						var key = keys[i];
-						var func = self._scope.$.get(key);
-						if (func !== undefined) {
-							var result = func.call(dom, ev, self._scope);
-							if (result === false)
-								break;
-						} else {
-							throw new ConsistentException("Bound " + eventName + " event wanted scope function in key: " + key);
+			/* Bind events */
+			for (var eventName in nodeOptions.events) {
+				(function(eventName, keys) {
+					var listener = function(ev) {
+						for (var i = 0; i < keys.length; i++) {
+							var key = keys[i];
+							var func = self._scope.$.get(key);
+							if (func !== undefined) {
+								var result = func.call(dom, ev, self._scope);
+								if (result === false)
+									break;
+							} else {
+								throw new ConsistentException("Bound " + eventName + " event wanted scope function in key: " + key);
+							}
 						}
+					};
+					nodeOptions.events[eventName].listener = listener;
+					if (dom.addEventListener) {
+						dom.addEventListener(eventName, listener, false);
+					} else if (dom.attachEvent) {
+						dom.attachEvent("on" + eventName, listener);
+					} else {
+						throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
 					}
+				})(eventName, nodeOptions.events[eventName].keys);
+			}
+
+			/* Handle specific nodes differently */
+			var nodeName = dom.nodeName;
+			if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+				/* For input and textarea nodes we bind to their change event by default, and we need to use an
+				 * alternative applyValue method.
+				 */
+				var listener = function(ev) {
+					nodeOptions.$.update(dom, self._scope, nodeOptions);
+					self._scope.$.apply();
 				};
-				options.events[eventName].listener = listener;
-				if (dom.addEventListener) {
-					dom.addEventListener(eventName, listener, false);
-				} else if (dom.attachEvent) {
-					dom.attachEvent("on" + eventName, listener);
-				} else {
-					throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
-				}
-			})(eventName, options.events[eventName].keys);
+				dom.addEventListener("change", listener, false);
+
+				nodeOptions.$._changeListener = listener;
+			}
 		}
 
-		/* Handle specific nodes differently */
-		var nodeName = dom.nodeName;
-		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-			/* For input and textarea nodes we bind to their change event by default, and we need to use an
-			 * alternative applyValue method.
-			 */
-			var listener = function(ev) {
-				options.$.update(dom, self._scope, options);
-				self._scope.$.apply();
-			};
-			dom.addEventListener("change", listener, false);
-
-			options.$._changeListener = listener;
-		}
-
-		/* Acquire children */
+		/* Bind children */
 		var child = dom.firstChild;
 		while (child !== null) {
-			if (child.nodeType == 1) {
+			if (child.nodeType === 1) {
 				this.bind(child, options, dom);
 			}
 			child = child.nextSibling;
@@ -898,6 +896,15 @@
 
 			this._domNodes.slice(i, 1);
 			this._nodes.slice(i, 1);
+		}
+
+		/* Unbind children */
+		var child = dom.firstChild;
+		while (child !== null) {
+			if (child.nodeType === 1) {
+				this.unbind(child);
+			}
+			child = child.nextSibling;
 		}
 	};
 
