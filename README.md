@@ -11,7 +11,7 @@ to learn how to relate them to the scope.
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery
 and can be used easily without it.
 
-### Simple example
+### Substitution
 Bind an `h1` element to the key `title` in the scope.
 
 ```html
@@ -43,6 +43,53 @@ Or even:
 ```javascript
 $("h1").consistent().$.apply(function() {
 	this.title = "Consistent.js";
+});
+```
+
+Note that if a scope property is undefined, Consistent does not change the DOM.
+
+### Visibility
+
+Consistent can show and hide nodes based on the scope.
+
+```html
+<h1 data-ct-vis="showTitle">My title</h1>
+```
+
+Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style.
+Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
+
+```javascript
+var scope = $("h1").consistent();
+scope.showTitle = true;
+scope.$.apply();
+```
+
+Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by
+specifying options when you create a scope, or bind a node. See Options for more details.
+
+```javascript
+var scope = $("h1").consistent({
+	$: {
+		show: function(dom) {
+			$(dom).fadeIn();
+		},
+		hide: function(dom) {
+			$(dom).fadeOut();
+		}
+	}
+});
+```
+
+You could also specify the show / hide implementation for a specific `apply`:
+
+```javascript
+scope.$.apply({
+	$: {
+		show: function(dom) {
+			$(dom).fadeIn();
+		}
+	}
 });
 ```
 
@@ -275,6 +322,15 @@ $.ajax({
 
 The `extract` function includes properties from parent scopes. If you don’t want to include parent scopes use `extractLocal` instead.
 
+
+Principles
+----------
+
+### Undefined
+
+If a scope property is not defined then Consistent will not change the DOM.
+
+
 Advanced
 --------
 
@@ -378,8 +434,8 @@ Reference
 
 All scope functions are nested inside the `$` object, and therefore you call them, eg. `scope.$.apply()`.
 
-* `apply([function])` applies the scope to the DOM, if the function argument is provided the function is called with `this` set to the scope before the scope is applied.
-* `applyLater([function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
+* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node's options before applying. If the function argument is provided the function is called with `this` set to the scope before the scope is applied.
+* `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
@@ -394,6 +450,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `get(key)` returns the value in the scope for the given key. Supports nested keys (ie. that contain dot notation) and falls back to parent scopes.
 * `getLocal(key)` as for `get` but doesn’t include parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
+# `options(node)` returns the options object for the given node.
 
 ### Consistent functions
 

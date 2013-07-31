@@ -78,6 +78,7 @@
 	merge(Consistent, {
 		settings: {
 			keyDataAttribute: "data-ct",
+			visibleDataAttribute: "data-ct-vis",
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
 			attributeDataAttributePrefix: "data-ct-attr-",
@@ -88,6 +89,7 @@
 
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
+			oldDisplayKey: "__ConsistentOldDisplay",
 
 			maxWatcherLoops: 100
 		},
@@ -235,6 +237,28 @@
 						}
 					}
 				}
+
+				/* Visibility */
+				if (options.visibility !== undefined) {
+					var value = scope.$.get(options.visibility);
+					if (value !== undefined) {
+						if (typeof value === "function") {
+							value = value.call(scope, dom);
+						}
+
+						if (value) {
+							this.show(dom);
+						} else {
+							this.hide(dom);
+						}
+					}
+				}
+			},
+
+			/** Called after apply has completed on the given scope.
+			 */
+			afterApply: function(scope) {
+
 			},
 
 			/** Apply the given value to the given dom object.
@@ -314,6 +338,23 @@
 					current = current[parts[i]];
 				}
 				return current;
+			},
+
+			show: function(dom) {
+				if (dom.style.display !== "none") {
+					return;
+				}
+
+				var restore = dom[Consistent.settings.oldDisplayKey];
+				if (restore === undefined) {
+					restore = "";
+				}
+				dom.style.display = restore;
+			},
+
+			hide: function(dom) {
+				dom[Consistent.settings.oldDisplayKey] = dom.style.display;
+				dom.style.display = "none";
 			}
 
 		}
@@ -399,6 +440,9 @@
 				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
 				prepareEvents(eventName);
 				result.events[eventName].keys.push(value);
+			} else if (name === settings.visibleDataAttribute) {
+				/* Visibility */
+				result.visibility = value;
 			}
 		}
 
@@ -454,21 +498,34 @@
 			/* The manager */
 			_manager: null,
 
-			apply: function(func) {
-				if (func !== undefined) {
-					func.call(this._scope);
+			apply: function(options, func) {
+				if (typeof options === "function") {
+					func = options;
+					options = undefined;
 				}
 
-				this._manager.apply();
+				if (func !== undefined) {
+					func.call(this._scope, options);
+				}
+
+				this._manager.apply(options);
 				return this._scope;
 			},
-			applyLater: function(func) {
+			applyLater: function(options, func) {
+				if (typeof options === "function") {
+					func = options;
+					options = undefined;
+				}
+
 				if (func !== undefined) {
-					func.call(this._scope);
+					func.call(this._scope, options);
 				}
 
 				window.clearTimeout(this._scope.$._applyLaterTimeout);
-				this._scope.$._applyLaterTimeout = window.setTimeout(this._scope.$.apply, 0);
+				var self = this;
+				this._scope.$._applyLaterTimeout = window.setTimeout(function() {
+					self._scope.$.apply(options);
+				}, 0);
 				return this._scope;
 			},
 			needsApply: function() {
@@ -552,6 +609,9 @@
 					}
 				}
 				current[parts[parts.length - 1]] = value;
+			},
+			options: function(dom) {
+				return this._manager.getOptions(dom);
 			}
 		}
 	};
@@ -642,7 +702,7 @@
 	/**
 	 * Apply the scope to the DOM.
 	 */
-	ConsistentScopeManager.prototype.apply = function() {
+	ConsistentScopeManager.prototype.apply = function(options) {
 		/* Prevent re-entry into apply */
 		if (this._applying) {
 			return;
@@ -654,10 +714,14 @@
 			var n = this._nodes.length;
 			for (var i = 0; i < n; i++) {
 				var node = this._nodes[i];
-				node.options.$.apply(node.dom, this._scope, node.options);
+				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
+				nodeOptions.$.apply(node.dom, this._scope, node.options);
 			}
 
 			this._nodesDirty = false;
+
+			var scopeOptions = options !== undefined ? mergeOptions({}, this._options, options) : this._options;
+			scopeOptions.$.afterApply(this._scope);
 		}
 
 		this._applying = false;
@@ -939,6 +1003,15 @@
 			var i = watchers.indexOf(callback);
 			watchers.splice(i, 1);
 		}
+	};
+
+	ConsistentScopeManager.prototype.getOptions = function(dom) {
+		for (var i = 0; i < this._nodes.length; i++) {
+			if (this._nodes[i].dom === dom) {
+				return this._nodes[i].options;
+			}
+		}
+		return null;
 	};
 
 

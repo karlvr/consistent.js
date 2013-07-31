@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="../consistent.js"></script>
+<script src="../jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<h2 data-ct="title" data-ct-vis="showTitle">Title</h2>
+	<h3 data-ct-vis="showTitle" style="display:none">Can override manual style attributes</h2>
+</div>
+
+<button id="show">Show</button>
+<button id="hide">Hide</button>
+
+<script>
+$(function() {
+	var scope = $("#container").consistent();
+	scope.title = "Test title";
+	scope.showTitle = true;
+	scope.$.apply();
+
+	$("#show").click(function() {
+		scope.$.apply(function() {
+			this.showTitle = true;
+		});
+	});
+	$("#hide").click(function() {
+		scope.$.apply(function() {
+			this.showTitle = false;
+		});
+	});
+});
+</script>
+
+<hr>
+
+<div id="container2">
+	<h2 data-ct="title" data-ct-vis="showTitle">Title</h2>
+	<p>Type "hide" into the text box: <input name="title" /></p>
+</div>
+
+<script>
+$(function() {
+	var scope = $("#container2").consistent();
+	scope.title = "Initial title";
+	scope.showTitle = function(dom) {
+		return (this.title !== "hide");
+	};
+	scope.$.apply();
+});
+</script>
+
+<hr>
+
+<div id="container3">
+	<h2 data-ct="title" data-ct-vis="showTitle">Title</h2>
+	<h3 data-ct-vis="showTitle">Subtitle animated differently</h3>
+</div>
+
+<button id="show3">Show</button>
+<button id="hide3">Hide</button>
+
+<script>
+$(function() {
+	/* Configure the scope with show and hide functions overriden */
+	var scope = $("#container3").consistent({
+		$: {
+			show: function(dom) {
+				$(dom).fadeIn(1000);
+			},
+			hide: function(dom) {
+				$(dom).fadeOut(1000);
+			}
+		}
+	});
+	scope.title = "Test animated title";
+	scope.showTitle = true;
+
+	/* Specify specific show and hide functions for some elements */
+	var h3Options = scope.$.options($("#container3 h3")[0]);
+	h3Options.$.show = function(dom) {
+		$(dom).slideDown(1000);
+	};
+	h3Options.$.hide = function(dom) {
+		$(dom).slideUp(1000);
+	};
+
+	scope.$.apply();
+
+	$("#show3").click(function() {
+		scope.$.apply(function() {
+			this.showTitle = true;
+		});
+	});
+	$("#hide3").click(function() {
+		scope.$.apply(function() {
+			this.showTitle = false;
+		});
+	});
+});
+</script>
+
+<hr>
+
+<div id="container4">
+	<h2 data-ct="title" data-ct-vis="showTitle">Title</h2>
+</div>
+
+<button id="show4">Show</button>
+<button id="hide4">Hide</button>
+
+<script>
+$(function() {
+	/* Configure the scope with show and hide functions overriden */
+	var scope = $("#container4").consistent();
+	scope.title = "Test animated title";
+	scope.showTitle = true;
+
+	scope.$.apply();
+
+	$("#show4").click(function() {
+		scope.$.apply({
+			$: {
+				show: function(dom) {
+					$(dom).fadeIn(1000);
+				}
+			}
+		}, function() {
+			this.showTitle = true;
+		});
+	});
+	$("#hide4").click(function() {
+		scope.$.apply(function() {
+			this.showTitle = false;
+		});
+	});
+});
+</script>
+</body>
+</html>
