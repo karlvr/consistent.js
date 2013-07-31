@@ -200,6 +200,9 @@
 				if (options.key !== undefined) {
 					/* Key */
 					var value = scope.$.get(options.key);
+					if (typeof value === "function") {
+						value = value.call(scope, dom);
+					}
 					if (value !== undefined) {
 						this.applyValue(dom, value);
 					}
@@ -215,6 +218,9 @@
 						var value;
 						if (attrs[i].key !== undefined) {
 							value = scope.$.get(attrs[i].key);
+							if (typeof value === "function") {
+								value = value.call(scope, dom);
+							}
 						} else if (attrs[i].template !== undefined) {
 							value = attrs[i].template.render(scope.$.extract());
 						} else {
@@ -232,6 +238,9 @@
 					var props = options.properties;
 					for (var i = 0; i < props.length; i++) {
 						var value = scope.$.get(props[i].key);
+						if (typeof value === "function") {
+							value = value.call(scope, dom);
+						}
 						if (value !== undefined) {
 							this.applyPropertyValue(dom, props[i].name, value);
 						}
@@ -241,11 +250,10 @@
 				/* Visibility */
 				if (options.visibility !== undefined) {
 					var value = scope.$.get(options.visibility);
+					if (typeof value === "function") {
+						value = value.call(scope, dom);
+					}
 					if (value !== undefined) {
-						if (typeof value === "function") {
-							value = value.call(scope, dom);
-						}
-
 						if (value) {
 							this.show(dom);
 						} else {

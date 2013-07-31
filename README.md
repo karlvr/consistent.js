@@ -424,6 +424,20 @@ $(scope.$.nodes()).addClass("found");
 $(scope.$.roots()).addClass("found");
 ```
 
+### Functions instead of scalars
+
+The examples above has all involved putting scalars into the scope, except for the event binding example.
+You can in fact always provide a function instead of a scalar. In this case, Consistent will call the function
+with `this` set to the scope and a single argument, the DOM node being applied to. The function should then
+return the value to use, or return `undefined` to do nothing.
+
+```javascript
+scope.count = function(dom) {
+	// calculate a value or do some other work
+	return 10;
+}
+```
+
 ### Options
 
 
