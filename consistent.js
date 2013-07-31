@@ -563,6 +563,12 @@
 					temp = merge({}, this._scope);
 				}
 				delete temp.$;
+
+				for (var i in temp) {
+					if (typeof temp[i] === "function") {
+						delete temp[i];
+					}
+				}
 				return temp;
 			},
 			extractLocal: function() {
