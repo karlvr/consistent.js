@@ -97,7 +97,7 @@ scope.$.apply({
 Form elements work as you would expect. Consistent updates their values.
 
 ```html
-<input type="text" name="email">
+<input type="text" name="email" />
 ```
 
 Now create a scope and set the input element’s value.
@@ -164,9 +164,9 @@ You can also use templates to update attributes.
 
 Note that Consistent will re-render the templates each time the scope is applied.
 
-The intention of templates in Consistent is not to create lots of DOM nodes, including using looping and other template
+The intention of templates in Consistent is to not create lots of DOM nodes, including using looping and other template 
 features. This is because Consistent will re-render the template each time the scope is applied, and thus recreate
-the DOM. If you are using templates to create a lot of DOM nodes it may be preferrable to render the template outside of
+the DOM. If you are using templates to create a lot of DOM nodes it may be preferable to render the template outside of
 Consistent, and then to bind the scope to the rendered nodes.
 
 
@@ -203,7 +203,7 @@ are bound, you just have to make sure the handler functions are defined by the t
 
 ### Binding to DOM nodes
 
-In the examples above we’ve specifically targetted the example nodes, this isn’t very realistic in practice.
+In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice.
 When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container
 element.
 
@@ -394,7 +394,7 @@ rootScope.title = "Default title";
 childScope.$.apply();
 ```
 
-Then if you add a title to the childScope and apply again it, it will override the title property in the parent.
+Then if you add a title to the childScope and apply it again, it will override the title property in the parent.
 
 Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is
 particularly important when using parent scopes, as that argument will contain the originating scope, even if
@@ -415,8 +415,8 @@ rootScope.handleClick = function(ev, scope) {
 
 ### Getting the nodes bound to a scope
 
-If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes` which returns
-all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound as opposed
+If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes`, which returns
+all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound – as opposed
 to those that were bound as they are children of the explicitly bound nodes.
 
 ```javascript
@@ -426,7 +426,7 @@ $(scope.$.roots()).addClass("found");
 
 ### Functions instead of scalars
 
-The examples above has all involved putting scalars into the scope, except for the event binding example.
+The examples above have all involved putting scalars into the scope, except for the event binding example.
 You can in fact always provide a function instead of a scalar. In this case, Consistent will call the function
 with `this` set to the scope and a single argument, the DOM node being applied to. The function should then
 return the value to use, or return `undefined` to do nothing.
@@ -446,9 +446,9 @@ Reference
 
 ### Scope functions
 
-All scope functions are nested inside the `$` object, and therefore you call them, eg. `scope.$.apply()`.
+All scope functions are nested inside the `$` object, and therefore you call them, e.g. `scope.$.apply()`.
 
-* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node's options before applying. If the function argument is provided the function is called with `this` set to the scope before the scope is applied.
+* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied.
 * `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
@@ -461,10 +461,10 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `parent()` returns the parent scope, or null if there is no parent scope.
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.
-* `get(key)` returns the value in the scope for the given key. Supports nested keys (ie. that contain dot notation) and falls back to parent scopes.
+* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes.
 * `getLocal(key)` as for `get` but doesn’t include parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
-# `options(node)` returns the options object for the given node.
+* `options(node)` returns the options object for the given node.
 
 ### Consistent functions
 
@@ -485,7 +485,7 @@ What Consistent doesn’t do
 
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating
 engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent
-scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the templating section for advice about that.
+scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
 Consistent doesn’t do any Ajax. Consistent scopes provide easy access to populate from an Ajax JSON response or to extract data for sending
 to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions.
