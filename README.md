@@ -11,7 +11,7 @@ to learn how to relate them to the scope.
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery
 and can be used easily without it.
 
-```javascript
+```html
 <script src="consistent.js"></script>
 <script src="jquery.consistent.js"></script>
 ```
