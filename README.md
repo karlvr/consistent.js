@@ -11,6 +11,11 @@ to learn how to relate them to the scope.
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery
 and can be used easily without it.
 
+```javascript
+<script src="consistent.js"></script>
+<script src="jquery.consistent.js"></script>
+```
+
 ### Substitution
 Bind an `h1` element to the key `title` in the scope.
 
@@ -97,7 +102,7 @@ scope.$.apply({
 Form elements work as you would expect. Consistent updates their values.
 
 ```html
-<input type="text" name="email" />
+<input type="text" name="email">
 ```
 
 Now create a scope and set the input element’s value.
@@ -162,12 +167,9 @@ You can also use templates to update attributes.
 <script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
 ```
 
-Note that Consistent will re-render the templates each time the scope is applied.
+Note that Consistent will re-render the templates and thus recreate the DOM nodes each time the scope is applied.
 
-The intention of templates in Consistent is to not create lots of DOM nodes, including using looping and other template 
-features. This is because Consistent will re-render the template each time the scope is applied, and thus recreate
-the DOM. If you are using templates to create a lot of DOM nodes it may be preferable to render the template outside of
-Consistent, and then to bind the scope to the rendered nodes.
+If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
 
 
 ### Events
@@ -322,6 +324,15 @@ $.ajax({
 
 The `extract` function includes properties from parent scopes. If you don’t want to include parent scopes use `extractLocal` instead.
 
+License
+-------
+
+Consistent is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+Compatibility
+-------------
+
+Consistent works in all modern browsers. It has also been tested, and works in its entirety, in IE 6, 7 and 8.
 
 Principles
 ----------
@@ -487,5 +498,4 @@ Consistent doesn’t create DOM nodes. There are great tools for creating DOM no
 engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent
 scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
-Consistent doesn’t do any Ajax. Consistent scopes provide easy access to populate from an Ajax JSON response or to extract data for sending
-to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions.
+Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily extracted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions, respectively.
