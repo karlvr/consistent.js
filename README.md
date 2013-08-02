@@ -334,11 +334,11 @@ $.ajax({
 Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing
 and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
-### Extracting the scope to a Javascript object
+### Snapshotting the scope to a Javascript object
 
-The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data.
+The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data. Finally, it contains value functions that are evaluated to determine their current value.
 
-In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will remove the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and put their current value in the result.
+In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will return a new object excluding the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and include their current value.
 
 ```javascript
 var scope = $("#item").consistent();
