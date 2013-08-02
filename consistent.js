@@ -215,11 +215,11 @@
 					/* Key */
 					var value = getNestedProperty(snapshot, options.key);
 					if (value !== undefined) {
-						this.applyValue(dom, value);
+						this.setValue(dom, value);
 					}
 				} else if (options.template != null) {
 					/* Template */
-					this.applyValue(dom, options.template.render(snapshot));
+					this.setValue(dom, options.template.render(snapshot));
 				}
 
 				/* Apply to attributes */
@@ -236,7 +236,7 @@
 						}
 
 						if (value !== undefined) {
-							this.applyAttributeValue(dom, attrs[i].name, value);
+							this.setAttributeValue(dom, attrs[i].name, value);
 						}
 					}
 				}
@@ -247,7 +247,7 @@
 					for (var i = 0; i < props.length; i++) {
 						var value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
-							this.applyPropertyValue(dom, props[i].name, value);
+							this.setPropertyValue(dom, props[i].name, value);
 						}
 					}
 				}
@@ -271,9 +271,9 @@
 
 			},
 
-			/** Apply the given value to the given dom object.
+			/** Set the given value in the given dom object.
 			  */
-			applyValue: function(dom, value) {
+			setValue: function(dom, value) {
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
 					if (dom.type === "checkbox" || dom.type === "radio") {
@@ -286,7 +286,7 @@
 				}
 			},
 
-			applyAttributeValue: function(dom, name, value) {
+			setAttributeValue: function(dom, name, value) {
 				name = mungeBadAttributeProperty(name);
 				if (value != null) {
 					dom.setAttribute(name, value);
@@ -295,7 +295,7 @@
 				}
 			},
 
-			applyPropertyValue: function(dom, name, value) {
+			setPropertyValue: function(dom, name, value) {
 				var parts = name.split(".");
 				var current = dom;
 				for (var i = 0; i < parts.length - 1; i++) {
@@ -996,9 +996,7 @@
 			/* Handle specific nodes differently */
 			var nodeName = dom.nodeName;
 			if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-				/* For input and textarea nodes we bind to their change event by default, and we need to use an
-				 * alternative applyValue method.
-				 */
+				/* For input and textarea nodes we bind to their change event by default. */
 				var listener = function(ev) {
 					nodeOptions.$.update(dom, self._scope, nodeOptions);
 					self._scope.$.apply();
