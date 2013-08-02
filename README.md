@@ -59,7 +59,7 @@ As well as adding values to the scope, you can also add functions. In this case 
 
 ```html
 <div id="container">
-	<p>The number of people is <span data-ct-bind="numberOfPeople">&nbsp;</span>.</p>
+	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
 </div>
 ```
 
