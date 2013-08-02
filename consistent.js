@@ -953,10 +953,23 @@
 		return notified;
 	};
 
+	var _plainObject = {};
+
+	function isArray(object) {
+		return _plainObject.toString.call(object) === "[object Array]";
+	}
+
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
+		if (isArray(dom)) {
+			for (var i = 0; i < dom.length; i++) {
+				this.bind(dom[i], options, parentDom);
+			}
+			return;
+		}
+
 		/* Check this node is not already bound */
 		if (dom[Consistent.settings.scopeIdKey] !== this._id) {
 			var nodeOptions = mergeOptions({}, this._options, options);
