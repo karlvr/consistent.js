@@ -53,6 +53,29 @@ $("h1").consistent().$.apply(function() {
 
 Note that if a scope property is undefined, Consistent does not change the DOM.
 
+### Value functions
+
+As well as adding values to the scope, you can also add functions. In this case the function is executed each time the scope is applied and its return value is used.
+
+```html
+<div id="container">
+	<p>The number of people is <span data-ct-bind="numberOfPeople">&nbsp;</span>.</p>
+</div>
+```
+
+The &nbsp; above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
+
+```javascript
+var scope = $("#container").consistent();
+var people = [ "Albert", "Bob", "Carl", "Donald" ];
+scope.numberOfPeople = function() {
+	return people.length;
+};
+scope.$.apply();
+```
+
+The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
+
 ### Visibility
 
 Consistent can show and hide nodes based on the scope.
@@ -174,17 +197,17 @@ If you need to create a large DOM structure and then have it bound to a scope, c
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope.
+Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
 
 ```html
 <a href="#" data-ct-bind-click="handleClick">Click me</a>
 ```
 
-Now create a scope and provide the click handler.
+Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`.
 
 ```javascript
 var scope = $("a").consistent();
-scope.handleClick = function(ev) {
+scope.$handleClick = function(ev) {
 	ev.preventDefault();
 	alert("Click!");
 };
@@ -194,7 +217,7 @@ The handler function is called with `this` as the element that received the even
 argument to the function which is the scope, in case you need it.
 
 ```javascript
-scope.handleClick = function(ev, scope) {
+scope.$handleClick = function(ev, scope) {
 	scope.clickCount++;
 	scope.$.apply();
 };
@@ -288,6 +311,8 @@ scope.$.watch(function(changedKeys, newScope, oldScope) {
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called
 multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
+Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
+
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. Consistent detects
 excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
 `Consistent.settings.maxWatcherLoops`; the default should be good enough.
@@ -311,8 +336,9 @@ and values that are already there. If your scope has nested objects, they are re
 
 ### Extracting the scope to a Javascript object
 
-The scope contains some extra properties required for Consistent. In order to obtain a Javascript object with
-just the scope properties use the `extract` function.
+The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data.
+
+In order to obtain a Javascript object with just the model properties use the `extract` function. It will remove the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and put their current value in the result.
 
 ```javascript
 var scope = $("#item").consistent();
@@ -418,7 +444,7 @@ the event handler is declared in a parent scope.
 ```
 
 ```javascript
-rootScope.handleClick = function(ev, scope) {
+rootScope.$handleClick = function(ev, scope) {
 	// scope === childScope
 	scope.title += ".";
 };
@@ -433,20 +459,6 @@ to those that were bound as they are children of the explicitly bound nodes.
 ```javascript
 $(scope.$.nodes()).addClass("found");
 $(scope.$.roots()).addClass("found");
-```
-
-### Functions instead of scalars
-
-The examples above have all involved putting scalars into the scope, except for the event binding example.
-You can in fact always provide a function instead of a scalar. In this case, Consistent will call the function
-with `this` set to the scope and a single argument, the DOM node being applied to. The function should then
-return the value to use, or return `undefined` to do nothing.
-
-```javascript
-scope.count = function(dom) {
-	// calculate a value or do some other work
-	return 10;
-}
 ```
 
 ### Options
