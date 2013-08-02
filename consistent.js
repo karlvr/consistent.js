@@ -182,6 +182,20 @@
 		}
 	}
 
+	function getNestedProperty(object, property) {
+		var parts = property.split(".");
+		var current = object;
+		var i;
+		for (i = 0; i < parts.length && current != null; i++) {
+			current = current[parts[i]];
+		}
+		if (i == parts.length) {
+			return current;
+		} else {
+			return undefined;
+		}
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -195,20 +209,17 @@
 				return Consistent.getNodeOptions(node, options);
 			},
 
-			/** Apply the given scope object to the given dom object */
-			apply: function(dom, scope, options) {
-				if (options.key !== undefined) {
+			/** Apply the given scopeExtract to the given dom object */
+			apply: function(dom, scopeExtract, options) {
+				if (options.key != null) {
 					/* Key */
-					var value = scope.$.get(options.key);
-					if (typeof value === "function") {
-						value = value.call(scope, dom);
-					}
+					var value = getNestedProperty(scopeExtract, options.key);
 					if (value !== undefined) {
 						this.applyValue(dom, value);
 					}
-				} else if (options.template !== undefined) {
+				} else if (options.template != null) {
 					/* Template */
-					this.applyValue(dom, options.template.render(scope.$.extract()));
+					this.applyValue(dom, options.template.render(scopeExtract));
 				}
 
 				/* Apply to attributes */
@@ -217,12 +228,9 @@
 					for (var i = 0; i < attrs.length; i++) {
 						var value;
 						if (attrs[i].key !== undefined) {
-							value = scope.$.get(attrs[i].key);
-							if (typeof value === "function") {
-								value = value.call(scope, dom);
-							}
+							value = getNestedProperty(scopeExtract, attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
-							value = attrs[i].template.render(scope.$.extract());
+							value = attrs[i].template.render(scopeExtract);
 						} else {
 							value = null;
 						}
@@ -237,10 +245,7 @@
 				if (options.properties != null) {
 					var props = options.properties;
 					for (var i = 0; i < props.length; i++) {
-						var value = scope.$.get(props[i].key);
-						if (typeof value === "function") {
-							value = value.call(scope, dom);
-						}
+						var value = getNestedProperty(scopeExtract, props[i].key);
 						if (value !== undefined) {
 							this.applyPropertyValue(dom, props[i].name, value);
 						}
@@ -249,10 +254,7 @@
 
 				/* Visibility */
 				if (options.visibility !== undefined) {
-					var value = scope.$.get(options.visibility);
-					if (typeof value === "function") {
-						value = value.call(scope, dom);
-					}
+					var value = getNestedProperty(scopeExtract, options.visibility);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -556,24 +558,23 @@
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
 			extract: function() {
-				var temp;
+				var temp = this._scope.$.extractLocal();
 				if (this._manager._parentScope != null) {
-					temp = merge(this._manager._parentScope.$.extract(), this._scope);
-				} else {
-					temp = merge({}, this._scope);
-				}
-				delete temp.$;
-
-				for (var i in temp) {
-					if (typeof temp[i] === "function") {
-						delete temp[i];
-					}
+					temp = merge(this._manager._parentScope.$.extract(), temp);
 				}
 				return temp;
 			},
 			extractLocal: function() {
 				var temp = merge({}, this._scope);
 				delete temp.$;
+
+				for (var i in temp) {
+					if (i.indexOf("$") === 0) {
+						delete temp[i];
+					} else if (typeof temp[i] === "function") {
+						temp[i] = temp[i].call(this._scope);
+					}
+				}
 				return temp;
 			},
 			nodes: function() {
@@ -603,13 +604,15 @@
 					return undefined;
 				}
 			},
-			getLocal: function(key) {
-				var parts = key.split(".");
-				var current = this._scope;
-				for (var i = 0; i < parts.length && current !== undefined; i++) {
-					current = current[parts[i]];
+			getLocal: function(key, evaluateFunctions) {
+				var value = getNestedProperty(this._scope, key);
+
+				/* Evaluate value functions */
+				if (evaluateFunctions && typeof value === "function") {
+					value = value.call(this._scope);
 				}
-				return current;
+
+				return value;
 			},
 			set: function(key, value) {
 				var parts = key.split(".");
@@ -623,6 +626,25 @@
 					}
 				}
 				current[parts[parts.length - 1]] = value;
+				return this._scope;
+			},
+			getEventHandler: function(key) {
+				var local = this.getLocalEventHandler(key);
+				if (local !== undefined) {
+					return local;
+				} else if (this._manager._parentScope != null) {
+					return this._manager._parentScope.$.getEventHandler(key);
+				} else {
+					return undefined;
+				}
+			},
+			getLocalEventHandler: function(key) {
+				key = mungeEventHandlerPropertyName(key);
+				return this.getLocal(key, false);
+			},
+			setEventHandler: function(key, value) {
+				key = mungeEventHandlerPropertyName(key);
+				return this.set(key, value);
 			},
 			options: function(dom) {
 				return this._manager.getOptions(dom);
@@ -631,10 +653,29 @@
 	};
 
 	/**
+	 * Event handler property names get the final part (parts are separated by dots) prefixes
+	 * with a $, so we can distinguish from other value-functions in the scope.
+	 */
+	function mungeEventHandlerPropertyName(name) {
+		var parts = name.split(".");
+		var result = "";
+		for (var i = 0; i < parts.length - 1; i++) {
+			result += parts[i] + ".";
+		}
+		var lastPart = parts[parts.length - 1];
+		if (lastPart.indexOf("$") !== 0) {
+			result += "$" + lastPart;
+		} else {
+			result += lastPart;
+		}
+		return result;
+	}
+
+	/**
 	 * Compares two objects and returns an array of keys with values that don't match between
 	 * the two of them.
 	 */
-	function differentScopeKeys(aScope, bScope, prefix, depth, result, seen) {
+	function differentKeys(aObject, bObject, prefix, depth, result, seen) {
 		if (prefix === undefined) {
 			prefix = "";
 		}
@@ -649,33 +690,30 @@
 		}
 
 		/* Prevent an infinite loop if there is a cycle in the graph */
-		if (seen.indexOf(aScope) !== -1 || seen.indexOf(bScope) !== -1) {
+		if (seen.indexOf(aObject) !== -1 || seen.indexOf(bObject) !== -1) {
 			return result;
 		}
-		seen.push(aScope);
-		seen.push(bScope);
+		seen.push(aObject);
+		seen.push(bObject);
 
-		for (var key in aScope) {
-			if (key === "$" && depth == 0) {
-				continue;
-			}
-
-			if (aScope[key] !== bScope[key]) {
-				if (typeof aScope[key] === "object" && typeof bScope[key] === "object") {
-					differentScopeKeys(aScope[key], bScope[key], prefix + key + ".", depth + 1, result, seen);
+		for (var key in aObject) {
+			if (aObject[key] !== bObject[key]) {
+				if (typeof aObject[key] === "object" && typeof bObject[key] === "object") {
+					/* Nested objects */
+					differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
 				} else {
 					result.push(prefix + key);
 				}
 			}
 		}
 
-		/* Collect anything that exists in bScope but isn't in aScope */
-		for (var key in bScope) {
+		/* Collect anything that exists in bObject but isn't in aObject */
+		for (var key in bObject) {
 			if (key === "$") {
 				continue;
 			}
 
-			if (aScope[key] === undefined) {
+			if (aObject[key] === undefined) {
 				result.push(prefix + key);
 			}
 		}
@@ -710,7 +748,7 @@
 		this._scope.$._manager = this;
 		this._scope.$._scope = this._scope;
 
-		this._cleanScope = cloneScope(this._scope);
+		this._cleanScopeExtract = this._scope.$.extract();
 	}
 
 	/**
@@ -723,13 +761,13 @@
 		}
 		this._applying = true;
 
-		if (this._handleDirty() || this._nodesDirty) {
+		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
 			var n = this._nodes.length;
 			for (var i = 0; i < n; i++) {
 				var node = this._nodes[i];
 				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
-				nodeOptions.$.apply(node.dom, this._scope, node.options);
+				nodeOptions.$.apply(node.dom, this._cleanScopeExtract, node.options);
 			}
 
 			this._nodesDirty = false;
@@ -761,22 +799,19 @@
 	},
 
 	ConsistentScopeManager.prototype.isDirty = function() {
-		return differentScopeKeys(this._scope, this._cleanScope).length !== 0;
+		return differentKeys(this._scope.$.extract(), this._cleanScopeExtract).length !== 0;
 	},
 
-	ConsistentScopeManager.prototype._handleDirty = function() {
-		/* Look for dirty */
-		// TODO nested objects in the scope
-
+	ConsistentScopeManager.prototype._updateCleanScopeAndFireWatchers = function() {
 		var someDirty = false;
 		var dirty;
 		var notified = true;
 		var loops = 0;
-		var currentCleanScope = this._cleanScope;
+		var currentCleanScopeExtract = this._cleanScopeExtract;
 		var notifyingState = {};
 
 		while (notified) {
-			var nextCleanScope = cloneScope(this._scope);
+			var nextCleanScopeExtract = this._scope.$.extract();
 
 			dirty = [];
 
@@ -786,27 +821,28 @@
 					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
-				var keys = differentScopeKeys(this._scope, currentCleanScope);
+				var keys = differentKeys(nextCleanScopeExtract, currentCleanScopeExtract);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (dirty.indexOf(key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, this._scope.$.get(key), currentCleanScope.$.get(key), 
+					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeExtract, key), 
+						getNestedProperty(currentCleanScopeExtract, key), 
 						this._scope, notifyingState);
 				}
 			}
 
 			if (dirty.length > 0) {
-				notified |= this._notifyWatchAlls(dirty, this._scope, currentCleanScope, notifyingState);
+				notified |= this._notifyWatchAlls(dirty, this._scope, nextCleanScopeExtract, currentCleanScopeExtract, notifyingState);
 				someDirty = true;
 			}
 
-			currentCleanScope = nextCleanScope;
+			currentCleanScopeExtract = nextCleanScopeExtract;
 		}
 
 		if (someDirty) {
-			this._cleanScope = cloneScope(this._scope);
+			this._cleanScopeExtract = currentCleanScopeExtract;
 			return true;
 		} else {
 			return false;
@@ -835,7 +871,8 @@
 				if (notifying[watcherId] === undefined || notifying[watcherId].cleanValue !== newValue) {
 					watcher.call(scope, key, newValue, oldValue);
 
-					notifying[watcherId] = { cleanValue: this._scope.$.get(key) };
+					/* Record clean value from the actual scope, as that will contain any changes this function made */
+					notifying[watcherId] = { cleanValue: scope.$.get(key) };
 					notified = true;
 				}
 			}
@@ -848,7 +885,7 @@
 		return notified;
 	};
 
-	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, scope, oldScope, notifyingState) {
+	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, scope, scopeExtract, oldScopeExtract, notifyingState) {
 		var notified = false;
 		var watchers = this._watchers[WATCH_ALL_KEY];
 		if (watchers !== undefined) {
@@ -867,17 +904,18 @@
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcherId] === undefined || differentScopeKeys(scope, notifying[watcherId].cleanScope).length !== 0) {
-					watchers[i].call(scope, keys, scope, oldScope);
+				if (notifying[watcherId] === undefined || differentKeys(scopeExtract, notifying[watcherId].cleanScopeExtract).length !== 0) {
+					watchers[i].call(scope, keys, scopeExtract, oldScopeExtract);
 					
-					notifying[watcherId] = { cleanScope: cloneScope(scope) };
+					/* Record clean extract from the actual scope, as that will contain any changes this function made */
+					notifying[watcherId] = { cleanScopeExtract: scope.$.extract() };
 					notified = true;
 				}
 			}
 		}
 
 		if (this._parentScope != null) {
-			this._parentScope.$._manager._notifyWatchAlls(keys, scope, oldScope, notifyingState);
+			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeExtract, oldScopeExtract, notifyingState);
 		}
 
 		return notified;
@@ -909,13 +947,28 @@
 					var listener = function(ev) {
 						for (var i = 0; i < keys.length; i++) {
 							var key = keys[i];
-							var func = self._scope.$.get(key);
+							var func = self._scope.$.getEventHandler(key);
 							if (func !== undefined) {
 								var result = func.call(dom, ev, self._scope);
 								if (result === false)
 									break;
 							} else {
-								throw new ConsistentException("Bound " + eventName + " event wanted scope function in key: " + key);
+								/* An error has occured, so prevent the event from doing anything and throw an error.
+								 * If we don't prevent default and this is an <a> tag then the browser will navigate away
+								 * and blank the error console and it will be hard to see this error.
+								 */
+								ev.preventDefault();
+
+								func = self._scope.$.get(key);
+								if (typeof func === "function") {
+									throw new ConsistentException("Bound \"" + eventName + 
+										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key) + 
+										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
+								} else {
+									throw new ConsistentException("Bound \"" + eventName + 
+										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key) +
+										"\"");
+								}
 							}
 						}
 					};
