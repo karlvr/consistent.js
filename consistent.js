@@ -85,6 +85,7 @@
 			propertyDataAttributePrefix: "data-ct-prop-",
 			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
+			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
 
 			scopeIdKey: "__ConsistentScopeID",
@@ -453,6 +454,11 @@
 					"name": targetProperty,
 					"key": value
 				});
+			} else if (name === settings.bindDataAttribute) {
+				/* Bind default event */
+				var eventName = defaultEventName(dom);
+				prepareEvents(eventName);
+				result.events[eventName].keys.push(value);
 			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
 				/* Bind events */
 				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
@@ -497,6 +503,17 @@
 			}
 			if (result.events[eventName] === undefined) {
 				result.events[eventName] = { keys: [] };
+			}
+		}
+
+		function defaultEventName(dom) {
+			var nodeName = dom.nodeName;
+			if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
+				return "change";
+			} else if (nodeName === "FORM") {
+				return "submit";
+			} else {
+				return "click";
 			}
 		}
 			

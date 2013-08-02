@@ -223,8 +223,19 @@ scope.$handleClick = function(ev, scope) {
 };
 ```
 
-Note that we don’t need to call `apply` as we don’t need to change the DOM. The event listeners are added when the DOM nodes
-are bound, you just have to make sure the handler functions are defined by the time they are needed.
+Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. The event listeners are added when the DOM nodes are bound to the scope, you just have to make sure the handler functions are defined by the time they are invoked.
+
+#### Shortcut
+
+There is a shortcut for binding events, which is to omit the event name. This chooses the `click` event for most elements:
+
+```html
+<a href="#" data-ct-bind="handleClick">Click me</a>
+```
+
+The following special cases apply:
+  * `<input>` and `<textarea>` elements bind the `change` event
+  * `<form>` elements bind the `submit` event
 
 ### Binding to DOM nodes
 
