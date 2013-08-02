@@ -338,17 +338,17 @@ and values that are already there. If your scope has nested objects, they are re
 
 The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data.
 
-In order to obtain a Javascript object with just the model properties use the `extract` function. It will remove the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and put their current value in the result.
+In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will remove the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and put their current value in the result.
 
 ```javascript
 var scope = $("#item").consistent();
 scope.$.update();
 $.ajax({
-	data: scope.$.extract()
+	data: scope.$.snapshot()
 });
 ```
 
-The `extract` function includes properties from parent scopes. If you don’t want to include parent scopes use `extractLocal` instead.
+The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes use `snapshotLocal` instead.
 
 License
 -------
@@ -471,14 +471,14 @@ Reference
 
 All scope functions are nested inside the `$` object, and therefore you call them, e.g. `scope.$.apply()`.
 
-* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied.
+* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied.
 * `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
 * `merge(object)` merges properties in the given object into the scope.
-* `extract()` returns a Javascript object containing the scope’s properties without its functionality.
-* `extractLocal()` as for `extract` but doesn’t include parent scopes.
+* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and replacing value functions with their current values.
+* `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 * `parent()` returns the parent scope, or null if there is no parent scope.
@@ -510,4 +510,4 @@ Consistent doesn’t create DOM nodes. There are great tools for creating DOM no
 engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent
 scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
-Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily extracted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.extract()` functions, respectively.
+Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily snapshoted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
