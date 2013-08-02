@@ -206,7 +206,7 @@
 
 		templateEngine: null,
 
-		"$": {
+		$: {
 			getNodeOptions: function(node, options) {
 				return Consistent.getNodeOptions(node, options);
 			},
@@ -255,7 +255,7 @@
 				}
 
 				/* Visibility */
-				if (options.visibility !== undefined) {
+				if (options.visibility != null) {
 					var value = getNestedProperty(snapshot, options.visibility);
 					if (value !== undefined) {
 						if (value) {
@@ -745,10 +745,6 @@
 
 		/* Collect anything that exists in bObject but isn't in aObject */
 		for (var key in bObject) {
-			if (key === "$") {
-				continue;
-			}
-
 			if (aObject[key] === undefined) {
 				result.push(prefix + key);
 			}
