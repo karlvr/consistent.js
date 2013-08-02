@@ -409,11 +409,7 @@
 			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
 				/* Attribute */
 				var targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
-				prepareAttributes();
-				result.attributes.push({
-					"name": targetAttribute,
-					"key": value
-				});
+				addAttribute(targetAttribute, value);
 			} else if (name == settings.templateDataAttribute) {
 				/* Template */
 				assertTemplateEngine();
@@ -429,41 +425,26 @@
 				assertTemplateEngine();
 
 				var targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
-				prepareAttributes();
-				result.attributes.push({
-					"name": targetAttribute,
-					"template": options.templateEngine.compile(value)
-				});
+				addAttributeTemplate(targetAttribute, options.templateEngine.compile(value));
 			} else if (name.indexOf(settings.templateIdAttributeDataAttributePrefix) === 0) {
 				/* Attribute template by id */
 				assertTemplateEngine();
 
 				var targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
-				prepareAttributes();
-				result.attributes.push({
-					"name": targetAttribute,
-					"template": options.templateEngine.compile(templateById(value))
-				});
+				addAttributeTemplate(targetAttribute, options.templateEngine.compile(templateById(value)));
 			} else if (name.indexOf(settings.propertyDataAttributePrefix) === 0) {
 				/* Property */
 				var targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
 				targetProperty = targetProperty.replace(/-/g, ".");
-
-				prepareProperties();
-				result.properties.push({
-					"name": targetProperty,
-					"key": value
-				});
+				addProperty(targetProperty, value);
 			} else if (name === settings.bindDataAttribute) {
 				/* Bind default event */
 				var eventName = defaultEventName(dom);
-				prepareEvents(eventName);
-				result.events[eventName].keys.push(value);
+				addEvent(eventName, value);
 			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
 				/* Bind events */
 				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
-				prepareEvents(eventName);
-				result.events[eventName].keys.push(value);
+				addEvent(eventName, value);
 			} else if (name === settings.visibleDataAttribute) {
 				/* Visibility */
 				result.visibility = value;
@@ -491,19 +472,42 @@
 			}
 		}
 
-		function prepareProperties() {
+		function addAttribute(name, key) {
+			prepareAttributes();
+
+			result.attributes.push({
+				"name": name,
+				"key": key
+			});
+		}
+
+		function addAttributeTemplate(name, template) {
+			prepareAttributes();
+			result.attributes.push({
+				"name": name,
+				"template": template
+			});
+		}
+
+		function addProperty(name, key) {
 			if (result.properties === undefined) {
 				result.properties = [];
 			}
+
+			result.properties.push({
+				"name": name,
+				"key": key
+			});
 		}
 
-		function prepareEvents(eventName) {
+		function addEvent(eventName, eventHandlerKey) {
 			if (result.events === undefined) {
 				result.events = {};
 			}
 			if (result.events[eventName] === undefined) {
 				result.events[eventName] = { keys: [] };
 			}
+			result.events[eventName].keys.push(eventHandlerKey);
 		}
 
 		function defaultEventName(dom) {
