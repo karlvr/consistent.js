@@ -87,6 +87,7 @@
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
 			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
+			warningDataAttributePrefix: "data-ct-",
 
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
@@ -448,6 +449,10 @@
 			} else if (name === settings.visibleDataAttribute) {
 				/* Visibility */
 				result.visibility = value;
+			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
+				if (console.log !== undefined) {
+					console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
+				}
 			}
 		}
 
