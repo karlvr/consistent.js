@@ -209,17 +209,17 @@
 				return Consistent.getNodeOptions(node, options);
 			},
 
-			/** Apply the given scopeExtract to the given dom object */
-			apply: function(dom, scopeExtract, options) {
+			/** Apply the given snapshot to the given dom object */
+			apply: function(dom, snapshot, options) {
 				if (options.key != null) {
 					/* Key */
-					var value = getNestedProperty(scopeExtract, options.key);
+					var value = getNestedProperty(snapshot, options.key);
 					if (value !== undefined) {
 						this.applyValue(dom, value);
 					}
 				} else if (options.template != null) {
 					/* Template */
-					this.applyValue(dom, options.template.render(scopeExtract));
+					this.applyValue(dom, options.template.render(snapshot));
 				}
 
 				/* Apply to attributes */
@@ -228,9 +228,9 @@
 					for (var i = 0; i < attrs.length; i++) {
 						var value;
 						if (attrs[i].key !== undefined) {
-							value = getNestedProperty(scopeExtract, attrs[i].key);
+							value = getNestedProperty(snapshot, attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
-							value = attrs[i].template.render(scopeExtract);
+							value = attrs[i].template.render(snapshot);
 						} else {
 							value = null;
 						}
@@ -245,7 +245,7 @@
 				if (options.properties != null) {
 					var props = options.properties;
 					for (var i = 0; i < props.length; i++) {
-						var value = getNestedProperty(scopeExtract, props[i].key);
+						var value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
 							this.applyPropertyValue(dom, props[i].name, value);
 						}
@@ -254,7 +254,7 @@
 
 				/* Visibility */
 				if (options.visibility !== undefined) {
-					var value = getNestedProperty(scopeExtract, options.visibility);
+					var value = getNestedProperty(snapshot, options.visibility);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -554,17 +554,19 @@
 			},
 
 			/**
-			 * Extract a plain object with the values from the scope, excluding the $ object.
+			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
+			 * that contains Consistent functionality, any properties with a $ prefix (event handlers) and
+			 * replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
-			extract: function() {
-				var temp = this._scope.$.extractLocal();
+			snapshot: function() {
+				var temp = this._scope.$.snapshotLocal();
 				if (this._manager._parentScope != null) {
-					temp = merge(this._manager._parentScope.$.extract(), temp);
+					temp = merge(this._manager._parentScope.$.snapshot(), temp);
 				}
 				return temp;
 			},
-			extractLocal: function() {
+			snapshotLocal: function() {
 				var temp = merge({}, this._scope);
 				delete temp.$;
 
@@ -748,7 +750,7 @@
 		this._scope.$._manager = this;
 		this._scope.$._scope = this._scope;
 
-		this._cleanScopeExtract = this._scope.$.extract();
+		this._cleanScopeSnapshot = this._scope.$.snapshot();
 	}
 
 	/**
@@ -767,7 +769,7 @@
 			for (var i = 0; i < n; i++) {
 				var node = this._nodes[i];
 				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
-				nodeOptions.$.apply(node.dom, this._cleanScopeExtract, node.options);
+				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, node.options);
 			}
 
 			this._nodesDirty = false;
@@ -799,7 +801,7 @@
 	},
 
 	ConsistentScopeManager.prototype.isDirty = function() {
-		return differentKeys(this._scope.$.extract(), this._cleanScopeExtract).length !== 0;
+		return differentKeys(this._scope.$.snapshot(), this._cleanScopeSnapshot).length !== 0;
 	},
 
 	ConsistentScopeManager.prototype._updateCleanScopeAndFireWatchers = function() {
@@ -807,11 +809,11 @@
 		var dirty;
 		var notified = true;
 		var loops = 0;
-		var currentCleanScopeExtract = this._cleanScopeExtract;
+		var currentCleanScopeSnapshot = this._cleanScopeSnapshot;
 		var notifyingState = {};
 
 		while (notified) {
-			var nextCleanScopeExtract = this._scope.$.extract();
+			var nextCleanScopeSnapshot = this._scope.$.snapshot();
 
 			dirty = [];
 
@@ -821,28 +823,28 @@
 					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
-				var keys = differentKeys(nextCleanScopeExtract, currentCleanScopeExtract);
+				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (dirty.indexOf(key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeExtract, key), 
-						getNestedProperty(currentCleanScopeExtract, key), 
+					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key), 
+						getNestedProperty(currentCleanScopeSnapshot, key), 
 						this._scope, notifyingState);
 				}
 			}
 
 			if (dirty.length > 0) {
-				notified |= this._notifyWatchAlls(dirty, this._scope, nextCleanScopeExtract, currentCleanScopeExtract, notifyingState);
+				notified |= this._notifyWatchAlls(dirty, this._scope, nextCleanScopeSnapshot, currentCleanScopeSnapshot, notifyingState);
 				someDirty = true;
 			}
 
-			currentCleanScopeExtract = nextCleanScopeExtract;
+			currentCleanScopeSnapshot = nextCleanScopeSnapshot;
 		}
 
 		if (someDirty) {
-			this._cleanScopeExtract = currentCleanScopeExtract;
+			this._cleanScopeSnapshot = currentCleanScopeSnapshot;
 			return true;
 		} else {
 			return false;
@@ -885,7 +887,7 @@
 		return notified;
 	};
 
-	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, scope, scopeExtract, oldScopeExtract, notifyingState) {
+	ConsistentScopeManager.prototype._notifyWatchAlls = function(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState) {
 		var notified = false;
 		var watchers = this._watchers[WATCH_ALL_KEY];
 		if (watchers !== undefined) {
@@ -904,18 +906,18 @@
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcherId] === undefined || differentKeys(scopeExtract, notifying[watcherId].cleanScopeExtract).length !== 0) {
-					watchers[i].call(scope, keys, scopeExtract, oldScopeExtract);
+				if (notifying[watcherId] === undefined || differentKeys(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot).length !== 0) {
+					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
 					
-					/* Record clean extract from the actual scope, as that will contain any changes this function made */
-					notifying[watcherId] = { cleanScopeExtract: scope.$.extract() };
+					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
+					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
 					notified = true;
 				}
 			}
 		}
 
 		if (this._parentScope != null) {
-			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeExtract, oldScopeExtract, notifyingState);
+			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;
