@@ -313,9 +313,7 @@ multiple times in a single `apply` if the scope is changed by _other_ watch hand
 
 Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
 
-It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. Consistent detects
-excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in
-`Consistent.settings.maxWatcherLoops`; the default should be good enough.
+It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
 ### Populating the scope from another object
 
