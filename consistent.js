@@ -87,6 +87,7 @@
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
 			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
+			repeatDataAttribute: "data-ct-rep",
 			warningDataAttributePrefix: "data-ct-",
 
 			scopeIdKey: "__ConsistentScopeID",
@@ -122,15 +123,27 @@
 
 	});
 
+	/**
+	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
+	 * copy.
+	 * Note that merge does not merge keys that are "$". This is because Consistent puts its functionality in the
+	 * $ object and there are pointers in there that cause cycles.
+	 */
 	function merge() {
-		var target = arguments[0];
+		var objectsStart = 0;
+		var deep = false;
+		if (typeof arguments[0] === "boolean") {
+			deep = arguments[0];
+			objectsStart++;
+		}
+		var target = arguments[objectsStart];
 		if (typeof target !== "object" && typeof target !== "function") {
-			throw new ConsistentException("First argument to merge is not appropriate: " + typeof target);
+			throw new ConsistentException("First object argument to merge is not appropriate: " + typeof target);
 		}
 		if (target === null) {
-			throw new ConsistentException("First argument to merge is not appropriate: " + target);
+			throw new ConsistentException("First object argument to merge is not appropriate: " + target);
 		}
-		for (var i = 1; i < arguments.length; i++) {
+		for (var i = objectsStart + 1; i < arguments.length; i++) {
 			var source = arguments[i];
 			if (source === undefined) {
 				continue;
@@ -140,8 +153,15 @@
 				throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
 			}
 			for (var name in source) {
+				if (name === "$") {
+					continue;
+				}
+
 				var value = source[name];
 				if (value !== undefined) {
+					if (deep && typeof value === "object") {
+						value = merge(true, {}, value);
+					}
 					target[name] = value;
 				}
 			}
@@ -269,7 +289,7 @@
 
 			/** Called after apply has completed on the given scope.
 			 */
-			afterApply: function(scope) {
+			afterApply: function(scope, snapshot) {
 
 			},
 
@@ -449,6 +469,9 @@
 			} else if (name === settings.visibleDataAttribute) {
 				/* Visibility */
 				result.visibility = value;
+			} else if (name === settings.repeatDataAttribute) {
+				/* Repeat */
+				result.repeat = value;
 			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
 				if (console.log !== undefined) {
 					console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
@@ -586,6 +609,9 @@
 			merge: function(object) {
 				return merge(this._scope, object);
 			},
+			replace: function(object) {
+				return this._manager.replaceScope(object);
+			},
 
 			/**
 			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
@@ -601,13 +627,14 @@
 				return temp;
 			},
 			snapshotLocal: function() {
-				var temp = merge({}, this._scope);
-				delete temp.$;
+				var temp = merge(true, {}, this._scope);
 
 				for (var i in temp) {
 					if (i.indexOf("$") === 0) {
+						/* Remove handler functions */
 						delete temp[i];
 					} else if (typeof temp[i] === "function") {
+						/* Evaluate value functions */
 						temp[i] = temp[i].call(this._scope);
 					}
 				}
@@ -800,15 +827,127 @@
 				var node = this._nodes[i];
 				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
 				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
+
+				/* Repeating */
+				if (nodeOptions.repeat != null) {
+					this._handleRepeat(node, nodeOptions.repeat, this._cleanScopeSnapshot, nodeOptions);
+				}
 			}
 
 			this._nodesDirty = false;
 
 			var scopeOptions = options !== undefined ? mergeOptions({}, this._options, options) : this._options;
-			scopeOptions.$.afterApply(this._scope);
+			scopeOptions.$.afterApply(this._scope, this._cleanScopeSnapshot);
 		}
 
 		this._applying = false;
+	};
+
+	ConsistentScopeManager.prototype._handleRepeat = function(node, repeatKey, snapshot, options) {
+		/* Repeat data is an object containing:
+		 * {
+		 *     domNodes: an array of top-level DOM nodes to use to repeat,
+		 *     version: version counter to track deletions,
+		 *     items: [
+		 *         object: the data object, 
+		 *         domNodes: an array of top-level DOM nodes created,
+		 *         scope: the child scope created,
+		 *         version: version counter to track deletions
+		 *     ]
+		 * }
+		 */
+		var repeatData = node.repeatData;
+		if (repeatData === undefined) {
+			repeatData = { version: 0, items: [] };
+			repeatData.domNodes = [ node.dom.cloneNode(true) ];
+			for (var i = 0; i < repeatData.domNodes.length; i++) {
+				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
+			}
+			node.dom.style.display = "none";
+			node.repeatData = repeatData;
+		}
+
+		var repeatContext = this._scope.$.get(repeatKey);
+		var repeatSnapshot = getNestedProperty(snapshot, repeatKey);
+
+		if (repeatSnapshot === undefined) {
+			/* Do nothing */
+			return;
+		}
+
+		/* Sanity check */
+		if (typeof repeatSnapshot !== "object") {
+			throw new ConsistentException("Repeat for key \"" + repeatKey + 
+				"\" is not an object in the scope, found " + typeof repeatSnapshot);
+		}
+
+		/* Find new and old objects in repeatContext */
+		var version = ++repeatData.version;
+		var insertBefore = node.dom.nextSibling;
+		var parentNode = node.dom.parentNode;
+
+		for (var i = 0; i < repeatContext.length; i++) {
+			var object = repeatContext[i];
+			var item = findRepeatItemForObject(object);
+			if (item === undefined) {
+				/* New object */
+				var domNodes = newDomNodes();
+				
+				var childScope = Consistent(this._scope, this._options);
+				childScope.$.bind(domNodes);
+				childScope.$.replace(object);
+
+				item = {
+					object: object,
+					domNodes: domNodes,
+					scope: childScope,
+					version: version
+				};
+				repeatData.items.push(item);
+			} else {
+				item.version = version;
+			}
+
+			for (var j = 0; j < item.domNodes.length; j++) {
+				parentNode.insertBefore(item.domNodes[j], insertBefore);
+			}
+			insertBefore = item.domNodes[item.domNodes.length - 1].nextSibling;
+
+			item.scope.$.apply();
+		}
+
+		/* Find deleted objects */
+		for (var i = 0; i < repeatData.items.length; i++) {
+			var item = repeatData.items[i];
+			if (item.version !== version) {
+				removeDomNodes(item.domNodes);
+				repeatData.items.splice(i, 1);
+				i--;
+			}
+		}
+
+		function findRepeatItemForObject(object) {
+			for (var i = 0; i < repeatData.items.length; i++) {
+				if (repeatData.items[i].object === object) {
+					return repeatData.items[i];
+				}
+			}
+			return undefined;
+		}
+
+		function newDomNodes() {
+			var result = [];
+			for (var i = 0; i < repeatData.domNodes.length; i++) {
+				result.push(repeatData.domNodes[i].cloneNode(true));
+			}
+			return result;
+		}
+
+		function removeDomNodes(domNodes) {
+			for (var i = 0; i < domNodes.length; i++) {
+				domNodes[i].parentNode.removeChild(domNodes[i]);
+			}
+		}
 	};
 
 	/**
@@ -1122,6 +1261,12 @@
 			}
 		}
 		return null;
+	};
+
+	ConsistentScopeManager.prototype.replaceScope = function(newScope) {
+		newScope.$ = this._scope.$;
+		newScope.$._scope = newScope;
+		this._scope = newScope;
 	};
 
 
