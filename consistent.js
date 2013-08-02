@@ -276,7 +276,11 @@
 			applyValue: function(dom, value) {
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					dom.value = value;
+					if (dom.type === "checkbox" || dom.type === "radio") {
+						dom.checked = (value ? true : false);
+					} else {
+						dom.value = value;
+					}
 				} else {
 					dom.innerHTML = value;
 				}
@@ -330,7 +334,11 @@
 			getValue: function(dom) {
 				var nodeName = dom.nodeName;
 				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					return dom.value;
+					if (dom.type === "checkbox" || dom.type === "radio") {
+						return dom.checked;
+					} else {
+						return dom.value;
+					}
 				} else {
 					return dom.innerHTML;
 				}
