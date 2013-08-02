@@ -803,7 +803,7 @@
 			for (var i = 0; i < n; i++) {
 				var node = this._nodes[i];
 				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
-				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, node.options);
+				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 			}
 
 			this._nodesDirty = false;
