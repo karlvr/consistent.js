@@ -64,13 +64,13 @@ $(function() {
 	myScope.clickCount = 0;
 	myScope.nullKey = null;
 
-	var exp = myScope.$.extract();
+	var exp = myScope.$.snapshot();
 	var undefined;
 	if (exp.$ !== undefined || exp.hello !== "world") {
-		console.log("Extract faulty", exp);
+		console.log("Snapshot faulty", exp);
 	}
 
-	myScope.clickHandler = function(ev) {
+	myScope.$clickHandler = function(ev) {
 		myScope.clickCount++;
 		myScope.$.apply();
 		ev.preventDefault();

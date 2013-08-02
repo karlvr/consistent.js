@@ -27,7 +27,7 @@ $(function() {
 		$(this.$.roots()).find(".tooManyClicks").hide();
 
 		// TODO maybe separate event handlers from model values, or change extract() to exclude them?
-		this.registerClick = function(ev, scope) {
+		this.$registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
@@ -37,7 +37,7 @@ $(function() {
 			});
 		};
 
-		this.resetClicks = function(ev, scope) {
+		this.$resetClicks = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks = 0;
 				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);

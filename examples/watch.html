@@ -38,7 +38,39 @@ $(function() {
 		});
 	});
 });
+</script>
 
+<hr>
+
+<div id="container2">
+	<h2 data-ct="title">My title</h2>
+	<p data-ct="status"></p>
+</div>
+
+<button id="change2">Change</button>
+
+<script>
+$(function() {
+	var scope = $("#container2").consistent();
+
+	/* Watch all scope changes */
+	scope.$.watch(function(keys, scope, oldScope) {
+		this.status = "Changed " + keys;
+	});
+
+	var counter = 0;
+	scope.title = function() {
+		return "Random title " + counter;
+	};
+	scope.title.ignore = true;
+
+	$("#change2").click(function() {
+		counter++;
+		scope.$.apply();
+	});
+
+	scope.$.apply();
+});
 </script>
 
 </body>
