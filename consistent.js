@@ -318,11 +318,20 @@
 			  */
 			setValue: function(dom, value) {
 				var nodeName = dom.nodeName;
-				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					if (dom.type === "checkbox" || dom.type === "radio") {
+				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
+					if (dom.type === "checkbox") {
 						dom.checked = (value ? true : false);
+					} else if (dom.type === "radio") {
+						dom.checked = (value == dom.value);
 					} else {
 						dom.value = value;
+					}
+				} else if (nodeName === "SELECT") {
+					for (var i = 0; i < dom.options.length; i++) {
+						if (dom.options[i].value == value) {
+							dom.selectedIndex = i;
+							break;
+						}
 					}
 				} else {
 					dom.innerHTML = value;
@@ -376,12 +385,17 @@
 			/** Get the current value from the given dom object */
 			getValue: function(dom) {
 				var nodeName = dom.nodeName;
-				if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
-					if (dom.type === "checkbox" || dom.type === "radio") {
+				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
+					if (dom.type === "checkbox") {
+						return dom.checked;
+					} else if (dom.type === "radio") {
+						// TODO
 						return dom.checked;
 					} else {
 						return dom.value;
 					}
+				} else if (nodeName === "SELECT") {
+					return dom.options[dom.selectedIndex].value;
 				} else {
 					return dom.innerHTML;
 				}
@@ -437,7 +451,7 @@
 		var result = mergeOptions({}, options);
 
 		var nodeName = dom.nodeName;
-		if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+		if (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT") {
 			if (result.key === undefined) {
 				/* Default key for input and textarea elements */
 				result.key = dom.getAttribute("name");
@@ -574,7 +588,7 @@
 
 		function defaultEventName(dom) {
 			var nodeName = dom.nodeName;
-			if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
+			if (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT") {
 				return "change";
 			} else if (nodeName === "FORM") {
 				return "submit";
@@ -1225,7 +1239,8 @@
 
 			/* Handle specific nodes differently */
 			var nodeName = dom.nodeName;
-			if (nodeOptions.autoListenToChange && (nodeName == "INPUT" || nodeName == "TEXTAREA")) {
+			if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || 
+				nodeName === "TEXTAREA" || nodeName === "SELECT")) {
 				/* For input and textarea nodes we bind to their change event by default. */
 				var listener = function(ev) {
 					nodeOptions.$.update(dom, self._scope, nodeOptions);
