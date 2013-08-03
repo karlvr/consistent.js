@@ -360,7 +360,9 @@
 			update: function(dom, scope, options) {
 				if (options.key !== undefined) {
 					var value = this.getValue(dom);
-					scope.$.set(options.key, value);
+					if (value !== undefined) {
+						scope.$.set(options.key, value);
+					}
 				}
 
 				if (options.attributes != null) {
@@ -389,8 +391,7 @@
 					if (dom.type === "checkbox") {
 						return dom.checked;
 					} else if (dom.type === "radio") {
-						// TODO
-						return dom.checked;
+						return dom.checked ? dom.value : undefined;
 					} else {
 						return dom.value;
 					}
