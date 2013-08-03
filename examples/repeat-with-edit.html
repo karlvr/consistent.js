@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+Example of repeating blocks created from an array of objects in the scope, with inline deletion
+and animation.
+-->
 <html>
 <head>
 <script src="jquery-1.10.2.js"></script>
@@ -25,19 +29,21 @@
 
 <script>
 $(function() {
+	/* Animation */
 	var dontFade = true;
-	var scope = $("#container").consistent({
-		$: {
-			added: function(dom) {
-				if (!dontFade) {
-					$(dom).hide().fadeIn();
-				}
-			},
-			remove: function(dom) {
-				$(dom).fadeOut();
-			}
+	var options = { $: {} };
+	options.$.added = function(dom) {
+		if (!dontFade) {
+			$(dom).hide().fadeIn();
 		}
-	});
+	};
+	options.$.remove = function(dom) {
+		$(dom).fadeOut();
+	};
+
+	/* Scope */
+	var scope = $("#container").consistent(options);
+
 	scope.people = [
 		{ name: "Albert" },
 		{ name: "Bob" },
