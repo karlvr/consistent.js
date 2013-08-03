@@ -339,6 +339,10 @@
 						dom.value = value;
 					}
 				} else if (nodeName === "SELECT") {
+					if (value === null) {
+						value = "";
+					}
+					
 					for (var i = 0; i < dom.options.length; i++) {
 						if (dom.options[i].value == value) {
 							dom.selectedIndex = i;
