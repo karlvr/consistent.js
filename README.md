@@ -5,11 +5,9 @@ Consistent is a small and simple Javascript framework to enable an abstract mode
 
 Introduction
 ------------
-Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children)
-to learn how to relate them to the scope.
+Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
 
-Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery
-and can be used without it.
+Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.
 
 ```html
 <script src="consistent.js"></script>
@@ -33,8 +31,7 @@ scope.$.apply();
 
 The `h1` element will now have its body changed to "Consistent.js".
 
-Notice that after changing properties in the scope you need to call _apply_ to instruct Consistent to update the DOM.
-You can also apply changes to the scope like this, which is equivalent:
+Notice that after changing properties in the scope you need to call _apply_ to instruct Consistent to update the DOM. You can also apply changes to the scope like this, which is equivalent:
 
 ```javascript
 var scope = $("h1").consistent();
@@ -55,8 +52,7 @@ Note that if a scope property is undefined, Consistent does not change the DOM.
 
 ### Templating
 
-Consistent supports pluggable templating engines. The examples use [Hogan](http://twitter.github.io/hogan.js/). Any templating
-engine that provides `compile(string)` and `render(object)` methods will work.
+Consistent supports pluggable templating engines. The examples use [Hogan](http://twitter.github.io/hogan.js/). Any templating engine that provides `compile(string)` and `render(object)` methods will work.
 
 ```html
 <h1 data-ct-tmpl="Welcome to {{name}}"></h1>
@@ -93,8 +89,7 @@ Consistent can show and hide nodes based on the scope.
 <h1 data-ct-vis="showTitle">My title</h1>
 ```
 
-Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style.
-Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
+Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
 
 ```javascript
 var scope = $("h1").consistent();
@@ -139,8 +134,7 @@ scope.$handleClick = function(ev) {
 };
 ```
 
-The handler function is called with `this` as the element that received the event, as in jQuery. There is also a second
-argument to the function which is the scope, in case you need it.
+The handler function is called with `this` as the element that received the event, as in jQuery. There is also a second argument to the function which is the scope, in case you need it.
 
 ```javascript
 scope.$handleClick = function(ev, scope) {
@@ -271,9 +265,7 @@ You can also use templates to update attributes.
 
 ### Binding to DOM nodes
 
-In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice.
-When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container
-element.
+In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container element.
 
 ```html
 <div id="container">
@@ -311,8 +303,7 @@ $(".container").each(function() {
 
 ### Getting the scope for a DOM node
 
-If you need to get the existing scope for a node, you can follow the exact same pattern. Calling `.consistent()` again
-will return the existing scope.
+If you need to get the existing scope for a node, you can follow the exact same pattern. Calling `.consistent()` again will return the existing scope.
 
 ```javascript
 $(".container").each(function() {
@@ -322,8 +313,7 @@ $(".container").each(function() {
 });
 ```
 
-You can also call the `Consistent.findScopeForNode(node)` function, if you just want to check if there’s a scope rather than
-create one.
+You can also call the `Consistent.findScopeForNode(node)` function, if you just want to check if there’s a scope rather than create one.
 
 ### Updating the scope from the DOM
 
@@ -338,8 +328,7 @@ Note this doesn’t work for any properties that are using templates.
 
 ### Watching for changes in the scope
 
-Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler
-functions are called when `apply` is called on the scope, **before** the DOM has been updated.
+Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler functions are called when `apply` is called on the scope, **before** the DOM has been updated.
 
 ```javascript
 scope.$.watch("title", function(key, newValue, oldValue) {
@@ -351,8 +340,7 @@ scope.$.watch(function(changedKeys, newScope, oldScope) {
 });
 ```
 
-Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called
-multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
+Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
 Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
 
@@ -360,8 +348,7 @@ It is possible for watch handlers to cause an infinite loop, if the scope does n
 
 ### Populating the scope from another object
 
-Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope
-using the `merge` function.
+Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope using the `merge` function.
 
 ```javascript
 var scope = $("#item").consistent();
@@ -372,8 +359,7 @@ $.ajax({
 })
 ```
 
-Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing
-and values that are already there. If your scope has nested objects, they are replaced rather than merged.
+Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
 ### Snapshotting the scope to a Javascript object
 
@@ -428,8 +414,7 @@ scope.person = {
 scope.$.apply();
 ```
 
-Watch handler functions will be called with the `key` as the nested property name, eg. `person.fullName`. For convenience
-the scope declares two functions for working with nested property names.
+Watch handler functions will be called with the `key` as the nested property name, eg. `person.fullName`. For convenience the scope declares two functions for working with nested property names.
 
 ```javascript
 var nestedPropertyName = "person.fullName";
@@ -439,13 +424,11 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want
-to fall back to a parent scope use `getLocal` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope use `getLocal` instead.
 
 ### Parent scopes
 
-You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given
-property key, in order to populate a DOM node or when looking for an event handler function.
+You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function.
 
 When a child scope is applied it automatically applies its parent scope.
 
@@ -457,10 +440,7 @@ var childScope = $.consistent(rootScope); /* Create a child scope */
 $("#item").consistent(childScope); /* Bind a DOM node to the child scope */
 ```
 
-Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as
-we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it
-treats that as the scope to bind to. You have to call the `$.consistent` function in order to create a new scope
-with a parent. Note that `$.consistent` and `Consistent` are the same function.
+Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it treats that as the scope to bind to. You have to call the `$.consistent` function in order to create a new scope with a parent. Note that `$.consistent` and `Consistent` are the same function.
 
 Now the following will work.
 
@@ -477,9 +457,7 @@ childScope.$.apply();
 
 Then if you add a title to the childScope and apply it again, it will override the title property in the parent.
 
-Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is
-particularly important when using parent scopes, as that argument will contain the originating scope, even if
-the event handler is declared in a parent scope.
+Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is particularly important when using parent scopes, as that argument will contain the originating scope, even if the event handler is declared in a parent scope.
 
 ```html
 <div id="item">
@@ -496,9 +474,7 @@ rootScope.$handleClick = function(ev, scope) {
 
 ### Getting the nodes bound to a scope
 
-If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes`, which returns
-all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound – as opposed
-to those that were bound as they are children of the explicitly bound nodes.
+If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes`, which returns all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound – as opposed to those that were bound as they are children of the explicitly bound nodes.
 
 ```javascript
 $(scope.$.nodes()).addClass("found");
@@ -555,8 +531,7 @@ Options
 
 ### Visibility
 
-Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by
-specifying options when you create a scope, or bind a node. See Options for more details.
+Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by specifying options when you create a scope, or bind a node. See Options for more details.
 
 ```javascript
 var scope = $("h1").consistent({
@@ -637,8 +612,6 @@ All scope functions are nested inside the `$` object, and therefore you call the
 What Consistent doesn’t do
 --------------------------
 
-Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating
-engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent
-scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
+Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
 Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily snapshoted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
