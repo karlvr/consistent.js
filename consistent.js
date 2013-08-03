@@ -123,6 +123,12 @@
 
 	});
 
+	var _plainObject = {};
+
+	function isArray(object) {
+		return _plainObject.toString.call(object) === "[object Array]";
+	}
+
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
 	 * copy.
@@ -1092,12 +1098,6 @@
 
 		return notified;
 	};
-
-	var _plainObject = {};
-
-	function isArray(object) {
-		return _plainObject.toString.call(object) === "[object Array]";
-	}
 
 	/**
 	 * Acquire a new DOM node in this scope.
