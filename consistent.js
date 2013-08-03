@@ -90,6 +90,8 @@
 			repeatDataAttribute: "data-ct-rep",
 			warningDataAttributePrefix: "data-ct-",
 
+			repeatIndexProperty: "_ct_index",
+
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
 			oldDisplayKey: "__ConsistentOldDisplay",
@@ -914,6 +916,7 @@
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$.bind(domNodes);
 				childScope = childScope.$.replace(object);
+				childScope[Consistent.settings.repeatIndexProperty] = i;
 
 				item = {
 					object: object,
