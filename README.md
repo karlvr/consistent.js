@@ -53,6 +53,38 @@ $("h1").consistent().$.apply(function() {
 
 Note that if a scope property is undefined, Consistent does not change the DOM.
 
+### Templating
+
+Consistent supports pluggable templating engines. The examples use [Hogan](http://twitter.github.io/hogan.js/). Any templating
+engine that provides `compile(string)` and `render(object)` methods will work.
+
+```html
+<h1 data-ct-tmpl="Welcome to {{name}}"></h1>
+```
+
+Now configure Consistent to use Hogan as its templating engine, and populate the scope.
+
+```javascript
+Consistent.defaultOptions.templateEngine = Hogan;
+var scope = $("h1").consistent();
+scope.name = "Consistent.js";
+scope.$.apply();
+```
+
+You can also references templates by an id, rather than writing them inline.
+
+```html
+<h1 data-ct-tmpl-id="h1-template"></h1>
+
+<script id="h1-template" type="text/x-hogan-template">
+	Welcome to {{name}}
+</script>
+```
+
+Note that Consistent will re-render the templates and thus recreate the DOM nodes each time the scope is applied.
+
+If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
+
 ### Value functions
 
 As well as adding values to the scope, you can also add functions. In this case the function is executed each time the scope is applied and its return value is used.
@@ -112,70 +144,6 @@ scope.$.apply();
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
 
-### Attributes
-
-You can set DOM element attributes from the scope.
-
-```html
-<h1 data-ct-attr-class="titleClass">Title</h1>
-```
-
-Now create a scope and set the heading’s class.
-
-```javascript
-var scope = $("h1").consistent();
-scope.titleClass = "large";
-scope.$.apply();
-```
-
-The `h1` element will now have a class of "large" applied.
-
-You can use templating to set attribute values. See the templating section below.
-
-You can also set DOM element properties, see the Properties section below.
-
-### Templating
-
-Consistent supports pluggable templating engines. The examples use [Hogan](http://twitter.github.io/hogan.js/). Any templating
-engine that provides `compile(string)` and `render(object)` methods will work.
-
-```html
-<h1 data-ct-tmpl="Welcome to {{name}}"></h1>
-```
-
-Now configure Consistent to use Hogan as its templating engine, and populate the scope.
-
-```javascript
-Consistent.defaultOptions.templateEngine = Hogan;
-var scope = $("h1").consistent();
-scope.name = "Consistent.js";
-scope.$.apply();
-```
-
-You can also references templates by an id, rather than writing them inline.
-
-```html
-<h1 data-ct-tmpl-id="h1-template"></h1>
-
-<script id="h1-template" type="text/x-hogan-template">
-	Welcome to {{name}}
-</script>
-```
-
-You can also use templates to update attributes.
-
-```html
-<h1 data-ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
-
-<h1 data-ct-tmpl-id-attr-class="h1-class-template">Title</h1>
-<script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
-```
-
-Note that Consistent will re-render the templates and thus recreate the DOM nodes each time the scope is applied.
-
-If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
-
-
 ### Events
 
 Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
@@ -217,6 +185,37 @@ There is a shortcut for binding events, which is to omit the event name. This ch
 The following special cases apply:
   * `<input>` and `<textarea>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
+
+### Attributes
+
+You can set DOM element attributes from the scope.
+
+```html
+<h1 data-ct-attr-class="titleClass">Title</h1>
+```
+
+Now create a scope and set the heading’s class.
+
+```javascript
+var scope = $("h1").consistent();
+scope.titleClass = "large";
+scope.$.apply();
+```
+
+The `h1` element will now have a class of "large" applied.
+
+You can also set DOM element properties, see the Properties section below.
+
+#### Templating
+
+You can also use templates to update attributes.
+
+```html
+<h1 data-ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
+
+<h1 data-ct-tmpl-id-attr-class="h1-class-template">Title</h1>
+<script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
+```
 
 ### Binding to DOM nodes
 
