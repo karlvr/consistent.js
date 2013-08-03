@@ -186,6 +186,58 @@ The following special cases apply:
   * `<input>` and `<textarea>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
 
+### Repeating blocks
+
+If your scope contains array values, you can repeat blocks of DOM nodes to represent them.
+
+```html
+<ul>
+	<li data-ct-rep="people" data-ct="name"></li>
+</ul>
+```
+
+```javascript
+var scope = $("ul").consistent();
+scope.people = [
+	{ name: "Alfred" },
+	{ name: "Bob" },
+	{ name: "Carl" }
+];
+scope.$.apply();
+```
+
+This will result in a list containing three `<li>` elements, one for each of the people in the `scope.people` array. If you then change the array, the DOM will be updated.
+
+```javascript
+scope.people.push({ name: "Donald" });
+scope.$.apply();
+```
+
+Or removing an item:
+
+```javascript
+scope.people.splice(0, 1);
+scope.$.apply();
+```
+
+Consistent is very sparing with its creation of DOM nodes. It only creates new nodes when new items are added to the array. So any changes you make to the DOM outside of Consistent will be preserved.
+
+Repeating is not limited to a single element:
+
+```html
+<table>
+	<tr data-ct-rep="people">
+		<td>Person #<span data-ct="_ct_index"></span></td>
+		<td data-ct="name"></td>
+		<td data-ct="address"></td>
+	</tr>
+</table>
+```
+
+Note above that a special property is added to the scope called `_ct_index` which contains the 0-based index of the current iteration. If you want to format that number differently, use a value function that accesses and modifies it.
+
+It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
+
 ### Attributes
 
 You can set DOM element attributes from the scope.
@@ -339,26 +391,6 @@ $.ajax({
 
 The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes use `snapshotLocal` instead.
 
-### Properties
-
-You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the `style` property, which exposes an object containing the DOM element’s style.
-
-```html
-<p data-ct-prop-style-display="showHide">Lorem ipsum</p>
-```
-
-Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `data-ct-prop-` attribute.
-
-```javascript
-var scope = $("p").consistent();
-scope.showHide = "none";
-scope.$.apply();
-```
-
-This sets the `style.display` property of the `<p>` element to "none", causing it not to be displayed.
-
-See the Visibility section above for a better way to show and hide elements.
-
 License
 -------
 
@@ -472,6 +504,51 @@ to those that were bound as they are children of the explicitly bound nodes.
 $(scope.$.nodes()).addClass("found");
 $(scope.$.roots()).addClass("found");
 ```
+
+### Repeating multiple root elements
+
+The Repeating blocks section above introduces repeating. In that example you can only repeat a single root element, such as an `<li>` or a `<tr>`. Consistent also supports repeating a block of multiple root elements, which is useful if you want to add multiple table rows to a table for each block.
+
+```html
+<table>
+	<tr data-ct-rep="people" data-ct-rep-container-id="rows"></tr>
+</table>
+
+<table style="display:none">
+	<tbody id="rows">
+		<tr>
+			<td>Name</td>
+			<td data-ct="name"></td>
+		</tr>
+		<tr>
+			<td>Address</td>
+			<td data-ct="address"></td>
+		</tr>
+	</tbody>
+</table>
+```
+
+Using the `data-ct-rep-container-id` attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a `<tbody>` element created, even if it isn’t in the markup, therefore you should attach the id to an explicit `<tbody>` otherwise if the id is on the `<table>`, the repeating block will include the automatically created `<tbody>`.
+
+### Properties
+
+You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the `style` property, which exposes an object containing the DOM element’s style.
+
+```html
+<p data-ct-prop-style-display="showHide">Lorem ipsum</p>
+```
+
+Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `data-ct-prop-` attribute.
+
+```javascript
+var scope = $("p").consistent();
+scope.showHide = "none";
+scope.$.apply();
+```
+
+This sets the `style.display` property of the `<p>` element to "none", causing it not to be displayed.
+
+See the Visibility section above for a better way to show and hide elements.
 
 Options
 -------
