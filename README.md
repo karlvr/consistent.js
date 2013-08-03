@@ -596,16 +596,20 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
 * `merge(object)` merges properties in the given object into the scope.
-* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and replacing value functions with their current values.
+* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object.
+* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
 * `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 * `parent()` returns the parent scope, or null if there is no parent scope.
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.
-* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes.
-* `getLocal(key)` as for `get` but doesn’t include parent scopes.
+* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. If the scope contains a value function for the given key, it is evaluated and its result returned.
+* `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
+* `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
+* `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
+* `setEventHandler(key)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
 * `options(node)` returns the options object for the given node.
 
 ### Consistent functions
