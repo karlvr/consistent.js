@@ -88,6 +88,7 @@
 			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
 			repeatDataAttribute: "data-ct-rep",
+			repeatContainerIdDataAttribute: "data-ct-rep-container-id",
 			warningDataAttributePrefix: "data-ct-",
 
 			repeatIndexProperty: "_ct_index",
@@ -481,7 +482,13 @@
 			} else if (name === settings.repeatDataAttribute) {
 				/* Repeat */
 				result.repeat = value;
+			} else if (name === settings.repeatContainerIdDataAttribute) {
+				/* Repeat container id */
+				result.repeatContainerId = value;
 			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
+				/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
+				 * weren't recognized. Log these out to help developers catch errors.
+				 */
 				if (console.log !== undefined) {
 					console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
 				}
@@ -839,7 +846,7 @@
 
 				/* Repeating */
 				if (nodeOptions.repeat != null) {
-					this._handleRepeat(node, nodeOptions.repeat, this._cleanScopeSnapshot, nodeOptions);
+					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
 				}
 			}
 
@@ -857,11 +864,12 @@
 		this._applying = false;
 	};
 
-	ConsistentScopeManager.prototype._handleRepeat = function(node, repeatKey, snapshot, options) {
+	ConsistentScopeManager.prototype._handleRepeat = function(node, options, snapshot) {
 		/* Repeat data is an object containing:
 		 * {
 		 *     domNodes: an array of top-level DOM nodes to use to repeat,
 		 *     version: version counter to track deletions,
+		 *     insertBefore: the DOM node to insert before,
 		 *     items: [
 		 *         object: the data object, 
 		 *         domNodes: an array of top-level DOM nodes created,
@@ -870,21 +878,37 @@
 		 *     ]
 		 * }
 		 */
+		var repeatKey = options.repeat;
+
 		var repeatData = node.repeatData;
 		if (repeatData === undefined) {
 			/* Initialise repeat for this node */
 			repeatData = { version: 0, items: [] };
-			repeatData.domNodes = [ node.dom.cloneNode(true) ];
+
+			if (options.repeatContainerId != null) {
+				var source = document.getElementById(options.repeatContainerId);
+				if (source != null) {
+					repeatData.domNodes = source.children;
+				} else {
+					throw new ConsistentException("Couldn't find element with id \"" + options.repeatId + "\" for repeat container.");
+				}
+			} else {
+				repeatData.domNodes = [ node.dom.cloneNode(true) ];
+			}
 			for (var i = 0; i < repeatData.domNodes.length; i++) {
 				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
+				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerIdDataAttribute);
 			}
 			node.repeatData = repeatData;
 
-			var replacement = document.createComment("Consistent repeat placeholder");
+			var replacement = document.createComment("Consistent repeat " + repeatKey);
 			node.dom.parentNode.insertBefore(replacement, node.dom);
 			node.dom.parentNode.removeChild(node.dom);
 			replacement[Consistent.settings.scopeIdKey] = this._id;
 			node.dom = replacement;
+
+			repeatData.insertBefore = document.createComment("/Consistent repeat " + repeatKey);
+			node.dom.parentNode.insertBefore(repeatData.insertBefore, replacement.nextSibling);
 		}
 
 		var repeatContext = this._scope.$.get(repeatKey);
@@ -903,7 +927,7 @@
 
 		/* Find new and old objects in repeatContext */
 		var version = ++repeatData.version;
-		var insertBefore = node.dom.nextSibling;
+		var insertBefore = repeatData.insertBefore;
 		var parentNode = node.dom.parentNode;
 
 		for (var i = 0; i < repeatContext.length; i++) {
@@ -932,7 +956,6 @@
 			for (var j = 0; j < item.domNodes.length; j++) {
 				parentNode.insertBefore(item.domNodes[j], insertBefore);
 			}
-			insertBefore = item.domNodes[item.domNodes.length - 1].nextSibling;
 
 			item.scope.$.apply();
 		}
