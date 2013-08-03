@@ -93,33 +93,7 @@ scope.showTitle = true;
 scope.$.apply();
 ```
 
-Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by
-specifying options when you create a scope, or bind a node. See Options for more details.
-
-```javascript
-var scope = $("h1").consistent({
-	$: {
-		show: function(dom) {
-			$(dom).fadeIn();
-		},
-		hide: function(dom) {
-			$(dom).fadeOut();
-		}
-	}
-});
-```
-
-You could also specify the show / hide implementation for a specific `apply`:
-
-```javascript
-scope.$.apply({
-	$: {
-		show: function(dom) {
-			$(dom).fadeIn();
-		}
-	}
-});
-```
+You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
 ### Form elements
 Form elements work as you would expect. Consistent updates their values.
@@ -493,8 +467,38 @@ $(scope.$.nodes()).addClass("found");
 $(scope.$.roots()).addClass("found");
 ```
 
-### Options
+Options
+-------
 
+### Visibility
+
+Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by
+specifying options when you create a scope, or bind a node. See Options for more details.
+
+```javascript
+var scope = $("h1").consistent({
+	$: {
+		show: function(dom) {
+			$(dom).fadeIn();
+		},
+		hide: function(dom) {
+			$(dom).fadeOut();
+		}
+	}
+});
+```
+
+You could also specify the show / hide implementation for a specific `apply`:
+
+```javascript
+scope.$.apply({
+	$: {
+		show: function(dom) {
+			$(dom).fadeIn();
+		}
+	}
+});
+```
 
 Reference
 ---------
