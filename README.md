@@ -128,27 +128,9 @@ scope.$.apply();
 
 The `h1` element will now have a class of "large" applied.
 
-You can also use templating to set attribute values. See the templating section below.
+You can use templating to set attribute values. See the templating section below.
 
-### Properties
-
-You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the `style` property, which exposes an object containing the DOM element’s style.
-
-```html
-<p data-ct-prop-style-display="showHide">Lorem ipsum</p>
-```
-
-Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `data-ct-prop-` attribute.
-
-```javascript
-var scope = $("p").consistent();
-scope.showHide = "none";
-scope.$.apply();
-```
-
-This sets the `style.display` property of the `<p>` element to "none", causing it not to be displayed.
-
-See the Visibility section above for a better way to show and hide elements.
+You can also set DOM element properties, see the Properties section below.
 
 ### Templating
 
@@ -355,6 +337,26 @@ $.ajax({
 ```
 
 The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes use `snapshotLocal` instead.
+
+### Properties
+
+You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the `style` property, which exposes an object containing the DOM element’s style.
+
+```html
+<p data-ct-prop-style-display="showHide">Lorem ipsum</p>
+```
+
+Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `data-ct-prop-` attribute.
+
+```javascript
+var scope = $("p").consistent();
+scope.showHide = "none";
+scope.$.apply();
+```
+
+This sets the `style.display` property of the `<p>` element to "none", causing it not to be displayed.
+
+See the Visibility section above for a better way to show and hide elements.
 
 License
 -------
