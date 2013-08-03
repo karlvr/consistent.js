@@ -78,7 +78,8 @@
 	merge(Consistent, {
 		settings: {
 			keyDataAttribute: "data-ct",
-			visibleDataAttribute: "data-ct-vis",
+			showDataAttribute: "data-ct-show",
+			hideDataAttribute: "data-ct-hide",
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
 			attributeDataAttributePrefix: "data-ct-attr-",
@@ -286,10 +287,19 @@
 				}
 
 				/* Visibility */
-				if (options.visibility != null) {
-					var value = getNestedProperty(snapshot, options.visibility);
+				if (options.show != null) {
+					var value = getNestedProperty(snapshot, options.show);
 					if (value !== undefined) {
 						if (value) {
+							this.show(dom);
+						} else {
+							this.hide(dom);
+						}
+					}
+				} else if (options.hide != null) {
+					var value = getNestedProperty(snapshot, options.hide);
+					if (value !== undefined) {
+						if (!value) {
 							this.show(dom);
 						} else {
 							this.hide(dom);
@@ -481,9 +491,12 @@
 				/* Bind events */
 				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
 				addEvent(eventName, value);
-			} else if (name === settings.visibleDataAttribute) {
-				/* Visibility */
-				result.visibility = value;
+			} else if (name === settings.showDataAttribute) {
+				/* Show */
+				result.show = value;
+			} else if (name === settings.hideDataAttribute) {
+				/* Hide */
+				result.hide = value;
 			} else if (name === settings.repeatDataAttribute) {
 				/* Repeat */
 				result.repeat = value;

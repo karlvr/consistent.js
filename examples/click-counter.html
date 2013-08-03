@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Example of using data-ct-vis, data-ct-bind and data-ct-attr-* to create an interactive, scope driven UI.
+Example of using data-ct-show, data-ct-bind and data-ct-attr-* to create an interactive, scope driven UI.
 -->
 <html>
 <head>
@@ -16,7 +16,7 @@ Example of using data-ct-vis, data-ct-bind and data-ct-attr-* to create an inter
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
 	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div data-ct-vis="tooManyClicks">
+	<div data-ct-show="tooManyClicks">
 	    That’s too many clicks! Please stop before you wear out your fingers.
 	    <button data-ct-bind="resetClicks">Reset clicks</button>
 	</div>

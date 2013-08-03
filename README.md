@@ -92,8 +92,10 @@ If you need to create a large DOM structure and then have it bound to a scope, c
 Consistent can show and hide nodes based on the scope.
 
 ```html
-<h1 data-ct-vis="showTitle">My title</h1>
+<h1 data-ct-show="showTitle">My title</h1>
 ```
+
+You can also use `data-ct-hide` to hide the element when the scope property is true.
 
 Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
 
