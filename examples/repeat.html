@@ -9,9 +9,8 @@
 <h1>Consistent.js</h1>
 
 <div id="container">
-	<h2 data-ct="title">Title</h2>
 	<ul>
-		<li data-ct-rep="items" data-ct="name"></li>
+		<li data-ct-rep="people" data-ct="name"></li>
 	</ul>
 </div>
 
@@ -24,7 +23,7 @@
 <script>
 $(function() {
 	var scope = $("#container").consistent();
-	scope.items = [
+	scope.people = [
 		{ name: "Albert" },
 		{ name: "Bob" },
 		{ name: "Carl" },
@@ -35,12 +34,12 @@ $(function() {
 
 	$("#add").click(function() {
 		scope.$.apply(function() {
-			this.items.push({ name: $("#name").val() });
+			this.people.push({ name: $("#name").val() });
 		});
 	});
 	$("#remove").click(function() {
 		scope.$.apply(function() {
-			this.items.splice(0, 1);
+			this.people.splice(0, 1);
 		});
 	});
 
@@ -53,7 +52,7 @@ $(function() {
 
 	$("#shuffle").click(function() {
 		scope.$.apply(function() {
-			shuffle(this.items);
+			shuffle(this.people);
 		});
 	});
 
