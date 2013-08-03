@@ -229,6 +229,18 @@
 		}
 	}
 
+	function setNestedProperty(object, property, value) {
+		var parts = property.split(".");
+		var current = object;
+		for (var i = 0; i < parts.length - 1; i++) {
+			if (current[parts[i]] === undefined) {
+				current[parts[i]] = {};
+			}
+			current = current[parts[i]];
+		}
+		current[parts[parts.length - 1]] = value;
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -350,12 +362,7 @@
 			},
 
 			setPropertyValue: function(dom, name, value) {
-				var parts = name.split(".");
-				var current = dom;
-				for (var i = 0; i < parts.length - 1; i++) {
-					current = current[parts[i]];
-				}
-				current[parts[parts.length - 1]] = value;
+				setNestedProperty(dom, name, value);
 			},
 
 			/** Update the given scope with the given dom object */
@@ -412,12 +419,7 @@
 			},
 
 			getPropertyValue: function(dom, name) {
-				var parts = name.split(".");
-				var current = dom;
-				for (var i = 0; i < parts.length; i++) {
-					current = current[parts[i]];
-				}
-				return current;
+				return getNestedProperty(dom, name);
 			},
 
 			show: function(dom) {
