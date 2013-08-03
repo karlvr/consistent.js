@@ -26,6 +26,7 @@ and animation.
 <button id="remove">Remove First</button>
 <button id="style">Style</button>
 <button id="shuffle">Shuffle</button>
+<button id="clear">Clear</button>
 
 <script>
 $(function() {
@@ -82,6 +83,12 @@ $(function() {
 	$("#shuffle").click(function() {
 		scope.$.apply(function() {
 			shuffle(this.people);
+		});
+	});
+
+	$("#clear").click(function() {
+		scope.$.apply(function() {
+			this.people = [];
 		});
 	});
 
