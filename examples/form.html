@@ -23,6 +23,7 @@
 		<option value="search">Search Engine</option>
 		<option value="other">Other</option>
 	</select></p>
+	<p>Comments:<br><textarea name="comments"></textarea></p>
 </form>
 
 <button id="change">Change</button>
@@ -34,6 +35,7 @@ $(function() {
 	scope.optin = true;
 	scope.gender = "Male";
 	scope.referrer = "friend";
+	scope.comments = "I had the great pleasure of reading your unsolicited critique.";
 	scope.$.apply();
 
 	$("#change").click(function() {
@@ -41,6 +43,7 @@ $(function() {
 		scope.optin = false;
 		scope.gender = "Female";
 		scope.referrer = "search";
+		scope.comments = "No comments.";
 		scope.$.apply();
 	});
 });

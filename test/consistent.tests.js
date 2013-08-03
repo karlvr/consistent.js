@@ -10,3 +10,11 @@ function loadFixture(name) {
 		}
 	});
 }
+
+function dispatchHTMLEvent(domNodes, name) {
+	for (var i = 0; i < domNodes.length; i++) {
+		var ev = document.createEvent("HTMLEvents");
+		ev.initEvent(name, true, true);
+		domNodes[i].dispatchEvent(ev);
+	}
+}

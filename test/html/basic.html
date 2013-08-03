@@ -4,7 +4,28 @@
 </head>
 <body>
 	<div id="container">
-		<h1 data-ct="title"></h1>
+		<h1 data-ct="title">Default title</h1>
+		<h2 data-ct-tmpl="The {{adjective}} in the {{noun}}."></h2>
+
+		<div id="content" data-ct-tmpl-id="template"></div>
 	</div>
+
+	<script id="template" type="text/x-hogan-template">
+		<p>Lorem {{second}}.</p>
+	</script>
+
+	<form id="form">
+		<input type="text" name="name" value="Adam Bones">
+		<input type="checkbox" name="optin" checked="checked">
+		<input type="radio" name="gender" value="m" checked="checked">
+		<input type="radio" name="gender" value="f">
+		<select name="referrer">
+			<option></option>
+			<option>Website</option>
+			<option>Friend</option>
+			<option selected="selected">Other</option>
+		</select>
+		<textarea name="comments">No comment</textarea>
+	</form>
 </body>
 </html>
