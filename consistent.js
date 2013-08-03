@@ -435,6 +435,16 @@
 
 				dom[Consistent.settings.oldDisplayKey] = dom.style.display;
 				dom.style.display = "none";
+			},
+
+			/** Called after the given node has been added to the DOM. */
+			added: function(dom) {
+
+			},
+
+			/** Called to remove the given node from the DOM. */
+			remove: function(dom) {
+				dom.parentNode.removeChild(dom);
 			}
 
 		}
@@ -907,7 +917,8 @@
 		 *         object: the data object, 
 		 *         domNodes: an array of top-level DOM nodes created,
 		 *         scope: the child scope created,
-		 *         version: version counter to track deletions
+		 *         version: version counter to track deletions,
+		 *		   after: dom node this appears after (or null if it's first)
 		 *     ]
 		 * }
 		 */
@@ -962,10 +973,13 @@
 		var version = ++repeatData.version;
 		var insertBefore = repeatData.insertBefore;
 		var parentNode = node.dom.parentNode;
+		var previousNode = null;
 
 		for (var i = 0; i < repeatContext.length; i++) {
 			var object = repeatContext[i];
 			var item = findRepeatItemForObject(object);
+
+			var wasNew = false;
 			if (item === undefined) {
 				/* New object */
 				var domNodes = newDomNodes();
@@ -982,13 +996,20 @@
 					version: version
 				};
 				repeatData.items.push(item);
+				wasNew = true;
 			} else {
 				item.version = version;
 			}
 
-			for (var j = 0; j < item.domNodes.length; j++) {
-				parentNode.insertBefore(item.domNodes[j], insertBefore);
+			insertDomNodesBefore(item.domNodes, insertBefore);
+			if (wasNew) {
+				for (var j = 0; j < item.domNodes.length; j++) {
+					options.$.added(item.domNodes[j]);
+				}
 			}
+
+			item.after = previousNode;
+			previousNode = item.domNodes[item.domNodes.length - 1];
 
 			item.scope.$.apply();
 		}
@@ -997,6 +1018,12 @@
 		for (var i = 0; i < repeatData.items.length; i++) {
 			var item = repeatData.items[i];
 			if (item.version !== version) {
+				if (item.after != null) {
+					/* Maintain the position of this node in the DOM in case we animated
+					 * the removal.
+					 */
+					insertDomNodesBefore(item.domNodes, item.after.nextSibling);
+				}
 				removeDomNodes(item.domNodes);
 				repeatData.items.splice(i, 1);
 				i--;
@@ -1022,7 +1049,13 @@
 
 		function removeDomNodes(domNodes) {
 			for (var i = 0; i < domNodes.length; i++) {
-				domNodes[i].parentNode.removeChild(domNodes[i]);
+				options.$.remove(domNodes[i]);
+			}
+		}
+
+		function insertDomNodesBefore(domNodes, insertBefore) {
+			for (var i = 0; i < domNodes.length; i++) {
+				insertBefore.parentNode.insertBefore(domNodes[i], insertBefore);
 			}
 		}
 	};

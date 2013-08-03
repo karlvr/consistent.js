@@ -24,10 +24,11 @@ Example of using data-ct-show with custom show and hide functions to perform ani
 
 <script>
 $(function() {
-	/* Because we hide the tooManyClicks div when we first apply, we just keep track of this so we
-	 * don't fade it out on page load - we hide it immediately, and then fade next time.
+	/* Because we hide the tooManyClicks div when we first apply, we sometimes don't want to fade,
+	 * we just want to show and hide immediately. This variable is used by our custom show/hide
+	 * implementations below. We change it to false after the first apply.
 	 */
-	var initialising = true;
+	var dontFade = true;
 
 	/* Create the scope with options overriding the show and hide functions. We use jQuery functions
 	 * to do the showing and hiding instead of the built-in Consistent implementations.
@@ -35,14 +36,14 @@ $(function() {
 	var scope = $("#container").consistent({
 		$: {
 			hide: function(dom) {
-				if (initialising) {
+				if (dontFade) {
 					$(dom).hide();
 				} else {
 					$(dom).fadeOut(1000);
 				}
 			},
 			show: function(dom) {
-				if (initialising) {
+				if (dontFade) {
 					$(dom).show();
 				} else {
 					$(dom).fadeIn(1000);
@@ -74,7 +75,7 @@ $(function() {
 		};
 	});
 
-	initialising = false;
+	dontFade = false;
 });
 
 </script>

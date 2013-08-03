@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="../consistent.js"></script>
+<script src="../jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<ul>
+		<li data-ct-rep="people">
+			<span data-ct="name"></span>
+			<button data-ct-bind="delete">Delete</button>
+		</li>
+	</ul>
+</div>
+
+<input type="text" id="name" value="Evan">
+<button id="add">Add</button>
+<button id="remove">Remove First</button>
+<button id="style">Style</button>
+<button id="shuffle">Shuffle</button>
+
+<script>
+$(function() {
+	var dontFade = true;
+	var scope = $("#container").consistent({
+		$: {
+			added: function(dom) {
+				if (!dontFade) {
+					$(dom).hide().fadeIn();
+				}
+			},
+			remove: function(dom) {
+				$(dom).fadeOut();
+			}
+		}
+	});
+	scope.people = [
+		{ name: "Albert" },
+		{ name: "Bob" },
+		{ name: "Carl" },
+		{ name: "Donald" }
+	];
+	scope.$delete = function(ev, localScope) {
+		var i = scope.people.indexOf(localScope);
+		scope.people.splice(i, 1);
+		localScope.$.apply();
+	};
+
+	scope.$.apply();
+	dontFade = false;
+
+	$("#add").click(function() {
+		scope.$.apply(function() {
+			this.people.push({ name: $("#name").val() });
+		});
+	});
+	$("#remove").click(function() {
+		scope.$.apply(function() {
+			this.people.splice(0, 1);
+		});
+	});
+
+	var colors = [ "red", "green", "blue", "yellow", "magenta", "orange" ];
+	$("#style").click(function() {
+		$("#container li").each(function() {
+			this.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+		});
+	});
+
+	$("#shuffle").click(function() {
+		scope.$.apply(function() {
+			shuffle(this.people);
+		});
+	});
+
+	/* Helper functions */
+
+	//+ Jonas Raoni Soares Silva
+	//@ http://jsfromhell.com/array/shuffle [v1.0]
+	function shuffle(o){ //v1.0
+	    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+	    return o;
+	};
+});
+</script>
+
+</body>
+</html>
