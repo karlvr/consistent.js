@@ -169,7 +169,7 @@
 
 				var value = source[name];
 				if (value !== undefined) {
-					if (deep && typeof value === "object") {
+					if (deep && typeof value === "object" && value !== null) {
 						value = merge(true, isArray(value) ? [] : {}, value);
 					}
 					target[name] = value;
