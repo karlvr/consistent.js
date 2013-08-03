@@ -594,7 +594,7 @@ options.$.added = function(dom) {
 options.$.remove = function(dom) {
 	// jQuery fade then remove
 	$(dom).fadeOut(function() {
-		this.remove();
+		$(this).remove();
 	});
 };
 var scope = $("#container").consistent(options);

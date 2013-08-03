@@ -40,7 +40,7 @@ $(function() {
 	};
 	options.$.remove = function(dom) {
 		$(dom).fadeOut(function() {
-			this.remove();
+			$(this).remove();
 		});
 	};
 
