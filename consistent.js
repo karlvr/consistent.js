@@ -913,7 +913,7 @@
 				
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$.bind(domNodes);
-				childScope.$.replace(object);
+				childScope = childScope.$.replace(object);
 
 				item = {
 					object: object,
@@ -1279,6 +1279,7 @@
 		newScope.$ = this._scope.$;
 		newScope.$._scope = newScope;
 		this._scope = newScope;
+		return newScope;
 	};
 
 
