@@ -870,13 +870,19 @@
 		 */
 		var repeatData = node.repeatData;
 		if (repeatData === undefined) {
+			/* Initialise repeat for this node */
 			repeatData = { version: 0, items: [] };
 			repeatData.domNodes = [ node.dom.cloneNode(true) ];
 			for (var i = 0; i < repeatData.domNodes.length; i++) {
 				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
 			}
-			node.dom.style.display = "none";
 			node.repeatData = repeatData;
+
+			var replacement = document.createComment("Consistent repeat placeholder");
+			node.dom.parentNode.insertBefore(replacement, node.dom);
+			node.dom.parentNode.removeChild(node.dom);
+			replacement[Consistent.settings.scopeIdKey] = this._id;
+			node.dom = replacement;
 		}
 
 		var repeatContext = this._scope.$.get(repeatKey);
