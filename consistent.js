@@ -843,6 +843,11 @@
 
 			this._nodesDirty = false;
 
+			/* Apply parent scope */
+			if (this._parentScope != null) {
+				this._parentScope.$.apply(options);
+			}
+
 			var scopeOptions = options !== undefined ? mergeOptions({}, this._options, options) : this._options;
 			scopeOptions.$.afterApply(this._scope, this._cleanScopeSnapshot);
 		}
