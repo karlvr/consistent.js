@@ -549,9 +549,11 @@ Often you want to use animation to show or hide elements. You can override the b
 var scope = $("h1").consistent({
 	$: {
 		show: function(dom) {
+			// jQuery fade
 			$(dom).fadeIn();
 		},
 		hide: function(dom) {
+			// jQuery fade
 			$(dom).fadeOut();
 		}
 	}
@@ -564,6 +566,7 @@ You could also specify the show / hide implementation for a specific `apply`:
 scope.$.apply({
 	$: {
 		show: function(dom) {
+			// jQuery fade
 			$(dom).fadeIn();
 		}
 	}
