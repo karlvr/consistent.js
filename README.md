@@ -545,7 +545,7 @@ Options
 
 ### Visibility
 
-Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by specifying options when you create a scope, or bind a node. See Options for more details.
+Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by specifying options when you create a scope, or bind a node.
 
 ```javascript
 var scope = $("h1").consistent({
@@ -573,6 +573,25 @@ scope.$.apply({
 		}
 	}
 });
+```
+
+### Repeating blocks
+
+If you want to animate the appearance and disappearance of elements in repeating block, you can override the behaviour after adding nodes, and for removing nodes.
+
+```javascript
+var options = { $: {} };
+options.$.added = function(dom) {
+	// jQuery hide and fadeIn
+	$(dom).hide().fadeIn();
+};
+options.$.remove = function(dom) {
+	// jQuery fade then remove
+	$(dom).fadeOut(function() {
+		this.remove();
+	});
+};
+var scope = $("#container").consistent(options);
 ```
 
 Reference
