@@ -590,26 +590,34 @@ Reference
 
 All scope functions are nested inside the `$` object, and therefore you call them, e.g. `scope.$.apply()`.
 
+#### DOM
+
 * `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied.
 * `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
-* `merge(object)` merges properties in the given object into the scope.
-* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object.
-* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
-* `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
-* `parent()` returns the parent scope, or null if there is no parent scope.
-* `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
-* `unwatch([key,] function)` unbinds the watch function.
+
+#### Scope properties
+* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
+* `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
+* `merge(object)` merges properties in the given object into the scope.
+* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object.
 * `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. If the scope contains a value function for the given key, it is evaluated and its result returned.
 * `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
 * `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
 * `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
 * `setEventHandler(key)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
+
+#### Watch
+* `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
+* `unwatch([key,] function)` unbinds the watch function.
+
+#### General
+* `parent()` returns the parent scope, or null if there is no parent scope.
 * `options(node)` returns the options object for the given node.
 
 ### Consistent functions
