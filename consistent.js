@@ -404,6 +404,10 @@
 			},
 
 			hide: function(dom) {
+				if (dom.style.display === "none") {
+					return;
+				}
+
 				dom[Consistent.settings.oldDisplayKey] = dom.style.display;
 				dom.style.display = "none";
 			}
