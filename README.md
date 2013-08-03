@@ -193,23 +193,25 @@ scope.people = [
 scope.$.apply();
 ```
 
-This will result in a list containing three `<li>` elements, one for each of the people in the `scope.people` array. If you then change the array, the DOM will be updated.
+This will result in a list containing three `<li>` elements, one for each of the people in the `scope.people` array. If you change the array, the DOM will be updated.
 
 ```javascript
 scope.people.push({ name: "Donald" });
 scope.$.apply();
 ```
 
-Or removing an item:
+Or remove an item:
 
 ```javascript
 scope.people.splice(0, 1);
 scope.$.apply();
 ```
 
-Consistent is very sparing with its creation of DOM nodes. It only creates new nodes when new items are added to the array. So any changes you make to the DOM outside of Consistent will be preserved.
+Consistent only creates new nodes when new items are added to the array. So any changes you make to the DOM outside of Consistent will be preserved, such as applying classes.
 
-Repeating is not limited to a single element:
+Consistent creates a child scope for each repeated block, and the object in the array becomes its scope. Therefore each object in the array will have a `$` property added containing Consistent’s scope functionality. As the objects in the array are the child scopes, you can access the child scopes if you need to via the original array in the original scope.
+
+Repeating clones the repeated element, including all of its children:
 
 ```html
 <table>
