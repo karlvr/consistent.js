@@ -580,19 +580,35 @@ Reference
 
 ### DOM attributes
 
-* `data-ct`
-* `data-ct-show`
-* `data-ct-hide`
-* `data-ct-tmpl`
-* `data-ct-tmpl-id`
-* `data-ct-attr`
-* `data-ct-prop`
-* `data-ct-tmpl-attr-...`
-* `data-ct-tmpl-id-attr-...`
-* `data-ct-bind`
-* `data-ct-bind-...`
-* `data-ct-rep`
-* `data-ct-rep-container-id`
+#### Binding values
+
+* `data-ct` the name of a property in the scope to use to set the value of this element. Where setting the value means setting the `innerHTML`, or other properties as appropriate to the element type.
+* `data-ct-tmpl` a template that will be rendered with the scope as its context, and then used to set the value of this element.
+* `data-ct-tmpl-id` the id of a DOM element that contains template text, e.g. a `<script type="text/x-hogan-template">` element.
+
+#### Attributes and properties
+
+The `NAME` segment in the following list represents the name of the attribute or property. In the case of properties, the name will have -s changed to .s to enable access to nested properties, e.g. `data-ct-prop-style-display` affects the `style.display` property.
+
+* `data-ct-attr-NAME` the name of a property in the scope to use to set the value of the given attribute on this element.
+* `data-ct-prop-NAME` the name of a property in the scope to use to set the value of the given property on this element.
+* `data-ct-tmpl-attr-NAME` a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.
+* `data-ct-tmpl-id-attr-NAME` the id of a DOM element that contains template text.
+
+#### Visibility
+
+* `data-ct-show` show this element when the named property in the scope is true, otherwise hide it.
+* `data-ct-hide` the opposite of show.
+
+#### Event handlers
+
+* `data-ct-bind` binds the default event for this element to the named event handler function in the scope.
+* `data-ct-bind-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
+
+#### Repeating blocks
+
+* `data-ct-rep` repeats this element, and all of its children, for each item in the array in the named property in the scope.
+* `data-ct-rep-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
 
 
 ### Scope functions
