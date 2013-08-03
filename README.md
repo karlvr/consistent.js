@@ -46,7 +46,7 @@ scope.$.apply(function() {
 });
 ```
 
-Or even:
+Or even the following, as most things in Consistent are chainable:
 
 ```javascript
 $("h1").consistent().$.apply(function() {
@@ -55,6 +55,10 @@ $("h1").consistent().$.apply(function() {
 ```
 
 Note that if a scope property is undefined, Consistent does not change the DOM.
+
+How Consistent applies the scope value to the DOM depends upon the element. For most elements the `innerHTML` is set to the scope value. There are the following exceptions:
+* `<input>`, `select` and `textarea` elements have their value set, or are checked, as appropriate. See Forms below.
+* `<img>` has its `src` attribute set
 
 ### Templating
 
