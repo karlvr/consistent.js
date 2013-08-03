@@ -347,10 +347,12 @@ scope.$.watch("title", function(key, newValue, oldValue) {
 	this.shortTitle = this.title.substring(0, 10);
 });
 
-scope.$.watch(function(changedKeys, newScope, oldScope) {
+scope.$.watch(function(changedKeys, snapshot, oldSnapshot) {
 	this.changeSummary = "The following keys were changed: " + changedKeys;
 });
 ```
+
+The snapshots passed to the watch handler function for the whole scope are created using the `scope.$.snapshot` function, and therefore do not have the `$` object, event handlers, and value functions have been replaced with their value.
 
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
@@ -575,6 +577,23 @@ scope.$.apply({
 
 Reference
 ---------
+
+### DOM attributes
+
+* `data-ct`
+* `data-ct-show`
+* `data-ct-hide`
+* `data-ct-tmpl`
+* `data-ct-tmpl-id`
+* `data-ct-attr`
+* `data-ct-prop`
+* `data-ct-tmpl-attr-...`
+* `data-ct-tmpl-id-attr-...`
+* `data-ct-bind`
+* `data-ct-bind-...`
+* `data-ct-rep`
+* `data-ct-rep-container-id`
+
 
 ### Scope functions
 
