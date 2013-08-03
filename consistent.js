@@ -333,6 +333,8 @@
 							break;
 						}
 					}
+				} else if (nodeName === "IMG") {
+					dom.src = value;
 				} else {
 					dom.innerHTML = value;
 				}
@@ -397,6 +399,8 @@
 					}
 				} else if (nodeName === "SELECT") {
 					return dom.options[dom.selectedIndex].value;
+				} else if (nodeName === "IMG") {
+					return dom.src;
 				} else {
 					return dom.innerHTML;
 				}
