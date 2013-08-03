@@ -410,8 +410,11 @@ to fall back to a parent scope use `getLocal` instead.
 ### Parent scopes
 
 You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given
-property key, in order to populate a DOM node or when looking for an event handler function. Watch handler functions
-added to parent scopes will also be fired for changes in child scopes.
+property key, in order to populate a DOM node or when looking for an event handler function.
+
+When a child scope is applied it automatically applies its parent scope.
+
+Watch handler functions added to parent scopes will be fired for changes in child scopes.
 
 ```javascript
 var rootScope = $.consistent(); /* Create the root scope */
