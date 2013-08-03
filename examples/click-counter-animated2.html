@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Example of using data-ct-vis, data-ct-bind and data-ct-attr-* to create an interactive, scope driven UI.
+Example of using scope.$.roots() to find nodes in a scope and manipulate them manually using jQuery.
 -->
 <html>
 <head>
@@ -16,9 +16,9 @@ Example of using data-ct-vis, data-ct-bind and data-ct-attr-* to create an inter
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
 	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div data-ct-vis="tooManyClicks">
+	<div class="tooManyClicks">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button data-ct-bind="resetClicks">Reset clicks</button>
+	    <button data-ct-bind-="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
@@ -27,13 +27,13 @@ $(function() {
 	var scope = $("#container").consistent();
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
-		this.tooManyClicks = false;
+		$(this.$.roots()).find(".tooManyClicks").hide();
 
 		this.$registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
-					this.tooManyClicks = true;
+					$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
 					this.clickMeDisabled = "disabled";
 				}
 			});
@@ -42,7 +42,7 @@ $(function() {
 		this.$resetClicks = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks = 0;
-				this.tooManyClicks = false;
+				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
 				this.clickMeDisabled = null;
 			});
 		};

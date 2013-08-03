@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <!--
-Example of loading JSON data via Ajax, creating markup to present it using jQuery,
-then attaching a scope to populate it.
-
-See the repeat-ajax.html example for a way to do this without having to create markup using
-jQuery.
+Example of loading JSON data via Ajax, adding to an object in the scope and using data-ct-rep
+to create repeating blocks.
 -->
 <html>
 <head>
@@ -15,13 +12,15 @@ jQuery.
 <body>
 <h1>Consistent.js</h1>
 
-<div id="container"></div>
-
-<script id="myTemplate" type="text/x-hogan-template">
-	<div>
+<div id="container">
+	<div data-ct-rep="items">
 		<h2 data-ct="title">Title</h2>
 		<p data-ct="body">Paragaph</p>
 	</div>
+</div>
+
+<script id="myTemplate" type="text/x-hogan-template">
+	
 </script>
 
 <button id="add">Add</button>
@@ -30,16 +29,17 @@ jQuery.
 <script>
 $(function() {
 	var template = $("#myTemplate").html();
-	var scopes = [];
+	var scope = $("#container").consistent();
+	scope.items = [];
+	scope.$.apply();
 
 	$('#add').click(function(ev) {
 		$.ajax("ajax.txt", {
 			dataType: "json",
 			success: function(data) {
-				var scope = Consistent();
-				scope.$.merge(data);
-				$(template).appendTo("#container").consistent(scope).$.apply();
-				scopes.push(scope);
+				scope.$.apply(function() {
+					this.items.push(data);
+				});
 			},
 			error: function(jqXHR, textStatus) {
 				console.log("Ajax failure: " + textStatus);
@@ -48,9 +48,9 @@ $(function() {
 	});
 
 	$('#change').click(function(ev) {
-		for (var i = 0; i < scopes.length; i++) {
-			var scope = scopes[i];
-			scope.title = "A random number " + Math.random();
+		for (var i = 0; i < scope.items.length; i++) {
+			var item = scope.items[i];
+			item.title = "A random number " + Math.random();
 			scope.$.apply();
 		}
 	});

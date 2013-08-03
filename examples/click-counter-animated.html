@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!--
+Example of using data-ct-vis with custom show and hide functions to perform animation.
+-->
 <html>
 <head>
 <meta charset="utf-8">
@@ -12,25 +15,51 @@
 
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind-click="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div class="tooManyClicks">
+	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
+	<div data-ct-vis="tooManyClicks">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button data-ct-bind-click="resetClicks">Reset clicks</button>
+	    <button data-ct-bind="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
 <script>
 $(function() {
-	var scope = $("#container").consistent();
+	/* Because we hide the tooManyClicks div when we first apply, we just keep track of this so we
+	 * don't fade it out on page load - we hide it immediately, and then fade next time.
+	 */
+	var initialising = true;
+
+	/* Create the scope with options overriding the show and hide functions. We use jQuery functions
+	 * to do the showing and hiding instead of the built-in Consistent implementations.
+	 */
+	var scope = $("#container").consistent({
+		$: {
+			hide: function(dom) {
+				if (initialising) {
+					$(dom).hide();
+				} else {
+					$(dom).fadeOut(1000);
+				}
+			},
+			show: function(dom) {
+				if (initialising) {
+					$(dom).show();
+				} else {
+					$(dom).fadeIn(1000);
+				}
+			}
+		}
+	});
+
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
-		$(this.$.roots()).find(".tooManyClicks").hide();
+		this.tooManyClicks = false;
 
 		this.$registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
-					$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
+					this.tooManyClicks = true;
 					this.clickMeDisabled = "disabled";
 				}
 			});
@@ -39,11 +68,13 @@ $(function() {
 		this.$resetClicks = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks = 0;
-				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
+				this.tooManyClicks = false;
 				this.clickMeDisabled = null;
 			});
 		};
 	});
+
+	initialising = false;
 });
 
 </script>

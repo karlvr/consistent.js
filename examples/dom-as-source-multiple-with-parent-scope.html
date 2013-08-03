@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+Example of creating multiple scopes, each populating from the DOM, 
+attaching event handlers, and using watch handlers which modify the scope.
+
+Rather than putting the event handlers and watch handlers on each scope, we
+create a parent scope and attach them there. This demonstrates how events
+bubble up from child scopes.
+-->
 <html>
 <head>
 <script src="jquery-1.10.2.js"></script>

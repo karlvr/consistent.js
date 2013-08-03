@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+Example of using data-ct-prop-* to update the style property on an element.
+See the click-counter.html example for a better way to show and hide elements.
+-->
 <html>
 <head>
 <meta charset="utf-8">
@@ -12,10 +16,10 @@
 
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind-click="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
+	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
 	<div data-ct-prop-style-display="tooManyClicksDisplay">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button data-ct-bind-click="resetClicks">Reset clicks</button>
+	    <button data-ct-bind="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
