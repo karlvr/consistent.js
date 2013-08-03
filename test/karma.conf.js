@@ -12,8 +12,8 @@ files = [
   JASMINE_ADAPTER,
   'examples/jquery-1.10.2.js',
   'examples/hogan-2.0.0.js',
-  'consistent.js',
-  'jquery.consistent.js',
+  'src/consistent.js',
+  'src/jquery.consistent.js',
   'test/consistent.tests.js',
   'test/**/*Spec.js',
   { pattern: 'test/html/*.html', included:false }
