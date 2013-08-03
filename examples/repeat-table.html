@@ -10,10 +10,23 @@
 
 <div id="container">
 	<h2 data-ct="title">Title</h2>
-	<ul>
-		<li data-ct-rep="items" data-ct="name"></li>
-	</ul>
+	<table>
+		<tr data-ct-rep="items" data-ct-rep-container-id="rows"></tr>
+	</table>
 </div>
+
+<table style="display:none">
+	<tbody id="rows">
+		<tr>
+			<th data-ct="_ct_index"></th>
+			<td data-ct="name"></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td data-ct="description"></td>
+		</tr>
+	</tbody>
+</table>
 
 <input type="text" id="name" value="Evan">
 <button id="add">Add</button>
@@ -25,17 +38,17 @@
 $(function() {
 	var scope = $("#container").consistent();
 	scope.items = [
-		{ name: "Albert" },
-		{ name: "Bob" },
-		{ name: "Carl" },
-		{ name: "Donald" }
+		{ name: "Albert", description: randomDescription() },
+		{ name: "Bob", description: randomDescription() },
+		{ name: "Carl", description: randomDescription() },
+		{ name: "Donald", description: randomDescription() }
 	];
 
 	scope.$.apply();
 
 	$("#add").click(function() {
 		scope.$.apply(function() {
-			this.items.push({ name: $("#name").val() });
+			this.items.push({ name: $("#name").val(), description: randomDescription() });
 		});
 	});
 	$("#remove").click(function() {
@@ -46,7 +59,7 @@ $(function() {
 
 	var colors = [ "red", "green", "blue", "yellow", "magenta", "orange" ];
 	$("#style").click(function() {
-		$("#container li").each(function() {
+		$("#container tr").each(function() {
 			this.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 		});
 	});
@@ -64,7 +77,11 @@ $(function() {
 	function shuffle(o){ //v1.0
 	    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
 	    return o;
-	};
+	}
+
+	function randomDescription() {
+		return "Lorem ipsum " + Math.random();
+	}
 });
 </script>
 
