@@ -67,7 +67,7 @@ scope.name = "Consistent.js";
 scope.$.apply();
 ```
 
-You can also references templates by an id, rather than writing them inline.
+You can also reference templates by an id, rather than writing them inline:
 
 ```html
 <h1 data-ct-tmpl-id="h1-template"></h1>
@@ -219,7 +219,7 @@ As well as adding values to the scope, you can also add functions. In this case 
 </div>
 ```
 
-The &nbsp; above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
+The `&nbsp;` above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
 
 ```javascript
 var scope = $("#container").consistent();
