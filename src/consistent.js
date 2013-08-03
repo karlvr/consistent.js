@@ -1011,7 +1011,7 @@
 				item.version = version;
 			}
 
-			insertDomNodesBefore(item.domNodes, insertBefore);
+			insertDomNodesBefore(item.domNodes, insertBefore, insertBefore.parentNode);
 			if (wasNew) {
 				for (var j = 0; j < item.domNodes.length; j++) {
 					options.$.added(item.domNodes[j]);
@@ -1032,7 +1032,7 @@
 					/* Maintain the position of this node in the DOM in case we animated
 					 * the removal.
 					 */
-					insertDomNodesBefore(item.domNodes, item.after.nextSibling);
+					insertDomNodesBefore(item.domNodes, item.after.nextSibling, insertBefore.parentNode);
 				}
 				removeDomNodes(item.domNodes);
 				repeatData.items.splice(i, 1);
@@ -1063,9 +1063,9 @@
 			}
 		}
 
-		function insertDomNodesBefore(domNodes, insertBefore) {
+		function insertDomNodesBefore(domNodes, insertBefore, parentNode) {
 			for (var i = 0; i < domNodes.length; i++) {
-				insertBefore.parentNode.insertBefore(domNodes[i], insertBefore);
+				parentNode.insertBefore(domNodes[i], insertBefore);
 			}
 		}
 	};
