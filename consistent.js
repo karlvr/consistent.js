@@ -153,6 +153,7 @@
 				throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
 			}
 			for (var name in source) {
+				/* Do not merge any key "$" */
 				if (name === "$") {
 					continue;
 				}
@@ -160,7 +161,7 @@
 				var value = source[name];
 				if (value !== undefined) {
 					if (deep && typeof value === "object") {
-						value = merge(true, {}, value);
+						value = merge(true, isArray(value) ? [] : {}, value);
 					}
 					target[name] = value;
 				}
