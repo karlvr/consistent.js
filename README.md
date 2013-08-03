@@ -96,7 +96,7 @@ scope.$.apply();
 You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
 ### Form elements
-Form elements work as you would expect. Consistent updates their values.
+Form elements work as you would expect: Consistent updates their values from scope.
 
 ```html
 <input type="text" name="email">
@@ -109,6 +109,8 @@ var scope = $("input").consistent();
 scope.email = "example@example.com";
 scope.$.apply();
 ```
+
+Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
 
 ### Attributes
 

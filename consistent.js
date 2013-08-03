@@ -235,6 +235,7 @@
 	Consistent.defaultOptions = {
 
 		templateEngine: null,
+		autoListenToChange: true,
 
 		$: {
 			getNodeOptions: function(node, options) {
@@ -1207,7 +1208,7 @@
 
 			/* Handle specific nodes differently */
 			var nodeName = dom.nodeName;
-			if (nodeName == "INPUT" || nodeName == "TEXTAREA") {
+			if (nodeOptions.autoListenToChange && (nodeName == "INPUT" || nodeName == "TEXTAREA")) {
 				/* For input and textarea nodes we bind to their change event by default. */
 				var listener = function(ev) {
 					nodeOptions.$.update(dom, self._scope, nodeOptions);
