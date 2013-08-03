@@ -85,29 +85,6 @@ Note that Consistent will re-render the templates and thus recreate the DOM node
 
 If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
 
-### Value functions
-
-As well as adding values to the scope, you can also add functions. In this case the function is executed each time the scope is applied and its return value is used.
-
-```html
-<div id="container">
-	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
-</div>
-```
-
-The &nbsp; above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
-
-```javascript
-var scope = $("#container").consistent();
-var people = [ "Albert", "Bob", "Carl", "Donald" ];
-scope.numberOfPeople = function() {
-	return people.length;
-};
-scope.$.apply();
-```
-
-The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
-
 ### Visibility
 
 Consistent can show and hide nodes based on the scope.
@@ -237,6 +214,29 @@ Repeating is not limited to a single element:
 Note above that a special property is added to the scope called `_ct_index` which contains the 0-based index of the current iteration. If you want to format that number differently, use a value function that accesses and modifies it.
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
+
+### Value functions
+
+As well as adding values to the scope, you can also add functions. In this case the function is executed each time the scope is applied and its return value is used.
+
+```html
+<div id="container">
+	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
+</div>
+```
+
+The &nbsp; above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
+
+```javascript
+var scope = $("#container").consistent();
+var people = [ "Albert", "Bob", "Carl", "Donald" ];
+scope.numberOfPeople = function() {
+	return people.length;
+};
+scope.$.apply();
+```
+
+The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
 
 ### Attributes
 
