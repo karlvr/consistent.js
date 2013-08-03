@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.10.2.js"></script>
+<script src="../consistent.js"></script>
+<script src="../jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<form>
+	<p>Name: <input type="text" name="fullName"></p>
+	<p><label><input type="checkbox" name="optin"> Optin</label></p>
+	<p>
+		<label><input type="radio" name="gender" value="Male"> Male</label>
+		<label><input type="radio" name="gender" value="Female"> Female</label>
+	</p>
+	<p><select name="referrer">
+		<option></option>
+		<option value="email">Email</option>
+		<option value="website">Website</option>
+		<option value="friend">Friend</option>
+		<option value="search">Search Engine</option>
+		<option value="other">Other</option>
+	</select></p>
+</form>
+
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var scope = $("form").consistent();
+	scope.fullName = "Nathanial Hornblower";
+	scope.optin = true;
+	scope.gender = "Male";
+	scope.referrer = "friend";
+	scope.$.apply();
+
+	$("#change").click(function() {
+		scope.fullName = "Jo Ball";
+		scope.optin = false;
+		scope.gender = "Female";
+		scope.referrer = "search";
+		scope.$.apply();
+	});
+});
+</script>
+
+</body>
+</html>

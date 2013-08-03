@@ -112,6 +112,7 @@ Form elements work as you would expect: Consistent updates their values from sco
 
 ```html
 <input type="text" name="email">
+<input type="checkbox" name="optin">
 ```
 
 Now create a scope and set the input element’s value.
@@ -119,8 +120,11 @@ Now create a scope and set the input element’s value.
 ```javascript
 var scope = $("input").consistent();
 scope.email = "example@example.com";
+scope.optin = true;
 scope.$.apply();
 ```
+
+All form elements are supported; including text fields, checkboxes, radio buttons, select lists and textareas.
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
 
