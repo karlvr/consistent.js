@@ -12,8 +12,8 @@
 
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div data-ct-vis="tooManyClicks">
+	<button data-ct-bind-click="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
+	<div data-ct-prop-style-display="tooManyClicksDisplay">
 	    That’s too many clicks! Please stop before you wear out your fingers.
 	    <button data-ct-bind-click="resetClicks">Reset clicks</button>
 	</div>
@@ -24,13 +24,13 @@ $(function() {
 	var scope = $("#container").consistent();
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
-		this.tooManyClicks = false;
+		this.tooManyClicksDisplay = "none";
 
 		this.$registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
-					this.tooManyClicks = true;
+					this.tooManyClicksDisplay = "";
 					this.clickMeDisabled = "disabled";
 				}
 			});
@@ -39,7 +39,7 @@ $(function() {
 		this.$resetClicks = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks = 0;
-				this.tooManyClicks = false;
+				this.tooManyClicksDisplay = "none";
 				this.clickMeDisabled = null;
 			});
 		};
