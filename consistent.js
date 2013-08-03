@@ -1062,7 +1062,7 @@
 		}
 
 		if (someDirty) {
-			this._cleanScopeSnapshot = currentCleanScopeSnapshot;
+			this._cleanScopeSnapshot = this._scope.$.snapshot();
 			return true;
 		} else {
 			return false;
