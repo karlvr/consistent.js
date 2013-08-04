@@ -702,14 +702,15 @@
 			 * replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
-			snapshot: function() {
-				var temp = this._scope.$.snapshotLocal();
-				if (this._manager._parentScope) {
-					temp = merge(this._manager._parentScope.$.snapshot(), temp);
+			snapshot: function(childScope) {
+				var temp = this._scope.$.snapshotLocal(childScope);
+				if (this.parent()) {
+					temp = merge(this.parent().$.snapshot(childScope !== undefined ? childScope : this._scope), temp);
 				}
 				return temp;
 			},
-			snapshotLocal: function() {
+
+			snapshotLocal: function(childScope) {
 				var temp = merge(true, {}, this._scope);
 
 				for (var i in temp) {
@@ -718,7 +719,7 @@
 						delete temp[i];
 					} else if (typeof temp[i] === "function") {
 						/* Evaluate value functions */
-						temp[i] = temp[i].call(this._scope);
+						temp[i] = temp[i].call(childScope !== undefined ? childScope : this._scope);
 					}
 				}
 				return temp;

@@ -448,11 +448,11 @@ Note that `get` will fall back to a parent scope, if there is one. See below for
 
 ### Parent scopes
 
-You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function.
+You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function. This includes value functions. Note that `this` inside the value function will be the child scope, rather than the scope in which it is defined.
 
-When a child scope is applied it automatically applies its parent scope.
+When `apply()` is called on a child scope, it automatically calls `apply()` on its parent scope.
 
-Watch handler functions added to parent scopes will be fired for changes in child scopes.
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which it is defined.
 
 ```javascript
 var rootScope = $.consistent(); /* Create the root scope */
