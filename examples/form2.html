@@ -55,7 +55,7 @@ $(function() {
 	$("#change").click(function() {
 		scope.referrer = "Search Engine";
 		scope.product = (scope.product + 1) % scope.products.length;
-		scope.interests = Math.random() < 0.5 ? "Walking" : [ "Reading", "Walking" ];
+		scope.interests = Math.random() < 0.5 ? "Walking" : [ "Reading", "Movies" ];
 		scope.sizes = [ "L", "S" ];
 		scope.$.apply();
 	});
