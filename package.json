@@ -13,8 +13,6 @@
     "node": ">=0.10.0"
   },
   "dependencies": {
-    "jquery": "~1.10",
-    "hogan": "~2.0.0"
   },
   "devDependencies": {
     "karma": "~0.8"
