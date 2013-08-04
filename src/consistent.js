@@ -515,13 +515,23 @@
 										scopeValue.splice(i, 1);
 									}
 								}
-							} else if (scopeValue === undefined || scopeValue === null) {
+							} else if (dom.value !== "on" && (scopeValue === undefined || scopeValue === null)) {
+								/* If there's nothing in the scope for the checkbox, and it doesn't have the
+								 * default value of "on" then we put it in as the dom.value.
+								 * This will be graduated to an array later if another checkbox is set.
+								 */
 								if (value) {
-									scope.$.set(options.key, [ dom.value ]);
+									scope.$.set(options.key, dom.value);
 								}
-							} else if (typeof scopeValue === "boolean") {
+							} else if (typeof scopeValue === "boolean" || dom.value === "on") {
+								/* If the scope already contains a boolean, or this checkbox has a
+								 * default value of "on" then we put a boolean into the scope.
+								 */
 								scope.$.set(options.key, value);
 							} else if (value && scopeValue !== dom.value) {
+								/* If the scope already contains a scalar value, and it's not the same as
+								 * our checkbox's value, then graduate to an array in the scope.
+								 */
 								scope.$.set(options.key, [ scopeValue, dom.value ]);
 							}
 						} else {
