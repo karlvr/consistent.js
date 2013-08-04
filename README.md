@@ -3,6 +3,8 @@ Consistent.js
 
 Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM. Consistent is designed to be easy to use and understand for developers already using jQuery, and it doesn’t prevent you from using jQuery at the same time.
 
+[![Build Status](https://travis-ci.org/karlvr/consistent.js.png)](https://travis-ci.org/karlvr/consistent.js)
+
 Introduction
 ------------
 Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
