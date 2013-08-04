@@ -19,16 +19,11 @@ to create repeating blocks.
 	</div>
 </div>
 
-<script id="myTemplate" type="text/x-hogan-template">
-	
-</script>
-
 <button id="add">Add</button>
 <button id="change">Change</button>
 
 <script>
 $(function() {
-	var template = $("#myTemplate").html();
 	var scope = $("#container").consistent();
 	scope.items = [];
 	scope.$.apply();
