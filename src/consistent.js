@@ -86,16 +86,23 @@
 			readOnlyDataAttribute: "data-ct-readonly",
 			readWriteDataAttribute: "data-ct-readwrite",
 			optionsDataAttribute: "data-ct-options",
+
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
+
+			attributesDataAttribute: "data-ct-attrs",
 			attributeDataAttributePrefix: "data-ct-attr-",
+			propertiesDataAttribute: "data-ct-props",
 			propertyDataAttributePrefix: "data-ct-prop-",
 			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
 			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
+
 			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
+
 			repeatDataAttribute: "data-ct-rep",
 			repeatContainerIdDataAttribute: "data-ct-rep-container-id",
+
 			warningDataAttributePrefix: "data-ct-",
 
 			scopeIdKey: "__ConsistentScopeID",
@@ -234,6 +241,22 @@
 		}
 	}
 
+	function getNestedPropertyNames(object, prefix) {
+		if (prefix === undefined) {
+			prefix = "";
+		}
+
+		var result = [];
+		for (var i in object) {
+			if (typeof object[i] === "object" && object[i] !== null) {
+				result = result.concat(getNestedPropertyNames(object[i], prefix + i + "."));
+			} else {
+				result.push(prefix + i);
+			}
+		}
+		return result;
+	}
+
 	function setNestedProperty(object, property, value) {
 		var parts = property.split(".");
 		var current = object;
@@ -262,7 +285,7 @@
 
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
-				var value, i;
+				var name, value, i;
 
 				/* Select options */
 				if (options.selectOptions) {
@@ -324,6 +347,14 @@
 						}
 					}
 				}
+				if (options.allAttributes) {
+					value = getNestedProperty(snapshot, options.allAttributes);
+					for (name in value) {
+						if (value[name] !== undefined) {
+							this.setAttributeValue(dom, name, value[name]);
+						}
+					}
+				}
 
 				/* Properties */
 				if (options.properties) {
@@ -332,6 +363,16 @@
 						value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
 							this.setPropertyValue(dom, props[i].name, value);
+						}
+					}
+				}
+				if (options.allProperties) {
+					value = getNestedProperty(snapshot, options.allProperties);
+					var names = getNestedPropertyNames(value);
+					for (i = 0; i < names.length; i++) {
+						var propertyValue = getNestedProperty(value, names[i]);
+						if (propertyValue !== undefined) {
+							this.setPropertyValue(dom, names[i], propertyValue);
 						}
 					}
 				}
@@ -560,6 +601,9 @@
 				/* Attribute */
 				targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
 				addAttribute(targetAttribute, value);
+			} else if (name === settings.attributesDataAttribute) {
+				/* Attributes */
+				result.allAttributes = value;
 			} else if (name === settings.templateDataAttribute) {
 				/* Template */
 				assertTemplateEngine();
@@ -587,6 +631,8 @@
 				targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
 				targetProperty = targetProperty.replace(/-/g, ".");
 				addProperty(targetProperty, value);
+			} else if (name === settings.propertiesDataAttribute) {
+				result.allProperties = value;
 			} else if (name === settings.bindDataAttribute) {
 				/* Bind default event */
 				eventName = defaultEventName(dom);

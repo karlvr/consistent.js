@@ -697,6 +697,9 @@ The `NAME` segment in the following list represents the name of the attribute or
 * `data-ct-tmpl-attr-NAME` a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.
 * `data-ct-tmpl-id-attr-NAME` the id of a DOM element that contains template text.
 
+* `data-ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values.
+* `data-ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
+
 #### Visibility
 
 * `data-ct-show` show this element when the named property in the scope is true, otherwise hide it.

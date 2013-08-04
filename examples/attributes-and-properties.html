@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+<style type="text/css">
+h1.huge {
+	font-size: 200%;
+	background-color: cyan;
+}
+h1.huger {
+	font-size: 400%;
+	background-color: magenta;
+}
+</style>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<h1 data-ct-attrs="myAttributes">Title</h1>
+	<h2 data-ct-props="someProperties">Subtitle</h2>
+</div>
+
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var scope = $("#container").consistent();
+	scope.myAttributes = {
+		class: "huge"
+	};
+	scope.someProperties = {
+		style: {
+			backgroundColor: "purple"
+		}
+	};
+	scope.$.apply();
+
+	$('#change').click(function(ev) {
+		scope.myAttributes.class = "huger";
+		scope.someProperties.style.backgroundColor = "yellow";
+		scope.$.apply();
+	});
+});
+
+</script>
+
+</body>
+</html>
