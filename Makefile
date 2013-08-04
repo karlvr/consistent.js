@@ -34,7 +34,7 @@ lib/consistent-for-%.min.js: src/%.consistent.js src/consistent.js
 	uglifyjs $(UGLIFY_FLAGS) src/consistent.js $< -o $@
 
 lib/%.min.js.gz: lib/%.min.js
-	gzip -c $< > $@
+	gzip -c -n $< > $@
 
 lint:
 	find src -name "*.js" -exec jsl -process \{\} \;
