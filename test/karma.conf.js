@@ -10,8 +10,8 @@ basePath = '../';
 files = [
   JASMINE,
   JASMINE_ADAPTER,
-  'examples/jquery-1.10.2.js',
-  'examples/hogan-2.0.0.js',
+  'examples/js/jquery-1.10.2.js',
+  'examples/js/hogan-2.0.0.js',
   'src/consistent.js',
   'src/jquery.consistent.js',
   'test/consistent.tests.js',
