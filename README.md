@@ -654,7 +654,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
 * `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `merge(object)` merges properties in the given object into the scope.
-* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object.
+* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
+* `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 * `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. If the scope contains a value function for the given key, it is evaluated and its result returned.
 * `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys.

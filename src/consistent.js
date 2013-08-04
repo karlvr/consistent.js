@@ -688,6 +688,13 @@
 			replace: function(object) {
 				return this._manager.replaceScope(object);
 			},
+			clear: function() {
+				for (var i in this._scope) {
+					if (i !== "$") {
+						delete this._scope[i];
+					}
+				}
+			},
 
 			/**
 			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
