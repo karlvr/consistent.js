@@ -1,5 +1,5 @@
 /*! 
- * Consistent.js 0.2.1
+ * Consistent.js 0.3.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -913,7 +913,7 @@
 				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
 				return temp;
 			},
-			
+
 			nodes: function() {
 				return this._manager._domNodes;
 			},
