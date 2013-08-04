@@ -1,8 +1,9 @@
 /*! 
  * Consistent.js jQuery plugin 0.2.0
  * @author Karl von Randow
+ * @license Apache License, Version 2.0
  */
- /*!
+ /*
     Copyright 2013 Karl von Randow
 
    Licensed under the Apache License, Version 2.0 (the "License");
