@@ -18,55 +18,55 @@
    limitations under the License.
   */
 
- (function($, window, undefined) {
- 	var Consistent = $.consistent = window.Consistent;
+(function($, window, undefined) {
+	var Consistent = $.consistent = window.Consistent;
 
- 	/**
- 	 * Argument scenarios:
- 	 * 1) $(...).consistent(): create a new scope, bind the selected nodes and return the new scope
- 	 * 2) $(...).consistent(aScope): bind the selected nodes for the given scope and return the scope
- 	 * 3) $(...).consistent(options): create a new scope with the given options, bind the selected nodes and return the new scope.
- 	 * 4) $(...).consistent(aScope, options): bind the selected nodes for the given scope with the given options and return the scope.
- 	 */
- 	$.fn.consistent = function() {
- 		var scope, options;
- 		if (arguments.length === 0) {
- 			/* Check whether the given nodes have an existing scope */
- 			this.each(function() {
- 				var nodeScope = Consistent.findScopeForNode(this);
- 				if (nodeScope != null) {
- 					if (scope != null && scope !== nodeScope) {
- 						/* The given nodes have multiple different scopes */
- 						throw "The given nodes have multiple different scopes";
- 					}
- 					scope = nodeScope;
- 				} else if (scope != null) {
- 					/* Some of the given nodes have scopes and others don't */
- 					throw "Some of the given nodes have scopes and others don't";
- 				}
- 			});
+	/**
+	 * Argument scenarios:
+	 * 1) $(...).consistent(): create a new scope, bind the selected nodes and return the new scope
+	 * 2) $(...).consistent(aScope): bind the selected nodes for the given scope and return the scope
+	 * 3) $(...).consistent(options): create a new scope with the given options, bind the selected nodes and return the new scope.
+	 * 4) $(...).consistent(aScope, options): bind the selected nodes for the given scope with the given options and return the scope.
+	*/
+	$.fn.consistent = function() {
+		var scope, options;
+		if (arguments.length === 0) {
+			/* Check whether the given nodes have an existing scope */
+			this.each(function() {
+				var nodeScope = Consistent.findScopeForNode(this);
+				if (nodeScope != null) {
+					if (scope != null && scope !== nodeScope) {
+						/* The given nodes have multiple different scopes */
+						throw "The given nodes have multiple different scopes";
+					}
+					scope = nodeScope;
+				} else if (scope != null) {
+					/* Some of the given nodes have scopes and others don't */
+					throw "Some of the given nodes have scopes and others don't";
+				}
+			});
 
- 			if (scope != null) {
- 				/* Already bound to a scope */
- 				return scope;
- 			} else {
-	 			/* Create a new default scope */
-	 			scope = Consistent();
-	 		}
- 		} else {
- 			var arg0 = arguments[0];
-	 		if (Consistent.isScope(arg0)) {
-	 			/* Scope and maybe options */
-	 			scope = arg0;
-	 			options = arguments.length > 1 ? arguments[1] : null;
-	 		} else if (typeof arg0 === "object") {
-	 			/* Options */
-	 			scope = Consistent(arg0);
-	 			options = null;
-	 		} else {
-	 			throw "First argument to $.consistent was not an appropriate type: " + typeof arg0;
-	 		}
-	 	}
+			if (scope != null) {
+				/* Already bound to a scope */
+				return scope;
+			} else {
+				/* Create a new default scope */
+				scope = Consistent();
+			}
+		} else {
+			var arg0 = arguments[0];
+			if (Consistent.isScope(arg0)) {
+				/* Scope and maybe options */
+				scope = arg0;
+				options = arguments.length > 1 ? arguments[1] : null;
+			} else if (typeof arg0 === "object") {
+				/* Options */
+				scope = Consistent(arg0);
+				options = null;
+			} else {
+				throw "First argument to $.consistent was not an appropriate type: " + typeof arg0;
+			}
+		}
 
 		this.each(function() {
 			scope.$.bind(this, options);
@@ -75,4 +75,4 @@
 		return scope;
 	};
 
- })(jQuery, window);
+})(jQuery, window);
