@@ -48,7 +48,7 @@
 			} else if (arg0.nodeName !== undefined) {
 				/* DOM node */
 				return Consistent.findScopeForNode(arg0);
-			} else if (typeof arg0 == "object") {
+			} else if (typeof arg0 === "object") {
 				/* Options only */
 				return Consistent.createScope(null, arg0);
 			} else {
@@ -227,7 +227,7 @@
 		for (i = 0; i < parts.length && current !== undefined && current !== null; i++) {
 			current = current[parts[i]];
 		}
-		if (i == parts.length) {
+		if (i === parts.length) {
 			return current;
 		} else {
 			return undefined;
@@ -553,19 +553,19 @@
 			var name = attrs[i].name;
 			var value = attrs[i].value;
 			var targetAttribute, targetProperty, eventName;
-			if (name == settings.keyDataAttribute) {
+			if (name === settings.keyDataAttribute) {
 				/* Body */
 				result.key = value;
 			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
 				/* Attribute */
 				targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
 				addAttribute(targetAttribute, value);
-			} else if (name == settings.templateDataAttribute) {
+			} else if (name === settings.templateDataAttribute) {
 				/* Template */
 				assertTemplateEngine();
 
 				result.template = options.templateEngine.compile(value);
-			} else if (name == settings.templateIdDataAttribute) {
+			} else if (name === settings.templateIdDataAttribute) {
 				/* Template by id */
 				assertTemplateEngine();
 
