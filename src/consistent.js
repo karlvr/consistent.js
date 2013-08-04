@@ -190,13 +190,13 @@
 		var $s = [];
 		for (var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
-			if (arg !== null) {
+			if (arg) {
 				$s.push(arguments[i].$);
 			}
 		}
 
-		/* Correct the first element, as if it is null the merge will throw an exception */
-		if ($s[0] === null) {
+		/* Correct the first element, as if it is null or undefined the merge will throw an exception */
+		if (!$s[0]) {
 			$s[0] = {};
 		}
 
