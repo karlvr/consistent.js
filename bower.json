@@ -1,0 +1,12 @@
+{
+  "name": "consistent.js",
+  "version": "0.2.0",
+  "main": "src/consistent.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
