@@ -23,6 +23,7 @@ clean:
 	rm -f lib/*.js.gz
 
 lib: libdir $(MINIFIED) $(GZIPPED) $(PLUGINS_MINIFIED) $(PLUGINS_GZIPPED)
+	ls -l lib
 
 libdir:
 	mkdir -p lib
