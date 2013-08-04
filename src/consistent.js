@@ -1335,14 +1335,15 @@
 	};
 
 	ConsistentScopeManager.prototype.unbind = function(dom) {
+		var i;
 		if (isArray(dom)) {
-			for (var i = 0; i < dom.length; i++) {
+			for (i = 0; i < dom.length; i++) {
 				this.unbind(dom[i]);
 			}
 			return;
 		}
 
-		var i = this._domNodes.indexOf(dom);
+		i = this._domNodes.indexOf(dom);
 		if (i !== -1) {
 			var node = this._nodes[i];
 			var options = node.options;
