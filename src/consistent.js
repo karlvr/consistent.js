@@ -481,6 +481,7 @@
 			update: function(dom, scope, options) {
 				var value, i;
 
+				/* Value */
 				if (options.key) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
@@ -488,6 +489,7 @@
 					}
 				}
 
+				/* Attributes */
 				if (options.attributes) {
 					var attrs = options.attributes;
 					for (i = 0; i < attrs.length; i++) {
@@ -497,13 +499,61 @@
 						}
 					}
 				}
+				if (options.allAttributes) {
+					value = scope.$.get(options.allAttributes);
+					if (value !== undefined) {
+						for (i in value) {
+							value[i] = this.getAttributeValue(dom, i);
+						}
+					}
+				}
 
+				/* Properties */
 				if (options.properties) {
 					var props = options.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
+				}
+				if (options.allProperties) {
+					value = scope.$.get(options.allProperties);
+					if (value !== undefined) {
+						var names = getNestedPropertyNames(value);
+						for (i = 0; i < names.length; i++) {
+							setNestedProperty(value, names[i], this.getPropertyValue(dom, names[i]));
+						}
+					}
+				}
+
+				/* Visibility */
+				if (options.show) {
+					value = this.isShowing(dom);
+					scope.$.set(options.show, value);
+				}
+				if (options.hide) {
+					value = this.isShowing(dom);
+					scope.$.set(options.hide, !value);
+				}
+
+				/* Enabled / disabled */
+				if (options.enabled) {
+					value = this.getPropertyValue(dom, "disabled");
+					scope.$.set(options.enabled, !value);
+				}
+				if (options.disabled) {
+					value = this.getPropertyValue(dom, "disabled");
+					scope.$.set(options.disabled, value);
+				}
+
+				/* Read only */
+				if (options.readOnly) {
+					value = this.getPropertyValue(dom, "readOnly");
+					scope.$.set(options.readOnly, value);
+				}
+				if (options.readWrite) {
+					value = this.getPropertyValue(dom, "readOnly");
+					scope.$.set(options.readWrite, !value);
 				}
 			},
 
@@ -555,6 +605,10 @@
 
 				dom[Consistent.settings.oldDisplayKey] = dom.style.display;
 				dom.style.display = "none";
+			},
+
+			isShowing: function(dom) {
+				return (dom.style.display !== "none");
 			},
 
 			/** Called after the given node has been added to the DOM. */
