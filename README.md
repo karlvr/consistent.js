@@ -163,6 +163,8 @@ All form elements are supported, including:
 * select (single and multiple selection)
 * textareas
 
+Checkboxes are usually represented by a boolean value in the scope. For groups of checkboxes with the same name they can be thought of as an array of values (the value attribute from the checkbox). If you have a boolean value in the scope, Consistent will not change it, but you may get some strange results if you have multiple checkboxes bound to the same property (with the same name with the default property binding). If the scope contains an array or no value for a checkbox’s bound property then Consistent will create an array. Consistent can also cope with scalar values for a checkbox, in which case they are matched to the checkbox’s value. Note that in this case Consistent may convert the property to an array if there are multiple checkboxes bound to the same property.
+
 For `<select>` elements that can have multiple options selected, the scope property can be an array.
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates the scope with that element and then applies the scope. Note that the update is just for the element that fired the `change` event, it is not for all of the scope’s DOM nodes as it is if you call `scope.$.update()`. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.

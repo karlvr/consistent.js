@@ -440,7 +440,13 @@
 				var nodeName = dom.nodeName;
 				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
 					if (dom.type === "checkbox") {
-						dom.checked = (value ? true : false);
+						if (isArray(value)) {
+							dom.checked = (value.indexOf(dom.value) !== -1);
+						} else if (typeof value === "boolean") {
+							dom.checked = value;
+						} else {
+							dom.checked = (value == dom.value);
+						}
 					} else if (dom.type === "radio") {
 						dom.checked = (value == dom.value);
 					} else {
@@ -495,7 +501,32 @@
 				if (options.key) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
-						scope.$.set(options.key, value);
+						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
+							/* Special checkbox support */
+							var scopeValue = scope.$.get(options.key);
+							if (isArray(scopeValue)) {
+								i = scopeValue.indexOf(dom.value);
+								if (value) {
+									if (i === -1) {
+										scopeValue.push(dom.value);
+									}
+								} else {
+									if (i !== -1) {
+										scopeValue.splice(i, 1);
+									}
+								}
+							} else if (scopeValue === undefined || scopeValue === null) {
+								if (value) {
+									scope.$.set(options.key, [ dom.value ]);
+								}
+							} else if (typeof scopeValue === "boolean") {
+								scope.$.set(options.key, value);
+							} else if (value && scopeValue !== dom.value) {
+								scope.$.set(options.key, [ scopeValue, dom.value ]);
+							}
+						} else {
+							scope.$.set(options.key, value);
+						}
 					}
 				}
 
