@@ -73,7 +73,7 @@
 		div.setAttribute("className", "test");
 		result.badGetSetAttribute = (div.className === "test");
 
-		result.needChangeEventForActiveOnSubmit = !!document.createEventObject;
+		result.needChangeEventForActiveOnSubmit = result.needAggressiveChangeHandlingOnInputElements = !!document.createEventObject;
 
 		return result;
 	})();
@@ -1623,6 +1623,9 @@
 					self._scope.$.apply();
 				};
 				addEventListener(dom, "change", listener, false);
+				if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
+					addEventListener(dom, "click", listener, false);
+				}
 
 				nodeOptions.$._changeListener = listener;
 			}
