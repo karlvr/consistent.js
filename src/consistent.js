@@ -73,6 +73,8 @@
 		div.setAttribute("className", "test");
 		result.badGetSetAttribute = (div.className === "test");
 
+		result.needChangeEventForActiveOnSubmit = !!document.createEventObject;
+
 		return result;
 	})();
 
@@ -1516,6 +1518,21 @@
 		}
 	}
 
+	function dispatchSimpleEvent(dom, name) {
+		var ev;
+		if (document.createEvent) {
+			ev = document.createEvent("HTMLEvents");
+			ev.initEvent(name, true, true);
+			dom.dispatchEvent(ev);
+		} else if (document.createEventObject) {
+			/* IE support */
+			dom.fireEvent("on" + name);
+		} else {
+			throw new ConsistentException("Unable to fire a DOM event. Cannot find supported method.");
+		}
+		return ev;
+	}
+
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
@@ -1547,8 +1564,23 @@
 			for (var eventName in nodeOptions.events) {
 				(function(eventName, keys) {
 					var listener = function(ev) {
+						var i;
+
 						enhanceEvent(ev);
-						for (var i = 0; i < keys.length; i++) {
+
+						if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
+							/* When you use return to submit a form from an input element it doesn't fire the
+							 * change event on the element before submitting, so the scope isn't updated. So we
+							 * simulate the change event if there is an active element.
+							 */
+							for (i = 0; i < dom.elements.length; i++) {
+								if (document.activeElement === dom.elements[i]) {
+									dispatchSimpleEvent(dom.elements[i], "change");
+								}
+							}
+						}
+
+						for (i = 0; i < keys.length; i++) {
 							var key = keys[i];
 							var func = self._scope.$.getEventHandler(key);
 							if (func !== undefined) {
