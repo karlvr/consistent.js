@@ -646,7 +646,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
-* `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument.
+* `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
+* `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
