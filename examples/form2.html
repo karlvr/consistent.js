@@ -13,7 +13,14 @@ Example of form population.
 
 <form>
 	<p><select name="referrer" data-ct-options="referrerOptions"></select></p>
-	<p><select name="product" data-ct-options="products"></select>
+	<p><select name="product" data-ct-options="products"></select></p>
+
+	<p><select name="interests" multiple="multiple">
+		<option>Reading</option>
+		<option>Movies</option>
+		<option>Walking</option>
+		<option>Fishing</option>
+	</select></p>
 </form>
 
 <button id="change">Change</button>
@@ -23,6 +30,7 @@ $(function() {
 	var scope = $("form").consistent();
 	scope.referrer = "Friend";
 	scope.product = 3;
+	scope.interests = [ "Reading", "Fishing" ];
 
 	scope.referrerOptions = [
 		"", "Friend", "Website", "Search Engine"
@@ -38,6 +46,7 @@ $(function() {
 	$("#change").click(function() {
 		scope.referrer = "Search Engine";
 		scope.product = (scope.product + 1) % scope.products.length;
+		scope.interests = Math.random() < 0.5 ? "Walking" : [ "Reading", "Walking" ];
 		scope.$.apply();
 	});
 });

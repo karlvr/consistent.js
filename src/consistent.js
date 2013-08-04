@@ -451,11 +451,21 @@
 						value = "";
 					}
 					
-					for (var i = 0; i < dom.options.length; i++) {
-						if (dom.options[i].value == value) {
-							dom.selectedIndex = i;
-							break;
+					var i;
+					if (isArray(value)) {
+						for (i = 0; i < dom.options.length; i++) {
+							dom.options[i].selected = (value.indexOf(dom.options[i].value) !== -1);
 						}
+					} else {
+						for (i = 0; i < dom.options.length; i++) {
+							if (dom.options[i].value == value) {
+								dom.selectedIndex = i;
+								return;
+							}
+						}
+
+						/* Nothing matched so deselect */
+						dom.selectedIndex = -1;
 					}
 				} else if (nodeName === "IMG") {
 					dom.src = value;
@@ -569,7 +579,19 @@
 						return dom.value;
 					}
 				} else if (nodeName === "SELECT") {
-					return dom.options[dom.selectedIndex].value;
+					if (dom.multiple) {
+						var values = [];
+						for (var i = 0; i < dom.options.length; i++) {
+							if (dom.options[i].selected) {
+								values.push(dom.options[i].value);
+							}
+						}
+						return values;
+					} else if (dom.selectedIndex !== -1) {
+						return dom.options[dom.selectedIndex].value;
+					} else {
+						return undefined;
+					}
 				} else if (nodeName === "IMG") {
 					return dom.src;
 				} else {

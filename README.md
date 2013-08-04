@@ -160,8 +160,10 @@ All form elements are supported, including:
 * text fields
 * checkboxes
 * radio buttons
-* select lists
+* select (single and multiple selection)
 * textareas
+
+For `<select>` elements that can have multiple options selected, the scope property can be an array.
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
 
