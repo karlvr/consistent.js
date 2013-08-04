@@ -65,11 +65,11 @@ describe('Basic tests', function() {
 		expect($("#form").serialize()).toBe("name=Nathanial+Hornblower&referrer=Friend&comments=OK");
 
 		scope.$.apply(function() {
-			/* Setting select to unsupported value doesn't change DOM */
+			/* Setting select to unsupported selects nothing */
 			this.referrer = "Nobody";
 		});
 
-		expect($("#form").serialize()).toBe("name=Nathanial+Hornblower&referrer=Friend&comments=OK");
+		expect($("#form").serialize()).toBe("name=Nathanial+Hornblower&comments=OK");
 
 		scope.$.apply(function() {
 			/* Null to a select selects the empty option */
