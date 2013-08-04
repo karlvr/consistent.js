@@ -809,6 +809,24 @@
 
 	/* Scope */
 
+	/**
+	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
+	 * objects in the scope.
+	 */
+	function processSnapshot(snapshot, scope) {
+		for (var name in snapshot) {
+			if (name.indexOf("$") === 0) {
+				/* Remove handler functions */
+				delete snapshot[name];
+			} else if (typeof snapshot[name] === "function") {
+				/* Evaluate value functions */
+				snapshot[name] = snapshot[name].call(scope);
+			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
+				processSnapshot(snapshot[name], scope);
+			}
+		}
+	}
+
 	Consistent.defaultEmptyScope = {
 		$: {
 			_type: SCOPE_TYPE,
@@ -890,21 +908,12 @@
 				}
 				return temp;
 			},
-
 			snapshotLocal: function(childScope) {
 				var temp = merge(true, {}, this._scope);
-
-				for (var i in temp) {
-					if (i.indexOf("$") === 0) {
-						/* Remove handler functions */
-						delete temp[i];
-					} else if (typeof temp[i] === "function") {
-						/* Evaluate value functions */
-						temp[i] = temp[i].call(childScope !== undefined ? childScope : this._scope);
-					}
-				}
+				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
 				return temp;
 			},
+			
 			nodes: function() {
 				return this._manager._domNodes;
 			},
