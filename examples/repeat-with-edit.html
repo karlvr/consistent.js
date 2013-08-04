@@ -69,7 +69,7 @@ $(function() {
 	});
 	$("#remove").click(function() {
 		scope.$.apply(function() {
-			this.people.splice(0, 1);
+			this.people.shift();
 		});
 	});
 
