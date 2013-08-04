@@ -111,6 +111,29 @@ scope.$.apply();
 
 You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
+### Value functions
+
+As well as adding scalar values to the scope, you can also add value functions. In this case the function is executed each time the scope is applied and its return value is used. Value functions allow a scope value to be calculated dynamically.
+
+```html
+<div id="container">
+	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
+</div>
+```
+
+The `&nbsp;` above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
+
+```javascript
+var scope = $("#container").consistent();
+var people = [ "Albert", "Bob", "Carl", "Donald" ];
+scope.numberOfPeople = function() {
+	return people.length;
+};
+scope.$.apply();
+```
+
+The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
+
 ### Form elements
 Form elements work as you would expect: Consistent updates their values from scope.
 
@@ -131,6 +154,28 @@ scope.$.apply();
 All form elements are supported; including text fields, checkboxes, radio buttons, select lists and textareas.
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
+
+#### Disabled and Read only
+
+You can control the `disabled` and `readOnly` properties of form elements.
+
+```html
+<input type="text" name="email" data-ct-disabled="locked">
+```
+
+```javascript
+scope.locked = true;
+```
+
+It is often useful to use a value function in this case, so that the disabled state of the form element is calculated dynamically each time the scope is applied.
+
+The above shows how to control the `disabled` property, the full list is:
+* `data-ct-disabled`
+* `data-ct-enabled`
+* `data-ct-readonly`
+* `data-ct-readwrite`
+
+Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.
 
 ### Events
 
@@ -236,29 +281,6 @@ Note above that the scope contains a property `scope.$.index` that contains the 
 Another interesting thing is happening here, which will be clearer after reading the Parent scopes section. The `scope.index` value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the `index` property falls back to the parent scope. When a value function is called in a parent scope, `this` is set to the child scope. So `return this.$.index` returns the index of the child scope.
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
-
-### Value functions
-
-As well as adding values to the scope, you can also add functions. In this case the function is executed each time the scope is applied and its return value is used.
-
-```html
-<div id="container">
-	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
-</div>
-```
-
-The `&nbsp;` above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the `<span>` and you may get strange spacing.
-
-```javascript
-var scope = $("#container").consistent();
-var people = [ "Albert", "Bob", "Carl", "Donald" ];
-scope.numberOfPeople = function() {
-	return people.length;
-};
-scope.$.apply();
-```
-
-The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
 
 ### Attributes
 
@@ -620,6 +642,13 @@ Reference
 * `data-ct` the name of a property in the scope to use to set the value of this element. Where setting the value means setting the `innerHTML`, or other properties as appropriate to the element type.
 * `data-ct-tmpl` a template that will be rendered with the scope as its context, and then used to set the value of this element.
 * `data-ct-tmpl-id` the id of a DOM element that contains template text, e.g. a `<script type="text/x-hogan-template">` element.
+
+#### Form properties
+
+* `data-ct-disabled` make this element disabled when the named property in the scope is true.
+* `data-ct-enabled` make this element enabled when the named property in the scope is true.
+* `data-ct-readonly` make this element read-only when the named property in the scope is true.
+* `data-ct-readwrite` make this element not read-only when the named property in the scope is true.
 
 #### Attributes and properties
 

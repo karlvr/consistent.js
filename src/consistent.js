@@ -81,6 +81,10 @@
 			keyDataAttribute: "data-ct",
 			showDataAttribute: "data-ct-show",
 			hideDataAttribute: "data-ct-hide",
+			enabledDataAttribute: "data-ct-enabled",
+			disabledDataAttribute: "data-ct-disabled",
+			readOnlyDataAttribute: "data-ct-readonly",
+			readWriteDataAttribute: "data-ct-readwrite",
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
 			attributeDataAttributePrefix: "data-ct-attr-",
@@ -320,6 +324,34 @@
 						}
 					}
 				}
+
+				/* Enabled / disabled */
+				if (options.enabled) {
+					value = getNestedProperty(snapshot, options.enabled);
+					if (value !== undefined) {
+						this.setPropertyValue(dom, "disabled", !value);
+					}
+				}
+				if (options.disabled) {
+					value = getNestedProperty(snapshot, options.disabled);
+					if (value !== undefined) {
+						this.setPropertyValue(dom, "disabled", !!value);
+					}
+				}
+
+				/* Read only */
+				if (options.readOnly) {
+					value = getNestedProperty(snapshot, options.readOnly);
+					if (value !== undefined) {
+						this.setPropertyValue(dom, "readOnly", !!value);
+					}
+				}
+				if (options.readWrite) {
+					value = getNestedProperty(snapshot, options.readWrite);
+					if (value !== undefined) {
+						this.setPropertyValue(dom, "readOnly", !value);
+					}
+				}
 			},
 
 			/** Called after apply has completed on the given scope.
@@ -543,6 +575,18 @@
 			} else if (name === settings.repeatContainerIdDataAttribute) {
 				/* Repeat container id */
 				result.repeatContainerId = value;
+			} else if (name === settings.enabledDataAttribute) {
+				/* Enabled */
+				result.enabled = value;
+			} else if (name === settings.disabledDataAttribute) {
+				/* Disabled */
+				result.disabled = value;
+			} else if (name === settings.readOnlyDataAttribute) {
+				/* Read Only */
+				result.readOnly = value;
+			} else if (name === settings.readWriteDataAttribute) {
+				/* Read Write */
+				result.readWrite = value;
 			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
 				/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 				 * weren't recognized. Log these out to help developers catch errors.

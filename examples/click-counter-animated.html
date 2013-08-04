@@ -15,8 +15,8 @@ Example of using data-ct-show with custom show and hide functions to perform ani
 
 <div id="container">
 	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div data-ct-show="tooManyClicks">
+	<button data-ct-bind="registerClick" data-ct-disabled="hasClickedTooManyTimes">Click me</button>
+	<div data-ct-show="hasClickedTooManyTimes">
 	    That’s too many clicks! Please stop before you wear out your fingers.
 	    <button data-ct-bind="resetClicks">Reset clicks</button>
 	</div>
@@ -54,23 +54,20 @@ $(function() {
 
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
-		this.tooManyClicks = false;
+
+		this.hasClickedTooManyTimes = function() {
+			return this.numberOfClicks >= 3;
+		};
 
 		this.$registerClick = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks++;
-				if (this.numberOfClicks >= 3) {
-					this.tooManyClicks = true;
-					this.clickMeDisabled = "disabled";
-				}
 			});
 		};
 
 		this.$resetClicks = function(ev, scope) {
 			scope.$.apply(function() {
 				this.numberOfClicks = 0;
-				this.tooManyClicks = false;
-				this.clickMeDisabled = null;
 			});
 		};
 	});
