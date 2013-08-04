@@ -387,7 +387,8 @@
 							this.hide(dom);
 						}
 					}
-				} else if (options.hide) {
+				}
+				if (options.hide) {
 					value = getNestedProperty(snapshot, options.hide);
 					if (value !== undefined) {
 						if (!value) {
