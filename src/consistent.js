@@ -745,8 +745,8 @@
 				var local = this.getLocal(key);
 				if (local !== undefined) {
 					return local;
-				} else if (this._manager._parentScope) {
-					return this._manager._parentScope.$.get(key);
+				} else if (this.parent()) {
+					return this.parent().$.get(key);
 				} else {
 					return undefined;
 				}
@@ -779,8 +779,8 @@
 				var local = this.getLocalEventHandler(key);
 				if (local !== undefined) {
 					return local;
-				} else if (this._manager._parentScope) {
-					return this._manager._parentScope.$.getEventHandler(key);
+				} else if (this.parent()) {
+					return this.parent().$.getEventHandler(key);
 				} else {
 					return undefined;
 				}
