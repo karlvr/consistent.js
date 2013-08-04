@@ -111,14 +111,15 @@
 			options = mergeOptions({}, Consistent.defaultOptions, options);
 
 			var scope = new ConsistentScopeManager(parentScope, options);
-			scopes[scope._id] = scope;
+			scopes[scope._id] = scope._scope;
 			return scope._scope;
 		},
 
+		/** Returns the scope for the given DOM node, or null */
 		findScopeForNode: function(dom) {
 			var scopeId = dom[Consistent.settings.scopeIdKey];
-			if (scopeId !== undefined) {
-				return scopes[scopeId]._scope;
+			if (scopeId && scopes[scopeId]) {
+				return scopes[scopeId];
 			} else {
 				return null;
 			}
