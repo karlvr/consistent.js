@@ -29,7 +29,8 @@ h1.huger {
 $(function() {
 	var scope = $("#container").consistent();
 	scope.myAttributes = {
-		class: "huge"
+		/* Not that we use a key of className rather than class as class is a reserved word in IE */
+		className: "huge"
 	};
 	scope.someProperties = {
 		style: {
@@ -39,7 +40,7 @@ $(function() {
 	scope.$.apply();
 
 	$('#change').click(function(ev) {
-		scope.myAttributes.class = "huger";
+		scope.myAttributes.className = "huger";
 		scope.someProperties.style.backgroundColor = "yellow";
 		scope.$.apply();
 	});

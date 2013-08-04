@@ -353,7 +353,12 @@
 					value = getNestedProperty(snapshot, options.allAttributes);
 					for (name in value) {
 						if (value[name] !== undefined) {
-							this.setAttributeValue(dom, name, value[name]);
+							value = value[name];
+							/* class is a reserved word in IE so we accept className in the attributes object. */
+							if (name === "className") {
+								name = "class";
+							}
+							this.setAttributeValue(dom, name, value);
 						}
 					}
 				}
