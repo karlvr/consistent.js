@@ -189,13 +189,13 @@
 		var $s = [];
 		for (var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
-			if (arg != null) {
+			if (arg !== null) {
 				$s.push(arguments[i].$);
 			}
 		}
 
-		/* Correct the first element, as if it is null or undefined the merge will throw an exception */
-		if ($s[0] == null) {
+		/* Correct the first element, as if it is null the merge will throw an exception */
+		if ($s[0] === null) {
 			$s[0] = {};
 		}
 
@@ -220,7 +220,7 @@
 		var parts = property.split(".");
 		var current = object;
 		var i;
-		for (i = 0; i < parts.length && current != null; i++) {
+		for (i = 0; i < parts.length && current !== undefined && current !== null; i++) {
 			current = current[parts[i]];
 		}
 		if (i == parts.length) {
@@ -259,21 +259,21 @@
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
 				var value;
-				if (options.key != null) {
+				if (options.key) {
 					/* Key */
 					value = getNestedProperty(snapshot, options.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
-				} else if (options.template != null) {
-					/* Template */
+				} else if (options.template !== undefined && options.template !== null) {
+					/* Template - note that "" is a valid template, so we have to use this longer check in the if condition */
 					this.setValue(dom, options.template.render(snapshot));
 				}
 
 				var i;
 
 				/* Apply to attributes */
-				if (options.attributes != null) {
+				if (options.attributes) {
 					var attrs = options.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
@@ -291,7 +291,7 @@
 				}
 
 				/* Apply to properties */
-				if (options.properties != null) {
+				if (options.properties) {
 					var props = options.properties;
 					for (i = 0; i < props.length; i++) {
 						value = getNestedProperty(snapshot, props[i].key);
@@ -302,7 +302,7 @@
 				}
 
 				/* Visibility */
-				if (options.show != null) {
+				if (options.show) {
 					value = getNestedProperty(snapshot, options.show);
 					if (value !== undefined) {
 						if (value) {
@@ -311,7 +311,7 @@
 							this.hide(dom);
 						}
 					}
-				} else if (options.hide != null) {
+				} else if (options.hide) {
 					value = getNestedProperty(snapshot, options.hide);
 					if (value !== undefined) {
 						if (!value) {
@@ -361,7 +361,7 @@
 
 			setAttributeValue: function(dom, name, value) {
 				name = mungeBadAttributeProperty(name);
-				if (value != null) {
+				if (value) {
 					dom.setAttribute(name, value);
 				} else {
 					dom.removeAttribute(name);
@@ -376,14 +376,14 @@
 			update: function(dom, scope, options) {
 				var value, i;
 
-				if (options.key !== undefined) {
+				if (options.key) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						scope.$.set(options.key, value);
 					}
 				}
 
-				if (options.attributes != null) {
+				if (options.attributes) {
 					var attrs = options.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
@@ -393,7 +393,7 @@
 					}
 				}
 
-				if (options.properties != null) {
+				if (options.properties) {
 					var props = options.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
@@ -555,7 +555,7 @@
 		}
 
 		function assertTemplateEngine() {
-			if (options.templateEngine == null) {
+			if (!options.templateEngine) {
 				throw new ConsistentException("templateEngine not configured in options");
 			}
 		}
@@ -696,7 +696,7 @@
 			 */
 			snapshot: function() {
 				var temp = this._scope.$.snapshotLocal();
-				if (this._manager._parentScope != null) {
+				if (this._manager._parentScope) {
 					temp = merge(this._manager._parentScope.$.snapshot(), temp);
 				}
 				return temp;
@@ -736,7 +736,7 @@
 				var local = this.getLocal(key);
 				if (local !== undefined) {
 					return local;
-				} else if (this._manager._parentScope != null) {
+				} else if (this._manager._parentScope) {
 					return this._manager._parentScope.$.get(key);
 				} else {
 					return undefined;
@@ -770,7 +770,7 @@
 				var local = this.getLocalEventHandler(key);
 				if (local !== undefined) {
 					return local;
-				} else if (this._manager._parentScope != null) {
+				} else if (this._manager._parentScope) {
 					return this._manager._parentScope.$.getEventHandler(key);
 				} else {
 					return undefined;
@@ -907,7 +907,7 @@
 				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 
 				/* Repeating */
-				if (nodeOptions.repeat != null) {
+				if (nodeOptions.repeat) {
 					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
 				}
 			}
@@ -915,7 +915,7 @@
 			this._nodesDirty = false;
 
 			/* Apply parent scope */
-			if (this._parentScope != null) {
+			if (this._parentScope) {
 				this._parentScope.$.apply(options);
 			}
 
@@ -949,9 +949,9 @@
 			/* Initialise repeat for this node */
 			repeatData = { version: 0, items: [] };
 
-			if (options.repeatContainerId != null) {
+			if (options.repeatContainerId) {
 				var source = document.getElementById(options.repeatContainerId);
-				if (source != null) {
+				if (source !== null) {
 					repeatData.domNodes = source.children;
 				} else {
 					throw new ConsistentException("Couldn't find element with id \"" + options.repeatId + "\" for repeat container.");
@@ -1040,7 +1040,7 @@
 		for (i = 0; i < repeatData.items.length; i++) {
 			item = repeatData.items[i];
 			if (item.version !== version) {
-				if (item.after != null) {
+				if (item.after) {
 					/* Maintain the position of this node in the DOM in case we animated
 					 * the removal.
 					 */
@@ -1184,7 +1184,7 @@
 			}
 		}
 
-		if (this._parentScope != null) {
+		if (this._parentScope) {
 			this._parentScope.$._manager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
@@ -1221,7 +1221,7 @@
 			}
 		}
 
-		if (this._parentScope != null) {
+		if (this._parentScope) {
 			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
