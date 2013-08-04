@@ -1582,12 +1582,15 @@
 		}
 
 		/* Bind children */
-		var child = dom.firstChild;
-		while (child !== null) {
-			if (child.nodeType === 1) {
-				this.bind(child, options, dom);
+		if (!nodeOptions.repeat) {
+			/* Skip children of a node which is a repeating node, as we will be duplicating that DOM. */
+			var child = dom.firstChild;
+			while (child !== null) {
+				if (child.nodeType === 1) {
+					this.bind(child, options, dom);
+				}
+				child = child.nextSibling;
 			}
-			child = child.nextSibling;
 		}
 	};
 
