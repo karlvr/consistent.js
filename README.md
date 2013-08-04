@@ -113,7 +113,7 @@ You can override the behaviour of showing and hiding elements. For example, you 
 
 ### Value functions
 
-As well as adding scalar values to the scope, you can also add value functions. In this case the function is executed each time the scope is applied and its return value is used. Value functions allow a scope value to be calculated dynamically.
+As well as adding scalar values to the scope, you can also add value functions. In this case the function is executed each time the scope is applied and its return value is used. Value functions allow a scope property to be calculated dynamically.
 
 ```html
 <div id="container">
@@ -133,6 +133,8 @@ scope.$.apply();
 ```
 
 The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
+
+When the scope is populated from the DOM using the `scope.$.update` function, or when a scope property is set manually using the `scope.$.set` function, and the scope contains a value function for the affected property; the value function is called with one argument - the incoming value. Your value function can ignore this if it doesn’t support updates.
 
 ### Form elements
 
@@ -739,7 +741,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 * `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. If the scope contains a value function for the given key, it is evaluated and its result returned.
 * `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
-* `set(key, value)` sets the value in the scope for the given key. Supports nested keys.
+* `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.
 * `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
 * `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
 * `setEventHandler(key)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.

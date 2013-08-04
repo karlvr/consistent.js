@@ -898,7 +898,12 @@
 						current = next;
 					}
 				}
-				current[parts[parts.length - 1]] = value;
+				if (typeof current[parts[parts.length - 1]] !== "function") {
+					current[parts[parts.length - 1]] = value;
+				} else {
+					/* Value function */
+					current[parts[parts.length - 1]].call(this._scope, value);
+				}
 				return this._scope;
 			},
 			getEventHandler: function(key) {
