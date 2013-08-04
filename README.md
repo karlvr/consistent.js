@@ -275,7 +275,7 @@ If your scope contains array values, you can repeat blocks of DOM nodes to repre
 
 ```html
 <ul>
-	<li data-ct-rep="people" data-ct="name"></li>
+	<li data-ct-repeat="people" data-ct="name"></li>
 </ul>
 ```
 
@@ -313,7 +313,7 @@ Repeating clones the repeated element, including all of its children:
 
 ```html
 <table>
-	<tr data-ct-rep="people">
+	<tr data-ct-repeat="people">
 		<td>Person #<span data-ct="index"></span></td>
 		<td data-ct="name"></td>
 		<td data-ct="address"></td>
@@ -590,7 +590,7 @@ The Repeating blocks section above introduces repeating. In that example you can
 
 ```html
 <table>
-	<tr data-ct-rep="people" data-ct-rep-container-id="rows"></tr>
+	<tr data-ct-repeat="people" data-ct-repeat-container-id="rows"></tr>
 </table>
 
 <table style="display:none">
@@ -607,7 +607,7 @@ The Repeating blocks section above introduces repeating. In that example you can
 </table>
 ```
 
-Using the `data-ct-rep-container-id` attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a `<tbody>` element created, even if it isn’t in the markup, therefore you should attach the id to an explicit `<tbody>` otherwise if the id is on the `<table>`, the repeating block will include the automatically created `<tbody>`.
+Using the `data-ct-repeat-container-id` attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a `<tbody>` element created, even if it isn’t in the markup, therefore you should attach the id to an explicit `<tbody>` otherwise if the id is on the `<table>`, the repeating block will include the automatically created `<tbody>`.
 
 ### Properties
 
@@ -726,8 +726,8 @@ The `NAME` segment in the following list represents the name of the attribute or
 
 #### Repeating blocks
 
-* `data-ct-rep` repeats this element, and all of its children, for each item in the array in the named property in the scope.
-* `data-ct-rep-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
+* `data-ct-repeat` repeats this element, and all of its children, for each item in the array in the named property in the scope.
+* `data-ct-repeat-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
 
 
 ### Scope functions

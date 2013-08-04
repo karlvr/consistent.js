@@ -100,8 +100,8 @@
 			bindDataAttribute: "data-ct-bind",
 			bindDataAttributePrefix: "data-ct-bind-",
 
-			repeatDataAttribute: "data-ct-rep",
-			repeatContainerIdDataAttribute: "data-ct-rep-container-id",
+			repeatDataAttribute: "data-ct-repeat",
+			repeatContainerIdDataAttribute: "data-ct-repeat-container-id",
 
 			warningDataAttributePrefix: "data-ct-",
 
