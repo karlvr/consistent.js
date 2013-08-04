@@ -1130,6 +1130,23 @@
 		return result;
 	}
 
+	/** Compare two values for equality. For objects it checks for any keys that are different. */
+	function isEqual(a, b) {
+		var atype = typeof a;
+		if (atype !== typeof b) {
+			return false;
+		}
+
+		if (atype === "function") {
+			return a === b;
+		} else if (atype === "object") {
+			var keys = differentKeys(a, b);
+			return keys.length === 0;
+		} else {
+			return true;
+		}
+	}
+
 	function cloneScope(scope) {
 		var result = mergeOptions({}, scope);
 		result.$._scope = result;
@@ -1450,7 +1467,7 @@
 				/* Manage loops. Don't notify again if the value hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcherId] === undefined || notifying[watcherId].cleanValue !== newValue) {
+				if (notifying[watcherId] === undefined || !isEqual(notifying[watcherId].cleanValue, newValue)) {
 					watcher.call(scope, key, newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
@@ -1487,7 +1504,7 @@
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
-				if (notifying[watcherId] === undefined || differentKeys(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot).length !== 0) {
+				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
 					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
 					
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
