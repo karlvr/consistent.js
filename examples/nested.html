@@ -20,6 +20,18 @@ $(function() {
 	var personChanged = false;
 	var personNameChanged = false;
 
+	if (typeof window.console === "undefined") {
+		window.console = {
+			log: function() {
+				var result = "";
+				for (var i = 0; i < arguments.length; i++) {
+					result = result + arguments[i] + " ";
+				}
+				alert(result.substring(0, result.length - 1));
+			}
+		};
+	}
+
 	scope.$.watch(function(keys) {
 		console.log("Keys changed: " + keys);
 		if (keys[0] === "person.name") {
