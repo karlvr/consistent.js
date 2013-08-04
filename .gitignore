@@ -1,2 +1,3 @@
 .DS_Store
 /libpeerconnection.log
+/node_modules/
