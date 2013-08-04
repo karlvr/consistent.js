@@ -1497,6 +1497,25 @@
 		return notified;
 	};
 
+	function addEventListener(dom, eventName, listener) {
+		if (dom.addEventListener) {
+			dom.addEventListener(eventName, listener, false);
+		} else if (dom.attachEvent) {
+			dom.attachEvent("on" + eventName, listener);
+		} else {
+			throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
+		}
+	}
+
+	function enhanceEvent(ev) {
+		if (!ev.preventDefault) {
+			/* IE */
+			ev.preventDefault = function() {
+				this.returnValue = false;
+			};
+		}
+	}
+
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
@@ -1528,6 +1547,7 @@
 			for (var eventName in nodeOptions.events) {
 				(function(eventName, keys) {
 					var listener = function(ev) {
+						enhanceEvent(ev);
 						for (var i = 0; i < keys.length; i++) {
 							var key = keys[i];
 							var func = self._scope.$.getEventHandler(key);
@@ -1556,13 +1576,7 @@
 						}
 					};
 					nodeOptions.events[eventName].listener = listener;
-					if (dom.addEventListener) {
-						dom.addEventListener(eventName, listener, false);
-					} else if (dom.attachEvent) {
-						dom.attachEvent("on" + eventName, listener);
-					} else {
-						throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
-					}
+					addEventListener(dom, eventName, listener);
 				})(eventName, nodeOptions.events[eventName].keys);
 			}
 
@@ -1572,10 +1586,11 @@
 				nodeName === "TEXTAREA" || nodeName === "SELECT")) {
 				/* For input and textarea nodes we bind to their change event by default. */
 				var listener = function(ev) {
+					enhanceEvent(ev);
 					nodeOptions.$.update(dom, self._scope, nodeOptions);
 					self._scope.$.apply();
 				};
-				dom.addEventListener("change", listener, false);
+				addEventListener(dom, "change", listener, false);
 
 				nodeOptions.$._changeListener = listener;
 			}
