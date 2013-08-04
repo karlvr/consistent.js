@@ -8,6 +8,7 @@
     "bower_components",
     "test",
     "tests",
-    "*.json"
+    "*.json",
+    "Makefile"
   ]
 }
