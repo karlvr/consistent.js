@@ -93,8 +93,6 @@
 			repeatContainerIdDataAttribute: "data-ct-rep-container-id",
 			warningDataAttributePrefix: "data-ct-",
 
-			repeatIndexProperty: "_ct_index",
-
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
 			oldDisplayKey: "__ConsistentOldDisplay",
@@ -641,6 +639,9 @@
 			/* The manager */
 			_manager: null,
 
+			/* The index of this scope in a repeating section */
+			index: undefined,
+
 			apply: function(options, func) {
 				if (typeof options === "function") {
 					func = options;
@@ -1018,7 +1019,6 @@
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$.bind(domNodes);
 				childScope = childScope.$.replace(object);
-				childScope[Consistent.settings.repeatIndexProperty] = i;
 
 				item = {
 					object: object,
@@ -1042,6 +1042,7 @@
 			item.after = previousNode;
 			previousNode = item.domNodes[item.domNodes.length - 1];
 
+			item.scope.$.index = i;
 			item.scope.$.apply();
 		}
 
@@ -1057,6 +1058,8 @@
 				}
 				removeDomNodes(item.domNodes);
 				repeatData.items.splice(i, 1);
+
+				item.scope.$.index = undefined;
 				i--;
 			}
 		}

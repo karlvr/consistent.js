@@ -211,19 +211,29 @@ Consistent only creates new nodes when new items are added to the array. So any 
 
 Consistent creates a child scope for each repeated block, and the object in the array becomes its scope. Therefore each object in the array will have a `$` property added containing Consistent’s scope functionality. As the objects in the array are the child scopes, you can access the child scopes if you need to via the original array in the original scope.
 
+See the Parent scopes section for essential information about parent and child scopes.
+
 Repeating clones the repeated element, including all of its children:
 
 ```html
 <table>
 	<tr data-ct-rep="people">
-		<td>Person #<span data-ct="_ct_index"></span></td>
+		<td>Person #<span data-ct="index"></span></td>
 		<td data-ct="name"></td>
 		<td data-ct="address"></td>
 	</tr>
 </table>
 ```
 
-Note above that a special property is added to the scope called `_ct_index` which contains the 0-based index of the current iteration. If you want to format that number differently, use a value function that accesses and modifies it.
+```javascript
+scope.index = function() {
+	return this.$.index;
+};
+```
+
+Note above that the scope contains a property `scope.$.index` that contains the 0-based index of the current repeated block. You can’t access this property directly from the DOM as it is inside the `$` object, but you can use a value function to access it (and to add 1 to it if you want the index to be 1-based!).
+
+Another interesting thing is happening here, which will be clearer after reading the Parent scopes section. The `scope.index` value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the `index` property falls back to the parent scope. When a value function is called in a parent scope, `this` is set to the child scope. So `return this.$.index` returns the index of the child scope.
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
 
@@ -549,7 +559,7 @@ See the Visibility section above for a better way to show and hide elements.
 Options
 -------
 
-### Visibility
+### Visibility animation
 
 Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by specifying options when you create a scope, or bind a node.
 
@@ -581,9 +591,9 @@ scope.$.apply({
 });
 ```
 
-### Repeating blocks
+### Repeating blocks animation
 
-If you want to animate the appearance and disappearance of elements in repeating block, you can override the behaviour after adding nodes, and for removing nodes.
+If you want to animate the appearance and disappearance of blocks in a repeating section, you can override the behaviour after adding nodes, and for removing nodes.
 
 ```javascript
 var options = { $: {} };
@@ -651,7 +661,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `nodes()` returns an array of DOM nodes that are bound to this scope.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
-#### Scope properties
+#### Scope
 * `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
 * `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `merge(object)` merges properties in the given object into the scope.
@@ -671,6 +681,12 @@ All scope functions are nested inside the `$` object, and therefore you call the
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.
 * `options(node)` returns the options object for the given node.
+
+### Scope properties
+
+The scope exposes some properties inside the `$` object, e.g. `scope.$.index`.
+
+* `index` the 0-based index of the given scope within a repeating section, or undefined if not in a repeating section.
 
 ### Consistent functions
 
