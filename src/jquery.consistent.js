@@ -35,19 +35,19 @@
 			/* Check whether the given nodes have an existing scope */
 			this.each(function() {
 				var nodeScope = Consistent.findScopeForNode(this);
-				if (nodeScope != null) {
-					if (scope != null && scope !== nodeScope) {
+				if (nodeScope) {
+					if (scope && scope !== nodeScope) {
 						/* The given nodes have multiple different scopes */
 						throw "The given nodes have multiple different scopes";
 					}
 					scope = nodeScope;
-				} else if (scope != null) {
+				} else if (scope) {
 					/* Some of the given nodes have scopes and others don't */
 					throw "Some of the given nodes have scopes and others don't";
 				}
 			});
 
-			if (scope != null) {
+			if (scope) {
 				/* Already bound to a scope */
 				return scope;
 			} else {
