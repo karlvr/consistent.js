@@ -9,7 +9,7 @@ Introduction
 ------------
 Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
 
-The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `data-ct-*` attributes to tell Consistent how to use the scope’s properties.
+The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `data-ct-…` attributes to tell Consistent how to use the scope’s properties.
 
 The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it as it is contained in the scope.
 
@@ -18,8 +18,14 @@ The scope contains scalar values, such as booleans, strings and numbers, and val
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.
 
 ```html
-<script src="consistent.js"></script>
-<script src="jquery.consistent.js"></script>
+<script src="src/consistent.js"></script>
+<script src="src/jquery.consistent.js"></script>
+```
+
+Or use a minified and combined version. The minified and combined script for jQuery is just over 6KB.
+
+```html
+<script src="lib/consistent-for-jquery.min.js"></script>
 ```
 
 ### Substitution
