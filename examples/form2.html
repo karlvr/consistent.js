@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Example of form population.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<form>
+	<p><select name="referrer" data-ct-options="referrerOptions"></select></p>
+	<p><select name="product" data-ct-options="products"></select>
+</form>
+
+<button id="change">Change</button>
+
+<script>
+$(function() {
+	var scope = $("form").consistent();
+	scope.referrer = "Friend";
+	scope.product = 3;
+
+	scope.referrerOptions = [
+		"", "Friend", "Website", "Search Engine"
+	];
+	scope.products = [
+		{},
+		{ value: 1, text: "Lamp" },
+		{ value: 2, text: "Bucket" },
+		{ value: 3, text: "Axe" }
+	];
+	scope.$.apply();
+
+	$("#change").click(function() {
+		scope.referrer = "Search Engine";
+		scope.product = (scope.product + 1) % scope.products.length;
+		scope.$.apply();
+	});
+});
+</script>
+
+</body>
+</html>

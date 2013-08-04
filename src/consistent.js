@@ -85,6 +85,7 @@
 			disabledDataAttribute: "data-ct-disabled",
 			readOnlyDataAttribute: "data-ct-readonly",
 			readWriteDataAttribute: "data-ct-readwrite",
+			optionsDataAttribute: "data-ct-options",
 			templateDataAttribute: "data-ct-tmpl",
 			templateIdDataAttribute: "data-ct-tmpl-id",
 			attributeDataAttributePrefix: "data-ct-attr-",
@@ -261,7 +262,40 @@
 
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
-				var value;
+				var value, i;
+
+				/* Select options */
+				if (options.selectOptions) {
+					/* This must come before the setValue, as the select's options need to be setup before
+					 * its value can be set.
+					 */
+					value = getNestedProperty(snapshot, options.selectOptions);
+					if (value !== undefined) {
+						var selectedValue = dom.selectedIndex !== -1 ? dom.options[dom.selectedIndex].value : undefined;
+						dom.length = value.length;
+						for (i = 0; i < value.length; i++) {
+							var newOption;
+							if (typeof value[i] === "object") {
+								var optionText = value[i].text;
+								var optionValue = value[i].value;
+								newOption = new Option(optionText !== undefined ? optionText : "", 
+									optionValue !== undefined ? optionValue : "", 
+									false, optionValue == selectedValue);
+								if (value[i].label !== undefined) {
+									newOption.label = value[i].label;
+								}
+								if (value[i].disabled !== undefined) {
+									newOption.disabled = !!value[i].disabled;
+								}
+							} else {
+								newOption = new Option(value[i], value[i], false, value[i] == selectedValue);
+							}
+							dom.options[i] = newOption;
+						}
+					}
+				}
+
+				/* Value */
 				if (options.key) {
 					/* Key */
 					value = getNestedProperty(snapshot, options.key);
@@ -273,9 +307,7 @@
 					this.setValue(dom, options.template.render(snapshot));
 				}
 
-				var i;
-
-				/* Apply to attributes */
+				/* Attributes */
 				if (options.attributes) {
 					var attrs = options.attributes;
 					for (i = 0; i < attrs.length; i++) {
@@ -293,7 +325,7 @@
 					}
 				}
 
-				/* Apply to properties */
+				/* Properties */
 				if (options.properties) {
 					var props = options.properties;
 					for (i = 0; i < props.length; i++) {
@@ -587,6 +619,9 @@
 			} else if (name === settings.readWriteDataAttribute) {
 				/* Read Write */
 				result.readWrite = value;
+			} else if (name === settings.optionsDataAttribute) {
+				/* Select options */
+				result.selectOptions = value;
 			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
 				/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 				 * weren't recognized. Log these out to help developers catch errors.

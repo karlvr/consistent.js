@@ -21,7 +21,7 @@ Consistent includes a jQuery plugin, and the examples below show this approach. 
 ```
 
 ### Substitution
-Bind an `h1` element to the key `title` in the scope.
+Set the contents of an `h1` element with the `title` property in the scope.
 
 ```html
 <h1 data-ct="title"></h1>
@@ -135,14 +135,17 @@ scope.$.apply();
 The value function gets called with `this` set to the scope, and no arguments. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
 
 ### Form elements
-Form elements work as you would expect: Consistent updates their values from scope.
+
+Form elements are automatically associated with the scope property with the same name as the element, and Consistent updates the form field’s value from the scope.
 
 ```html
 <input type="text" name="email">
 <input type="checkbox" name="optin">
 ```
 
-Now create a scope and set the input element’s value.
+Note that we don’t explicitly specify the scope property, it defaults to the name. You can explicitly specify the scope property using the `data-ct` attribute.
+
+Now create a scope and set the elements’ values.
 
 ```javascript
 var scope = $("input").consistent();
@@ -151,7 +154,12 @@ scope.optin = true;
 scope.$.apply();
 ```
 
-All form elements are supported; including text fields, checkboxes, radio buttons, select lists and textareas.
+All form elements are supported, including:
+* text fields
+* checkboxes
+* radio buttons
+* select lists
+* textareas
 
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates and then applies the scope. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
 
@@ -176,6 +184,35 @@ The above shows how to control the `disabled` property, the full list is:
 * `data-ct-readwrite`
 
 Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.
+
+#### Select options
+
+You can set the options array for a `<select>` element from the scope.
+
+```html
+<select name="product" data-ct-options="products"></select>
+```
+
+Now set the options array either as an array of scalar values, such as strings:
+
+```javascript
+scope.products = [ "", "Lamp", "Bucket", "Axe" ];
+```
+
+Or as an array of objects that separate the text and value:
+
+```javascript
+scope.products = [
+	{},
+	{ text: "Lamp", value: "lamp" },
+	{ text: "Bucket", value: "bucket" },
+	{ text: "Axe", value: "axe" }
+];
+```
+
+You can also include `label` and `disabled` properties in the objects to set those properties in the created options.
+
+You can of course bind the selected option as well, e.g. `scope.product = "Bucket";`.
 
 ### Events
 
@@ -649,6 +686,7 @@ Reference
 * `data-ct-enabled` make this element enabled when the named property in the scope is true.
 * `data-ct-readonly` make this element read-only when the named property in the scope is true.
 * `data-ct-readwrite` make this element not read-only when the named property in the scope is true.
+* `data-ct-options` set the `<select>` options array based on the array in the named property in the scope. The array should contain either scalar values, or objects each with `text` and `value` properties. Each object may also contain a `disabled` or `label` property to set those properties on the options.
 
 #### Attributes and properties
 
