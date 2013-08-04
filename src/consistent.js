@@ -258,9 +258,10 @@
 
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
+				var value;
 				if (options.key != null) {
 					/* Key */
-					var value = getNestedProperty(snapshot, options.key);
+					value = getNestedProperty(snapshot, options.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
@@ -269,11 +270,12 @@
 					this.setValue(dom, options.template.render(snapshot));
 				}
 
+				var i;
+
 				/* Apply to attributes */
 				if (options.attributes != null) {
 					var attrs = options.attributes;
-					for (var i = 0; i < attrs.length; i++) {
-						var value;
+					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							value = getNestedProperty(snapshot, attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
@@ -291,8 +293,8 @@
 				/* Apply to properties */
 				if (options.properties != null) {
 					var props = options.properties;
-					for (var i = 0; i < props.length; i++) {
-						var value = getNestedProperty(snapshot, props[i].key);
+					for (i = 0; i < props.length; i++) {
+						value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
 							this.setPropertyValue(dom, props[i].name, value);
 						}
@@ -301,7 +303,7 @@
 
 				/* Visibility */
 				if (options.show != null) {
-					var value = getNestedProperty(snapshot, options.show);
+					value = getNestedProperty(snapshot, options.show);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -310,7 +312,7 @@
 						}
 					}
 				} else if (options.hide != null) {
-					var value = getNestedProperty(snapshot, options.hide);
+					value = getNestedProperty(snapshot, options.hide);
 					if (value !== undefined) {
 						if (!value) {
 							this.show(dom);
@@ -372,8 +374,10 @@
 
 			/** Update the given scope with the given dom object */
 			update: function(dom, scope, options) {
+				var value, i;
+
 				if (options.key !== undefined) {
-					var value = this.getValue(dom);
+					value = this.getValue(dom);
 					if (value !== undefined) {
 						scope.$.set(options.key, value);
 					}
@@ -381,9 +385,9 @@
 
 				if (options.attributes != null) {
 					var attrs = options.attributes;
-					for (var i = 0; i < attrs.length; i++) {
+					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
-							var value = this.getAttributeValue(dom, attrs[i].name);
+							value = this.getAttributeValue(dom, attrs[i].name);
 							scope.$.set(attrs[i].key, value);
 						}
 					}
@@ -391,8 +395,8 @@
 
 				if (options.properties != null) {
 					var props = options.properties;
-					for (var i = 0; i < props.length; i++) {
-						var value = this.getPropertyValue(dom, props[i].name);
+					for (i = 0; i < props.length; i++) {
+						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
 				}
@@ -485,12 +489,13 @@
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 			var value = attrs[i].value;
+			var targetAttribute, targetProperty, eventName;
 			if (name == settings.keyDataAttribute) {
 				/* Body */
 				result.key = value;
 			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
 				/* Attribute */
-				var targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
+				targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
 				addAttribute(targetAttribute, value);
 			} else if (name == settings.templateDataAttribute) {
 				/* Template */
@@ -506,26 +511,26 @@
 				/* Attribute template */
 				assertTemplateEngine();
 
-				var targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
+				targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
 				addAttributeTemplate(targetAttribute, options.templateEngine.compile(value));
 			} else if (name.indexOf(settings.templateIdAttributeDataAttributePrefix) === 0) {
 				/* Attribute template by id */
 				assertTemplateEngine();
 
-				var targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
+				targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
 				addAttributeTemplate(targetAttribute, options.templateEngine.compile(templateById(value)));
 			} else if (name.indexOf(settings.propertyDataAttributePrefix) === 0) {
 				/* Property */
-				var targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
+				targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
 				targetProperty = targetProperty.replace(/-/g, ".");
 				addProperty(targetProperty, value);
 			} else if (name === settings.bindDataAttribute) {
 				/* Bind default event */
-				var eventName = defaultEventName(dom);
+				eventName = defaultEventName(dom);
 				addEvent(eventName, value);
 			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
 				/* Bind events */
-				var eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
+				eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
 				addEvent(eventName, value);
 			} else if (name === settings.showDataAttribute) {
 				/* Show */
@@ -829,7 +834,8 @@
 		seen.push(aObject);
 		seen.push(bObject);
 
-		for (var key in aObject) {
+		var key;
+		for (key in aObject) {
 			if (aObject[key] !== bObject[key]) {
 				if (typeof aObject[key] === "object" && typeof bObject[key] === "object") {
 					/* Nested objects */
@@ -841,7 +847,7 @@
 		}
 
 		/* Collect anything that exists in bObject but isn't in aObject */
-		for (var key in bObject) {
+		for (key in bObject) {
 			if (aObject[key] === undefined) {
 				result.push(prefix + key);
 			}
@@ -863,7 +869,9 @@
 	var WATCH_ALL_KEY = "$all";
 
 	function ConsistentScopeManager(parentScope, options) {
-		this._id = "ConsistentScope" + (scopeId++);
+		this._id = "ConsistentScope" + scopeId;
+		scopeId++;
+
 		this._parentScope = parentScope;
 		this._options = options;
 		this._nodes = [];
@@ -934,6 +942,7 @@
 		 * }
 		 */
 		var repeatKey = options.repeat;
+		var i;
 
 		var repeatData = node.repeatData;
 		if (repeatData === undefined) {
@@ -950,7 +959,7 @@
 			} else {
 				repeatData.domNodes = [ node.dom.cloneNode(true) ];
 			}
-			for (var i = 0; i < repeatData.domNodes.length; i++) {
+			for (i = 0; i < repeatData.domNodes.length; i++) {
 				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
 				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerIdDataAttribute);
 			}
@@ -981,14 +990,16 @@
 		}
 
 		/* Find new and old objects in repeatContext */
-		var version = ++repeatData.version;
-		var insertBefore = repeatData.insertBefore;
-		var parentNode = node.dom.parentNode;
-		var previousNode = null;
+		repeatData.version++;
 
-		for (var i = 0; i < repeatContext.length; i++) {
+		var version = repeatData.version;
+		var insertBefore = repeatData.insertBefore;
+		var previousNode = null;
+		var item;
+
+		for (i = 0; i < repeatContext.length; i++) {
 			var object = repeatContext[i];
-			var item = findRepeatItemForObject(object);
+			item = findRepeatItemForObject(object);
 
 			var wasNew = false;
 			if (item === undefined) {
@@ -1026,8 +1037,8 @@
 		}
 
 		/* Find deleted objects */
-		for (var i = 0; i < repeatData.items.length; i++) {
-			var item = repeatData.items[i];
+		for (i = 0; i < repeatData.items.length; i++) {
+			item = repeatData.items[i];
 			if (item.version !== version) {
 				if (item.after != null) {
 					/* Maintain the position of this node in the DOM in case we animated
@@ -1088,11 +1099,11 @@
 		}
 
 		return this.isDirty();
-	},
+	};
 
 	ConsistentScopeManager.prototype.isDirty = function() {
 		return differentKeys(this._scope.$.snapshot(), this._cleanScopeSnapshot).length !== 0;
-	},
+	};
 
 	ConsistentScopeManager.prototype._updateCleanScopeAndFireWatchers = function() {
 		var someDirty = false;
@@ -1109,7 +1120,7 @@
 
 			while (notified) {
 				notified = false;
-				if (loops++ >= Consistent.settings.maxWatcherLoops) {
+				if (loops >= Consistent.settings.maxWatcherLoops) {
 					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
@@ -1123,6 +1134,8 @@
 						getNestedProperty(currentCleanScopeSnapshot, key), 
 						this._scope, notifyingState);
 				}
+
+				loops++;
 			}
 
 			if (dirty.length > 0) {
@@ -1154,7 +1167,8 @@
 				var watcher = watchers[i];
 				var watcherId = watcher[Consistent.settings.functionIdKey];
 				if (watcherId === undefined) {
-					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId++;
+					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId;
+					functionId++;
 				}
 
 				/* Manage loops. Don't notify again if the value hasn't changed since after the last time we
@@ -1190,7 +1204,8 @@
 				var watcher = watchers[i];
 				var watcherId = watcher[Consistent.settings.functionIdKey];
 				if (watcherId === undefined) {
-					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId++;
+					watcherId = watcher[Consistent.settings.functionIdKey] = "ConsistentFunction" + functionId;
+					functionId++;
 				}
 
 				/* Manage loops. Don't notify again if the scope hasn't changed since after the last time we
@@ -1408,9 +1423,11 @@ if (!('indexOf' in Array.prototype)) {
         if (i===undefined) i= 0;
         if (i<0) i+= this.length;
         if (i<0) i= 0;
-        for (var n= this.length; i<n; i++)
-            if (i in this && this[i]===find)
+        for (var n= this.length; i<n; i++) {
+            if (i in this && this[i]===find) {
                 return i;
+            }
+        }
         return -1;
     };
 }
