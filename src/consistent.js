@@ -1823,12 +1823,12 @@
 								func = self._scope.$.get(key);
 								var eventHandlerPrefix = self._options.eventHandlerPrefix;
 								if (typeof func === "function") {
-									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) + 
-										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix + 
+									throw new ConsistentException("Bound \"" + eventName +
+										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
 										" prefix and is possibly a mistake?");
 								} else {
-									throw new ConsistentException("Bound \"" + eventName + 
+									throw new ConsistentException("Bound \"" + eventName +
 										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
 										"\"");
 								}
