@@ -1597,9 +1597,11 @@
 			return;
 		}
 
+		var nodeOptions;
+
 		/* Check this node is not already bound */
 		if (dom[Consistent.settings.scopeIdKey] !== this._id) {
-			var nodeOptions = mergeOptions({}, this._options, options);
+			nodeOptions = mergeOptions({}, this._options, options);
 			nodeOptions = nodeOptions.$.getNodeOptions(dom, nodeOptions);
 
 			this._nodes.push({ dom: dom, options: nodeOptions });
@@ -1685,7 +1687,7 @@
 		}
 
 		/* Bind children */
-		if (!nodeOptions.repeat) {
+		if (nodeOptions === undefined || !nodeOptions.repeat) {
 			/* Skip children of a node which is a repeating node, as we will be duplicating that DOM. */
 			var child = dom.firstChild;
 			while (child !== null) {
