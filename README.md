@@ -836,3 +836,10 @@ What Consistent doesn’t do
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
 Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily snapshoted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
+
+Troubleshooting
+---------------
+
+### JSON.stringify cannot serialize cyclic structures
+
+The Consistent scope contains some cycles. When you want to use the scope for output, such as Ajax or simply turning it into a JSON string, first call `scope.$.snapshot()` to get a plain JavaScript object without cycles. See the documentation for `snapshot`.
