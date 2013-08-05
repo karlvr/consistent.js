@@ -468,7 +468,9 @@ Note that the merge is a shallow merge. For each key in the given object it adds
 
 The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data. Finally, it contains value functions that are evaluated to determine their current value.
 
-In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will return a new object excluding the `$` object and any keys starting with a `$` symbol. It will also evaluate all value functions and include their current value.
+In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will return a new object excluding the `$` object and any keys starting with a `$` symbol (usually just event handlers). It will also evaluate all value functions and include their current value.
+
+Note that if there are properties in your scope that you don’t want included in your snapshot, start them with a `$` character even if they’re not event handlers.
 
 ```javascript
 var scope = $("#item").consistent();
@@ -746,7 +748,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
 #### Scope
-* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (event handlers) and evaluating value functions and replacing with their current values.
+* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values.
 * `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
 * `merge(object)` merges properties in the given object into the scope.
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
