@@ -1280,12 +1280,6 @@
 		}
 	}
 
-	function cloneScope(scope) {
-		var result = mergeOptions({}, scope);
-		result.$._scope = result;
-		return result;
-	}
-
 	function removeAttributes(dom, attributes) {
 		for (var i = 0; i < attributes.length; i++) {
 			dom.removeAttribute(attributes[i]);
