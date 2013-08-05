@@ -301,7 +301,7 @@ scope.$.apply();
 Or remove an item:
 
 ```javascript
-scope.people.splice(0, 1);
+scope.people.shift();
 scope.$.apply();
 ```
 
