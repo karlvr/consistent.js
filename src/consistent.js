@@ -1286,6 +1286,12 @@
 		return result;
 	}
 
+	function removeAttributes(dom, attributes) {
+		for (var i = 0; i < attributes.length; i++) {
+			dom.removeAttribute(attributes[i]);
+		}
+	}
+
 	ConsistentScopeManager.prototype = new Object();
 
 	var scopeId = 0;
@@ -1384,8 +1390,8 @@
 				repeatData.domNodes = [ node.dom.cloneNode(true) ];
 			}
 			for (i = 0; i < repeatData.domNodes.length; i++) {
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeat);
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerId);
+				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
+				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
 			}
 			node.repeatData = repeatData;
 
