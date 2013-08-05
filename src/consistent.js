@@ -100,8 +100,8 @@
 				templateAttributeDataAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
 				templateIdAttributeDataAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
 
-				bindDataAttribute: [ "data-ct-bind", "ct-bind" ],
-				bindDataAttributePrefix: [ "data-ct-bind-", "ct-bind-" ],
+				onDataAttribute: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
+				onDataAttributePrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
 
 				repeatDataAttribute: [ "data-ct-repeat", "ct-repeat" ],
 				repeatContainerIdDataAttribute: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
@@ -808,12 +808,12 @@
 						result.allProperties = value;
 						break;
 					}
-					case "bindDataAttribute": {
+					case "onDataAttribute": {
 						/* Bind default event */
 						addEvent(defaultEventName(dom), value);
 						break;
 					}
-					case "bindDataAttributePrefix": {
+					case "onDataAttributePrefix": {
 						/* Bind events */
 						addEvent(matched.suffix.toLowerCase(), value);
 						break;
