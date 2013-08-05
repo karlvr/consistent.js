@@ -478,15 +478,18 @@
 				var nodeName = dom.nodeName;
 				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
 					if (dom.type === "checkbox") {
+						/* defaultChecked is set as well, as in IE 6 when moving elements in the DOM (such as in the repeat functionality)
+						 * the checked property gets reset.
+						 */
 						if (isArray(value)) {
-							dom.checked = (arrayIndexOf(value, dom.value) !== -1);
+							dom.checked = dom.defaultChecked = (arrayIndexOf(value, dom.value) !== -1);
 						} else if (typeof value === "boolean") {
-							dom.checked = value;
+							dom.checked = dom.defaultChecked = value;
 						} else {
-							dom.checked = (value == dom.value);
+							dom.checked = dom.defaultChecked = (value == dom.value);
 						}
 					} else if (dom.type === "radio") {
-						dom.checked = (value == dom.value);
+						dom.checked = dom.defaultChecked = (value == dom.value);
 					} else {
 						dom.value = value;
 					}
@@ -1669,8 +1672,7 @@
 
 			/* Handle specific nodes differently */
 			var nodeName = dom.nodeName;
-			if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || 
-				nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+			if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
 				/* For input and textarea nodes we bind to their change event by default. */
 				var listener = function(ev) {
 					enhanceEvent(ev);
