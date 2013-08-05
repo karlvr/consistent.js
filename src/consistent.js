@@ -1073,6 +1073,7 @@
 					for (var i = 0; i < keys.length; i++) {
 						setNestedProperty(keys[i], getNestedProperty(object, keys[i]));
 					}
+					return this._scope;
 				}
 			},
 			replace: function(object) {
