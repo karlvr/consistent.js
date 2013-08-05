@@ -268,7 +268,7 @@ There is a shortcut for binding events, which is to omit the event name. This ch
 ```
 
 The following special cases apply:
-  * `<input>` and `<textarea>` elements bind the `change` event
+  * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
 
 ### Repeating blocks
