@@ -1085,14 +1085,20 @@
 				return this._scope;
 			},
 			merge: function(object, keys) {
-				if (keys === undefined) {
+				if (typeof object === "boolean") {
+					/* merge(true, object) */
+					return merge(object, this._scope, keys);
+				} else if (keys === undefined) {
+					/* merge(object) */
 					return merge(this._scope, object);
 				} else if (isArray(keys)) {
+					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
 						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
 					}
 					return this._scope;
 				} else if (typeof keys !== "object") {
+					/* merge(object, key) */
 					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
 				} else {
 					throw new ConsistentException("Invalid keys argument to merge: " + keys);
