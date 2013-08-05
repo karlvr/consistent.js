@@ -1128,6 +1128,10 @@
 	 * property name where the parts are separated by dots.
 	 */
 	function mungePropertyName(name, prefix) {
+		if (!prefix) {
+			return name;
+		}
+		
 		var parts = name.split(".");
 		var result = "";
 		for (var i = 0; i < parts.length - 1; i++) {
