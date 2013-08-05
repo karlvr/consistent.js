@@ -1791,7 +1791,7 @@
 
 	/* Exceptions */
 
-	ConsistentException.prototype = new Error();
+	ConsistentException.prototype = new Object();
 
 	function ConsistentException(message) {
 		this._message = message;
