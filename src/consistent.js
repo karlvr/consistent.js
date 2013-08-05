@@ -1113,7 +1113,8 @@
 
 	/**
 	 * Some property names require a prefix, and these get added to the final part of the
-	 * property name where the parts are separated by dots.
+	 * property name where the parts are separated by dots. If the prefix ends with a letter
+	 * then the name will be initial-capped to provide a camel-casing.
 	 */
 	function mungePropertyName(name, prefix) {
 		if (!prefix) {
@@ -1127,11 +1128,25 @@
 		}
 		var lastPart = parts[parts.length - 1];
 		if (lastPart.indexOf(prefix) !== 0) {
-			result += prefix + lastPart;
+			/* Doesn't already begin with the prefix */
+			if (prefixRequiresNextInitialCap(prefix)) {
+				result += prefix + lastPart.substring(0, 1).toUpperCase() + lastPart.substring(1);
+			} else {
+				result += prefix + lastPart;
+			}
 		} else {
+			/* Already begins with the prefix */
 			result += lastPart;
 		}
 		return result;
+	}
+
+	function prefixRequiresNextInitialCap(prefix) {
+		if (!prefix) {
+			return false;
+		}
+		var c = prefix.charAt(prefix.length - 1);
+		return (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z');
 	}
 
 	/**
