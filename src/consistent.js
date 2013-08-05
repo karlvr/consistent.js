@@ -1089,7 +1089,7 @@
 					return merge(this._scope, object);
 				} else {
 					for (var i = 0; i < keys.length; i++) {
-						setNestedProperty(keys[i], getNestedProperty(object, keys[i]));
+						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
 					}
 					return this._scope;
 				}
