@@ -1087,11 +1087,15 @@
 			merge: function(object, keys) {
 				if (keys === undefined) {
 					return merge(this._scope, object);
-				} else {
+				} else if (isArray(keys)) {
 					for (var i = 0; i < keys.length; i++) {
 						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
 					}
 					return this._scope;
+				} else if (typeof keys !== "object") {
+					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
+				} else {
+					throw new ConsistentException("Invalid keys argument to merge: " + keys);
 				}
 			},
 			replace: function(object) {
