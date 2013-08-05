@@ -293,6 +293,15 @@
 		current[parts[parts.length - 1]] = value;
 	}
 
+	/** Helper function to get the value of an <option> tag. IE doesn't set the value if there isn't one in the DOM. */
+	function inputOptionValue(option) {
+		var optionValue = option.value;
+		if (!optionValue) {
+			optionValue = option.text;
+		}
+		return optionValue;
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -318,7 +327,7 @@
 					 */
 					value = getNestedProperty(snapshot, options.selectOptions);
 					if (value !== undefined) {
-						var selectedValue = dom.selectedIndex !== -1 ? dom.options[dom.selectedIndex].value : undefined;
+						var selectedValue = dom.selectedIndex !== -1 ? inputOptionValue(dom.options[dom.selectedIndex]) : undefined;
 						dom.length = value.length;
 						for (i = 0; i < value.length; i++) {
 							var newOption;
@@ -489,11 +498,11 @@
 					var i;
 					if (isArray(value)) {
 						for (i = 0; i < dom.options.length; i++) {
-							dom.options[i].selected = (value.indexOf(dom.options[i].value) !== -1);
+							dom.options[i].selected = (arrayIndexOf(value, inputOptionValue(dom.options[i])) !== -1);
 						}
 					} else {
 						for (i = 0; i < dom.options.length; i++) {
-							if (dom.options[i].value == value) {
+							if (inputOptionValue(dom.options[i]) == value) {
 								dom.selectedIndex = i;
 								return;
 							}
@@ -534,7 +543,7 @@
 							/* Special checkbox support */
 							var scopeValue = scope.$.get(options.key);
 							if (isArray(scopeValue)) {
-								i = scopeValue.indexOf(dom.value);
+								i = arrayIndexOf(scopeValue, dom.value);
 								if (value) {
 									if (i === -1) {
 										scopeValue.push(dom.value);
@@ -653,12 +662,12 @@
 						var values = [];
 						for (var i = 0; i < dom.options.length; i++) {
 							if (dom.options[i].selected) {
-								values.push(dom.options[i].value);
+								values.push(inputOptionValue(dom.options[i]));
 							}
 						}
 						return values;
 					} else if (dom.selectedIndex !== -1) {
-						return dom.options[dom.selectedIndex].value;
+						return inputOptionValue(dom.options[dom.selectedIndex]);
 					} else {
 						return undefined;
 					}
