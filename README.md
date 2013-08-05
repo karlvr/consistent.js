@@ -236,7 +236,9 @@ Consistent can add event listeners to DOM nodes which call functions in the scop
 <a href="#" ct-on-click="handleClick">Click me</a>
 ```
 
-Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`.
+Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`. You must follow this pattern otherwise Consistent will not find your event handler function.
+
+If you are using nested objects, the `$` prefix must be on the last part, e.g. `person.$handleClick`.
 
 ```javascript
 var scope = $("a").consistent();
@@ -693,7 +695,7 @@ To solve this issue you can pass options to the scope to change the way Consiste
 
 By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You may still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this default behaviour you must specify the entire event handler key, e.g. `ct-on="doclick"`.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this camel-casing do not use a prefix that ends with a letter.
 
 By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
 

@@ -1229,16 +1229,10 @@
 			result += parts[i] + ".";
 		}
 		var lastPart = parts[parts.length - 1];
-		if (lastPart.indexOf(prefix) !== 0) {
-			/* Doesn't already begin with the prefix */
-			if (prefixRequiresNextInitialCap(prefix)) {
-				result += prefix + lastPart.substring(0, 1).toUpperCase() + lastPart.substring(1);
-			} else {
-				result += prefix + lastPart;
-			}
+		if (prefixRequiresNextInitialCap(prefix)) {
+			result += prefix + lastPart.substring(0, 1).toUpperCase() + lastPart.substring(1);
 		} else {
-			/* Already begins with the prefix */
-			result += lastPart;
+			result += prefix + lastPart;
 		}
 		return result;
 	}

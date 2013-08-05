@@ -116,8 +116,8 @@ describe('Scope options tests', function() {
 		scope.$handleClick = func;
 		expect(scope.$.getEventHandler("handleClick")).toBe(func);
 
-		/* Can also request with the prefix */
-		expect(scope.$.getEventHandler("$handleClick")).toBe(func);
+		/* Can't request with the prefix */
+		expect(scope.$.getEventHandler("$handleClick")).toBe(undefined);
 	});
 
 	it("Event handler function prefix", function() {
@@ -128,8 +128,8 @@ describe('Scope options tests', function() {
 		expect(scope.$.getEventHandler("handleClick")).toBe(func);
 		expect(scope.$.getEventHandler("HandleClick")).toBe(func);
 
-		/* Can also request with the prefix */
-		expect(scope.$.getEventHandler("doHandleClick")).toBe(func);
+		/* Can't request with the prefix */
+		expect(scope.$.getEventHandler("doHandleClick")).toBe(undefined);
 
 		/* Not the right prefix */
 		expect(scope.$.getEventHandler("$handleClick")).not.toBe(func);
@@ -143,8 +143,8 @@ describe('Scope options tests', function() {
 		expect(scope.$.getEventHandler("handleClick")).not.toBe(func);
 		expect(scope.$.getEventHandler("HandleClick")).not.toBe(func);
 
-		/* Can also request with the prefix */
-		expect(scope.$.getEventHandler("dohandleClick")).toBe(func);
+		/* Can't request with the prefix */
+		expect(scope.$.getEventHandler("dohandleClick")).toBe(undefined);
 	});
 
 });
