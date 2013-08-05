@@ -734,7 +734,7 @@ The `NAME` segment in the following list represents the name of the attribute or
 
 ### Scope functions
 
-All scope functions are nested inside the `$` object, and therefore you call them, e.g. `scope.$.apply()`.
+All scope functions are nested inside the `$` object, and therefore you call them, e.g. `scope.$.apply()`. All functions without an explicitly documented return value will return the scope to enable chaining, e.g. `scope.$.update().$.apply()`.
 
 #### DOM
 
