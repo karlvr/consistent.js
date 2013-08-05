@@ -81,32 +81,32 @@
 	merge(Consistent, {
 		settings: {
 			attributes: {
-				keyDataAttribute: [ "data-ct", "ct" ],
-				showDataAttribute: [ "data-ct-show", "ct-show" ],
-				hideDataAttribute: [ "data-ct-hide", "ct-hide" ],
-				enabledDataAttribute: [ "data-ct-enabled", "ct-enabled" ],
-				disabledDataAttribute: [ "data-ct-disabled", "ct-disabled" ],
-				readOnlyDataAttribute: [ "data-ct-readonly", "ct-readonly" ],
-				readWriteDataAttribute: [ "data-ct-readwrite", "ct-readwrite" ],
-				optionsDataAttribute: [ "data-ct-options", "ct-options" ],
+				key: [ "data-ct", "ct" ],
+				show: [ "data-ct-show", "ct-show" ],
+				hide: [ "data-ct-hide", "ct-hide" ],
+				enabled: [ "data-ct-enabled", "ct-enabled" ],
+				disabled: [ "data-ct-disabled", "ct-disabled" ],
+				readOnly: [ "data-ct-readonly", "ct-readonly" ],
+				readWrite: [ "data-ct-readwrite", "ct-readwrite" ],
+				options: [ "data-ct-options", "ct-options" ],
 
-				templateDataAttribute: [ "data-ct-tmpl", "ct-tmpl" ],
-				templateIdDataAttribute: [ "data-ct-tmpl-id", "ct-tmpl-id" ],
+				template: [ "data-ct-tmpl", "ct-tmpl" ],
+				templateId: [ "data-ct-tmpl-id", "ct-tmpl-id" ],
 
-				attributesDataAttribute: [ "data-ct-attrs", "ct-attrs" ],
-				attributeDataAttributePrefix: [ "data-ct-attr-", "ct-attr-" ],
-				propertiesDataAttribute: [ "data-ct-props", "ct-props" ],
-				propertyDataAttributePrefix: [ "data-ct-prop-", "ct-prop-" ],
-				templateAttributeDataAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
-				templateIdAttributeDataAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
+				attributes: [ "data-ct-attrs", "ct-attrs" ],
+				attributePrefix: [ "data-ct-attr-", "ct-attr-" ],
+				properties: [ "data-ct-props", "ct-props" ],
+				propertyPrefix: [ "data-ct-prop-", "ct-prop-" ],
+				templateAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
+				templateIdAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
 
-				onDataAttribute: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
-				onDataAttributePrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
+				on: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
+				onPrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
 
-				repeatDataAttribute: [ "data-ct-repeat", "ct-repeat" ],
-				repeatContainerIdDataAttribute: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
+				repeat: [ "data-ct-repeat", "ct-repeat" ],
+				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
-				warningDataAttributePrefix: [ "data-ct-", "ct-" ]
+				warningPrefix: [ "data-ct-", "ct-" ]
 			},
 
 			scopeIdKey: "__ConsistentScopeID",
@@ -760,110 +760,110 @@
 			var matched = findDeclarationAttribute(name);
 			if (matched) {
 				switch (matched.name) {
-					case "keyDataAttribute": {
+					case "key": {
 						/* Body */
 						result.key = value;
 						break;
 					}
-					case "attributeDataAttributePrefix": {
+					case "attributePrefix": {
 						/* Attribute */
 						addAttribute(matched.suffix, value);
 						break;
 					}
-					case "attributesDataAttribute": {
+					case "attributes": {
 						/* Attributes */
 						result.allAttributes = value;
 						break;
 					}
-					case "templateDataAttribute": {
+					case "template": {
 						/* Template */
 						assertTemplateEngine();
 						result.template = options.templateEngine.compile(value);
 						break;
 					}
-					case "templateIdDataAttribute": {
+					case "templateId": {
 						/* Template by id */
 						assertTemplateEngine();
 						result.template = options.templateEngine.compile(templateById(value));
 						break;
 					}
-					case "templateAttributeDataAttributePrefix": {
+					case "templateAttributePrefix": {
 						/* Attribute template */
 						assertTemplateEngine();
 						addAttributeTemplate(matched.suffix, options.templateEngine.compile(value));
 						break;
 					}
-					case "templateIdAttributeDataAttributePrefix": {
+					case "templateIdAttributePrefix": {
 						/* Attribute template by id */
 						assertTemplateEngine();
 						addAttributeTemplate(matched.suffix, options.templateEngine.compile(templateById(value)));
 						break;
 					}
-					case "propertyDataAttributePrefix": {
+					case "propertyPrefix": {
 						/* Property */
 						addProperty(matched.suffix.replace(/-/g, "."), value);
 						break;
 					}
-					case "propertiesDataAttribute": {
+					case "properties": {
 						result.allProperties = value;
 						break;
 					}
-					case "onDataAttribute": {
+					case "on": {
 						/* Bind default event */
 						addEvent(defaultEventName(dom), value);
 						break;
 					}
-					case "onDataAttributePrefix": {
+					case "onPrefix": {
 						/* Bind events */
 						addEvent(matched.suffix.toLowerCase(), value);
 						break;
 					}
-					case "showDataAttribute": {
+					case "show": {
 						/* Show */
 						result.show = value;
 						break;
 					}
-					case "hideDataAttribute": {
+					case "hide": {
 						/* Hide */
 						result.hide = value;
 						break;
 					}
-					case "repeatDataAttribute": {
+					case "repeat": {
 						/* Repeat */
 						result.repeat = value;
 						break;
 					}
-					case "repeatContainerIdDataAttribute": {
+					case "repeatContainerId": {
 						/* Repeat container id */
 						result.repeatContainerId = value;
 						break;
 					}
-					case "enabledDataAttribute": {
+					case "enabled": {
 						/* Enabled */
 						result.enabled = value;
 						break;
 					}
-					case "disabledDataAttribute": {
+					case "disabled": {
 						/* Disabled */
 						result.disabled = value;
 						break;
 					}
-					case "readOnlyDataAttribute": {
+					case "readOnly": {
 						/* Read Only */
 						result.readOnly = value;
 						break;
 					}
-					case "readWriteDataAttribute": {
+					case "readWrite": {
 						/* Read Write */
 						result.readWrite = value;
 						break;
 					}
-					case "optionsDataAttribute": {
+					case "options": {
 						/* Select options */
 						result.selectOptions = value;
 						break;
 					}
-					case "warningDataAttributePrefix": {
+					case "warningPrefix": {
 						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 						 * weren't recognized. Log these out to help developers catch errors.
 						 */
@@ -1384,8 +1384,8 @@
 				repeatData.domNodes = [ node.dom.cloneNode(true) ];
 			}
 			for (i = 0; i < repeatData.domNodes.length; i++) {
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerIdDataAttribute);
+				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeat);
+				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerId);
 			}
 			node.repeatData = repeatData;
 
