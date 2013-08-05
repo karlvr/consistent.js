@@ -226,7 +226,7 @@ scope.products = [
 
 You can also include `label` and `disabled` properties in the objects to set those properties in the created options.
 
-You can of course bind the selected option as well, e.g. `scope.product = "Bucket";`.
+You can of course bind the selected option as well, e.g. `scope.product = "bucket";`.
 
 ### Events
 
