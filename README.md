@@ -783,10 +783,6 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
 * `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
 
-* `getValueFunction(key)` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes. If the scope options specify a value function prefix it is added to the last component of the key.
-* `getLocalValueFunction(key)` as for `getValueFunction` but doesn’t fall back to parent scopes.
-* `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys. If the scope options specify a value function prefix it is added to the last component of the key.
-
 #### Watch
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.

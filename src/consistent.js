@@ -1105,24 +1105,6 @@
 				key = mungePropertyName(key, this.options().eventHandlerPrefix);
 				return this.set(key, value);
 			},
-			getValueFunction: function(key) {
-				var local = this.getLocalValueFunction(key);
-				if (local !== undefined) {
-					return local;
-				} else if (this.parent()) {
-					return this.parent().$.getValueFunction(key);
-				} else {
-					return undefined;
-				}
-			},
-			getLocalValueFunction: function(key) {
-				key = mungePropertyName(key, this.options().valueFunctionPrefix);
-				return this.getLocal(key);
-			},
-			setLocalValueFunction: function(key, value) {
-				key = mungePropertyName(key, this.options().valueFunctionPrefix);
-				return this.set(key, value);
-			},
 			options: function(dom) {
 				return this._manager.getOptions(dom);
 			}
