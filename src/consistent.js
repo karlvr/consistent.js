@@ -80,32 +80,34 @@
 
 	merge(Consistent, {
 		settings: {
-			keyDataAttribute: "data-ct",
-			showDataAttribute: "data-ct-show",
-			hideDataAttribute: "data-ct-hide",
-			enabledDataAttribute: "data-ct-enabled",
-			disabledDataAttribute: "data-ct-disabled",
-			readOnlyDataAttribute: "data-ct-readonly",
-			readWriteDataAttribute: "data-ct-readwrite",
-			optionsDataAttribute: "data-ct-options",
+			attributes: {
+				keyDataAttribute: [ "data-ct", "ct" ],
+				showDataAttribute: [ "data-ct-show", "ct-show" ],
+				hideDataAttribute: [ "data-ct-hide", "ct-hide" ],
+				enabledDataAttribute: [ "data-ct-enabled", "ct-enabled" ],
+				disabledDataAttribute: [ "data-ct-disabled", "ct-disabled" ],
+				readOnlyDataAttribute: [ "data-ct-readonly", "ct-readonly" ],
+				readWriteDataAttribute: [ "data-ct-readwrite", "ct-readwrite" ],
+				optionsDataAttribute: [ "data-ct-options", "ct-options" ],
 
-			templateDataAttribute: "data-ct-tmpl",
-			templateIdDataAttribute: "data-ct-tmpl-id",
+				templateDataAttribute: [ "data-ct-tmpl", "ct-tmpl" ],
+				templateIdDataAttribute: [ "data-ct-tmpl-id", "ct-tmpl-id" ],
 
-			attributesDataAttribute: "data-ct-attrs",
-			attributeDataAttributePrefix: "data-ct-attr-",
-			propertiesDataAttribute: "data-ct-props",
-			propertyDataAttributePrefix: "data-ct-prop-",
-			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
-			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
+				attributesDataAttribute: [ "data-ct-attrs", "ct-attrs" ],
+				attributeDataAttributePrefix: [ "data-ct-attr-", "ct-attr-" ],
+				propertiesDataAttribute: [ "data-ct-props", "ct-props" ],
+				propertyDataAttributePrefix: [ "data-ct-prop-", "ct-prop-" ],
+				templateAttributeDataAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
+				templateIdAttributeDataAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
 
-			bindDataAttribute: "data-ct-bind",
-			bindDataAttributePrefix: "data-ct-bind-",
+				bindDataAttribute: [ "data-ct-bind", "ct-bind" ],
+				bindDataAttributePrefix: [ "data-ct-bind-", "ct-bind-" ],
 
-			repeatDataAttribute: "data-ct-repeat",
-			repeatContainerIdDataAttribute: "data-ct-repeat-container-id",
+				repeatDataAttribute: [ "data-ct-repeat", "ct-repeat" ],
+				repeatContainerIdDataAttribute: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
-			warningDataAttributePrefix: "data-ct-",
+				warningDataAttributePrefix: [ "data-ct-", "ct-" ]
+			},
 
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
@@ -754,89 +756,154 @@
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 			var value = attrs[i].value;
-			var targetAttribute, targetProperty, eventName;
-			if (name === settings.keyDataAttribute) {
-				/* Body */
-				result.key = value;
-			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
-				/* Attribute */
-				targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
-				addAttribute(targetAttribute, value);
-			} else if (name === settings.attributesDataAttribute) {
-				/* Attributes */
-				result.allAttributes = value;
-			} else if (name === settings.templateDataAttribute) {
-				/* Template */
-				assertTemplateEngine();
 
-				result.template = options.templateEngine.compile(value);
-			} else if (name === settings.templateIdDataAttribute) {
-				/* Template by id */
-				assertTemplateEngine();
-
-				result.template = options.templateEngine.compile(templateById(value));
-			} else if (name.indexOf(settings.templateAttributeDataAttributePrefix) === 0) {
-				/* Attribute template */
-				assertTemplateEngine();
-
-				targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
-				addAttributeTemplate(targetAttribute, options.templateEngine.compile(value));
-			} else if (name.indexOf(settings.templateIdAttributeDataAttributePrefix) === 0) {
-				/* Attribute template by id */
-				assertTemplateEngine();
-
-				targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
-				addAttributeTemplate(targetAttribute, options.templateEngine.compile(templateById(value)));
-			} else if (name.indexOf(settings.propertyDataAttributePrefix) === 0) {
-				/* Property */
-				targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
-				targetProperty = targetProperty.replace(/-/g, ".");
-				addProperty(targetProperty, value);
-			} else if (name === settings.propertiesDataAttribute) {
-				result.allProperties = value;
-			} else if (name === settings.bindDataAttribute) {
-				/* Bind default event */
-				eventName = defaultEventName(dom);
-				addEvent(eventName, value);
-			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
-				/* Bind events */
-				eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
-				addEvent(eventName, value);
-			} else if (name === settings.showDataAttribute) {
-				/* Show */
-				result.show = value;
-			} else if (name === settings.hideDataAttribute) {
-				/* Hide */
-				result.hide = value;
-			} else if (name === settings.repeatDataAttribute) {
-				/* Repeat */
-				result.repeat = value;
-			} else if (name === settings.repeatContainerIdDataAttribute) {
-				/* Repeat container id */
-				result.repeatContainerId = value;
-			} else if (name === settings.enabledDataAttribute) {
-				/* Enabled */
-				result.enabled = value;
-			} else if (name === settings.disabledDataAttribute) {
-				/* Disabled */
-				result.disabled = value;
-			} else if (name === settings.readOnlyDataAttribute) {
-				/* Read Only */
-				result.readOnly = value;
-			} else if (name === settings.readWriteDataAttribute) {
-				/* Read Write */
-				result.readWrite = value;
-			} else if (name === settings.optionsDataAttribute) {
-				/* Select options */
-				result.selectOptions = value;
-			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
-				/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
-				 * weren't recognized. Log these out to help developers catch errors.
-				 */
-				if (console.log !== undefined) {
-					console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
+			var matched = findDeclarationAttribute(name);
+			if (matched) {
+				switch (matched.name) {
+					case "keyDataAttribute": {
+						/* Body */
+						result.key = value;
+						break;
+					}
+					case "attributeDataAttributePrefix": {
+						/* Attribute */
+						addAttribute(matched.suffix, value);
+						break;
+					}
+					case "attributesDataAttribute": {
+						/* Attributes */
+						result.allAttributes = value;
+						break;
+					}
+					case "templateDataAttribute": {
+						/* Template */
+						assertTemplateEngine();
+						result.template = options.templateEngine.compile(value);
+						break;
+					}
+					case "templateIdDataAttribute": {
+						/* Template by id */
+						assertTemplateEngine();
+						result.template = options.templateEngine.compile(templateById(value));
+						break;
+					}
+					case "templateAttributeDataAttributePrefix": {
+						/* Attribute template */
+						assertTemplateEngine();
+						addAttributeTemplate(matched.suffix, options.templateEngine.compile(value));
+						break;
+					}
+					case "templateIdAttributeDataAttributePrefix": {
+						/* Attribute template by id */
+						assertTemplateEngine();
+						addAttributeTemplate(matched.suffix, options.templateEngine.compile(templateById(value)));
+						break;
+					}
+					case "propertyDataAttributePrefix": {
+						/* Property */
+						addProperty(matched.suffix.replace(/-/g, "."), value);
+						break;
+					}
+					case "propertiesDataAttribute": {
+						result.allProperties = value;
+						break;
+					}
+					case "bindDataAttribute": {
+						/* Bind default event */
+						addEvent(defaultEventName(dom), value);
+						break;
+					}
+					case "bindDataAttributePrefix": {
+						/* Bind events */
+						addEvent(matched.suffix.toLowerCase(), value);
+						break;
+					}
+					case "showDataAttribute": {
+						/* Show */
+						result.show = value;
+						break;
+					}
+					case "hideDataAttribute": {
+						/* Hide */
+						result.hide = value;
+						break;
+					}
+					case "repeatDataAttribute": {
+						/* Repeat */
+						result.repeat = value;
+						break;
+					}
+					case "repeatContainerIdDataAttribute": {
+						/* Repeat container id */
+						result.repeatContainerId = value;
+						break;
+					}
+					case "enabledDataAttribute": {
+						/* Enabled */
+						result.enabled = value;
+						break;
+					}
+					case "disabledDataAttribute": {
+						/* Disabled */
+						result.disabled = value;
+						break;
+					}
+					case "readOnlyDataAttribute": {
+						/* Read Only */
+						result.readOnly = value;
+						break;
+					}
+					case "readWriteDataAttribute": {
+						/* Read Write */
+						result.readWrite = value;
+						break;
+					}
+					case "optionsDataAttribute": {
+						/* Select options */
+						result.selectOptions = value;
+						break;
+					}
+					case "warningDataAttributePrefix": {
+						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
+						 * weren't recognized. Log these out to help developers catch errors.
+						 */
+						if (console.log !== undefined) {
+							console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
+						}
+						break;
+					}
 				}
 			}
+		}
+
+		function findDeclarationAttribute(name) {
+			for (var declAttr in settings.attributes) {
+				var attributes = settings.attributes[declAttr];
+				var i;
+				if (declAttr.lastIndexOf("Prefix") === declAttr.length - "Prefix".length) {
+					if (isArray(attributes)) {
+						for (i = 0; i < attributes.length; i++) {
+							if (name.indexOf(attributes[i]) === 0) {
+								return { name: declAttr, suffix: name.substring(attributes[i].length) };
+							}
+						}
+					} else if (name.indexOf(attributes) === 0) {
+						return { name: declAttr, suffix: name.substring(attributes.length) };
+					}
+				} else {
+					if (isArray(attributes)) {
+						for (i = 0; i < attributes.length; i++) {
+							if (name === attributes[i]) {
+								return { name: declAttr };
+							}
+						}
+					} else if (name === attributes) {
+						return { name: declAttr };
+					}
+				}
+			}
+
+			return false;
 		}
 
 		function assertTemplateEngine() {
