@@ -16,10 +16,10 @@ See the click-counter.html example for a better way to show and hide elements.
 
 <div id="container">
 	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
-	<button ct-bind="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
+	<button ct-on="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
 	<div ct-prop-style-display="tooManyClicksDisplay">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button ct-bind="resetClicks">Reset clicks</button>
+	    <button ct-on="resetClicks">Reset clicks</button>
 	</div>
 </div>
 

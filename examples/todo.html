@@ -18,14 +18,14 @@
 	<h2>Todo</h2>
 	<div id="todo">
 		<span ct-tmpl="{{remaining}} of {{todos.length}} remaining"></span>
-		[ <a href="#" ct-bind="archive">archive</a> ]
+		[ <a href="#" ct-on="archive">archive</a> ]
 		<ul class="unstyled">
 			<li ct-repeat="todos">
 				<input type="checkbox" name="done">
 				<span ct="text" ct-tmpl-attr-class="done-{{done}}"></span>
 			</li>
 		</ul>
-		<form ct-bind="addTodo">
+		<form ct-on="addTodo">
 			<input type="text" ct="todoText" size="30" placeholder="add new todo here">
 			<input type="submit" value="add">
 		</form>

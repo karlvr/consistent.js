@@ -233,7 +233,7 @@ You can of course bind the selected option as well, e.g. `scope.product = "Bucke
 Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
 
 ```html
-<a href="#" ct-bind-click="handleClick">Click me</a>
+<a href="#" ct-on-click="handleClick">Click me</a>
 ```
 
 Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`.
@@ -262,7 +262,7 @@ Note that we don’t need to call `apply` after defining the event handler in th
 There is a shortcut for binding events, which is to omit the event name. This chooses the `click` event for most elements:
 
 ```html
-<a href="#" ct-bind="handleClick">Click me</a>
+<a href="#" ct-on="handleClick">Click me</a>
 ```
 
 The following special cases apply:
@@ -566,7 +566,7 @@ Event handlers also work. Remember that event handlers receive a second argument
 
 ```html
 <div id="item">
-	<h2 ct="title" ct-bind-click="handleClick"></h2>
+	<h2 ct="title" ct-on-click="handleClick"></h2>
 </div>
 ```
 
@@ -693,7 +693,7 @@ To solve this issue you can pass options to the scope to change the way Consiste
 
 By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You may still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-bind="click"` in the key `doClick`. If you do not want this default behaviour you must specify the entire event handler key, e.g. `ct-bind="doclick"`.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this default behaviour you must specify the entire event handler key, e.g. `ct-on="doclick"`.
 
 By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
 
@@ -702,7 +702,7 @@ There is a slight inconsistency (sorry) with value functions. When referencing a
 ```html
 <div id="container">
 	<h1 ct="getTitle"></h1>
-	<button ct-bind="click">Button</button>
+	<button ct-on="click">Button</button>
 </div>
 ```
 
@@ -760,8 +760,8 @@ The `NAME` segment in the following list represents the name of the attribute or
 
 #### Event handlers
 
-* `ct-bind` binds the default event for this element to the named event handler function in the scope.
-* `ct-bind-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
+* `ct-on` binds the default event for this element to the named event handler function in the scope.
+* `ct-on-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
 
 #### Repeating blocks
 

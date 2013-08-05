@@ -59,7 +59,7 @@ bubble up from child scopes.
 	{{#objects}}
 		<div class="object" data-object-id="{{id}}" ct-tmpl-id-attr-class="object-class-template">
 			<h4 ct="title">{{title}}</h4>
-			<button ct-bind-click="handleClick" ct="buttonLabel">Change</button>
+			<button ct-on-click="handleClick" ct="buttonLabel">Change</button>
 		</div>
 	{{/objects}}
 </script>
