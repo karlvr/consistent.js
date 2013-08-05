@@ -1670,13 +1670,15 @@
 								ev.preventDefault();
 
 								func = self._scope.$.get(key);
+								var eventHandlerPrefix = self._options.eventHandlerPrefix;
 								if (typeof func === "function") {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungePropertyName(key, self._options.eventHandlerPrefix) + 
-										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
+										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) + 
+										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix + 
+										" prefix and is possibly a mistake?");
 								} else {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungePropertyName(key, self._options.eventHandlerPrefix) +
+										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
 										"\"");
 								}
 							}
