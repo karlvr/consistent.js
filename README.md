@@ -766,7 +766,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.
-* `options(node)` returns the options object for the given node.
+* `options([node])` returns the options object for the given node, or for the scope as a whole. Note that you can modify the returned options object, but changes to the scope’s options will not affect node options.
 
 ### Scope properties
 

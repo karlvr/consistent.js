@@ -1773,6 +1773,10 @@
 	};
 
 	ConsistentScopeManager.prototype.getOptions = function(dom) {
+		if (dom === undefined) {
+			return this._options;
+		}
+
 		for (var i = 0; i < this._nodes.length; i++) {
 			if (this._nodes[i].dom === dom) {
 				return this._nodes[i].options;
