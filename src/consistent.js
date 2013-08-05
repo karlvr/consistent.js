@@ -1,4 +1,4 @@
-/*! 
+/*!
  * Consistent.js 0.4.3
  * @author Karl von Randow
  * @license Apache License, Version 2.0
@@ -336,8 +336,8 @@
 							if (typeof value[i] === "object") {
 								var optionText = value[i].text;
 								var optionValue = value[i].value;
-								newOption = new Option(optionText !== undefined ? optionText : "", 
-									optionValue !== undefined ? optionValue : "", 
+								newOption = new Option(optionText !== undefined ? optionText : "",
+									optionValue !== undefined ? optionValue : "",
 									false, optionValue == selectedValue);
 								if (value[i].label !== undefined) {
 									newOption.label = value[i].label;
@@ -499,7 +499,7 @@
 					if (value === null) {
 						value = "";
 					}
-					
+
 					var i;
 					if (isArray(value)) {
 						for (i = 0; i < dom.options.length; i++) {
@@ -908,7 +908,7 @@
 				return "click";
 			}
 		}
-			
+
 		return result;
 	};
 
@@ -1273,7 +1273,7 @@
 		 *     version: version counter to track deletions,
 		 *     insertBefore: the DOM node to insert before,
 		 *     items: [
-		 *         object: the data object, 
+		 *         object: the data object,
 		 *         domNodes: an array of top-level DOM nodes created,
 		 *         scope: the child scope created,
 		 *         version: version counter to track deletions,
@@ -1325,7 +1325,7 @@
 
 		/* Sanity check */
 		if (typeof repeatSnapshot !== "object") {
-			throw new ConsistentException("Repeat for key \"" + repeatKey + 
+			throw new ConsistentException("Repeat for key \"" + repeatKey +
 				"\" is not an object in the scope, found " + typeof repeatSnapshot);
 		}
 
@@ -1345,7 +1345,7 @@
 			if (item === undefined) {
 				/* New object */
 				var domNodes = newDomNodes();
-				
+
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$.bind(domNodes);
 				childScope = childScope.$.replace(object);
@@ -1472,8 +1472,8 @@
 					if (arrayIndexOf(dirty, key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key), 
-						getNestedProperty(currentCleanScopeSnapshot, key), 
+					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key),
+						getNestedProperty(currentCleanScopeSnapshot, key),
 						this._scope, notifyingState);
 				}
 
@@ -1555,7 +1555,7 @@
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
 					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
-					
+
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
 					notified = true;
@@ -1669,11 +1669,11 @@
 
 								func = self._scope.$.get(key);
 								if (typeof func === "function") {
-									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) + 
+									throw new ConsistentException("Bound \"" + eventName +
+										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
 										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
 								} else {
-									throw new ConsistentException("Bound \"" + eventName + 
+									throw new ConsistentException("Bound \"" + eventName +
 										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
 										"\"");
 								}
