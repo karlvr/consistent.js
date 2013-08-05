@@ -931,7 +931,16 @@
 			} else if (typeof snapshot[name] === "function") {
 				if (!valueFunctionPrefix || name.indexOf(valueFunctionPrefix) === 0) {
 					/* Evaluate value functions */
-					snapshot[name] = snapshot[name].call(scope);
+					var propertyName;
+					if(valueFunctionPrefix){
+						propertyName = name.replace(
+							new RegExp("^" + valueFunctionPrefix + "([A-Z])"),
+						   	function(){return arguments[1].toLowerCase()}
+						);
+					}else{
+						propertyName = name
+					}
+					snapshot[propertyName] = snapshot[name].call(scope);
 				} else {
 					/* Delete other functions as they are presumed to be foreign and not intended to
 					 * be used in the scope.
