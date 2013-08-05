@@ -182,8 +182,6 @@
 		var seen = [];
 		var merged = [];
 
-		return _merge.apply(this, arguments);
-
 		function _merge() {
 			var objectsStart = 0;
 			var deep = false;
@@ -237,6 +235,8 @@
 			}
 			return target;
 		}
+
+		return _merge.apply(this, arguments);
 	}
 
 	/**
