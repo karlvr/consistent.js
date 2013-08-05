@@ -14,11 +14,11 @@ Example of using scope.$.roots() to find nodes in a scope and manipulate them ma
 <p>An example based on <a href="http://knockoutjs.com/examples/clickCounter.html">the Knockout.js click counter example</a>.</p>
 
 <div id="container">
-	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
+	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
+	<button ct-on="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
 	<div class="tooManyClicks">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button data-ct-bind="resetClicks">Reset clicks</button>
+	    <button ct-on="resetClicks">Reset clicks</button>
 	</div>
 </div>
 

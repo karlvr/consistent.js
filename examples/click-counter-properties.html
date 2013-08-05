@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Example of using data-ct-prop-* to update the style property on an element.
+Example of using ct-prop-* to update the style property on an element.
 See the click-counter.html example for a better way to show and hide elements.
 -->
 <html>
@@ -15,11 +15,11 @@ See the click-counter.html example for a better way to show and hide elements.
 <p>An example based on <a href="http://knockoutjs.com/examples/clickCounter.html">the Knockout.js click counter example</a>.</p>
 
 <div id="container">
-	<div>You’ve clicked <span data-ct="numberOfClicks">&nbsp;</span> times</div>
-	<button data-ct-bind="registerClick" data-ct-attr-disabled="clickMeDisabled">Click me</button>
-	<div data-ct-prop-style-display="tooManyClicksDisplay">
+	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
+	<button ct-on="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
+	<div ct-prop-style-display="tooManyClicksDisplay">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button data-ct-bind="resetClicks">Reset clicks</button>
+	    <button ct-on="resetClicks">Reset clicks</button>
 	</div>
 </div>
 

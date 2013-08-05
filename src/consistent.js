@@ -80,32 +80,34 @@
 
 	merge(Consistent, {
 		settings: {
-			keyDataAttribute: "data-ct",
-			showDataAttribute: "data-ct-show",
-			hideDataAttribute: "data-ct-hide",
-			enabledDataAttribute: "data-ct-enabled",
-			disabledDataAttribute: "data-ct-disabled",
-			readOnlyDataAttribute: "data-ct-readonly",
-			readWriteDataAttribute: "data-ct-readwrite",
-			optionsDataAttribute: "data-ct-options",
+			attributes: {
+				key: [ "data-ct", "ct" ],
+				show: [ "data-ct-show", "ct-show" ],
+				hide: [ "data-ct-hide", "ct-hide" ],
+				enabled: [ "data-ct-enabled", "ct-enabled" ],
+				disabled: [ "data-ct-disabled", "ct-disabled" ],
+				readOnly: [ "data-ct-readonly", "ct-readonly" ],
+				readWrite: [ "data-ct-readwrite", "ct-readwrite" ],
+				options: [ "data-ct-options", "ct-options" ],
 
-			templateDataAttribute: "data-ct-tmpl",
-			templateIdDataAttribute: "data-ct-tmpl-id",
+				template: [ "data-ct-tmpl", "ct-tmpl" ],
+				templateId: [ "data-ct-tmpl-id", "ct-tmpl-id" ],
 
-			attributesDataAttribute: "data-ct-attrs",
-			attributeDataAttributePrefix: "data-ct-attr-",
-			propertiesDataAttribute: "data-ct-props",
-			propertyDataAttributePrefix: "data-ct-prop-",
-			templateAttributeDataAttributePrefix: "data-ct-tmpl-attr-",
-			templateIdAttributeDataAttributePrefix: "data-ct-tmpl-id-attr-",
+				attributes: [ "data-ct-attrs", "ct-attrs" ],
+				attributePrefix: [ "data-ct-attr-", "ct-attr-" ],
+				properties: [ "data-ct-props", "ct-props" ],
+				propertyPrefix: [ "data-ct-prop-", "ct-prop-" ],
+				templateAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
+				templateIdAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
 
-			bindDataAttribute: "data-ct-bind",
-			bindDataAttributePrefix: "data-ct-bind-",
+				on: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
+				onPrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
 
-			repeatDataAttribute: "data-ct-repeat",
-			repeatContainerIdDataAttribute: "data-ct-repeat-container-id",
+				repeat: [ "data-ct-repeat", "ct-repeat" ],
+				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
-			warningDataAttributePrefix: "data-ct-",
+				warningPrefix: [ "data-ct-", "ct-" ]
+			},
 
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
@@ -176,44 +178,65 @@
 	 * $ object and there are pointers in there that cause cycles.
 	 */
 	function merge() {
-		var objectsStart = 0;
-		var deep = false;
-		if (typeof arguments[0] === "boolean") {
-			deep = arguments[0];
-			objectsStart++;
-		}
-		var target = arguments[objectsStart];
-		if (typeof target !== "object" && typeof target !== "function") {
-			throw new ConsistentException("First object argument to merge is not appropriate: " + typeof target);
-		}
-		if (target === null) {
-			throw new ConsistentException("First object argument to merge is not appropriate: " + target);
-		}
-		for (var i = objectsStart + 1; i < arguments.length; i++) {
-			var source = arguments[i];
-			if (source === undefined) {
-				continue;
-			}
+		/* Support cycles */
+		var seen = [];
+		var merged = [];
 
-			if (typeof source !== "object" && typeof source !== "function") {
-				throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+		function _merge() {
+			var objectsStart = 0;
+			var deep = false;
+			if (typeof arguments[0] === "boolean") {
+				deep = arguments[0];
+				objectsStart++;
 			}
-			for (var name in source) {
-				/* Do not merge any key "$" */
-				if (name === "$") {
+			var target = arguments[objectsStart];
+			if (typeof target !== "object" && typeof target !== "function") {
+				throw new ConsistentException("Target object argument to merge is not appropriate: " + typeof target);
+			}
+			if (target === null) {
+				throw new ConsistentException("Target object argument to merge is not appropriate: " + target);
+			}
+			for (var i = objectsStart + 1; i < arguments.length; i++) {
+				var source = arguments[i];
+				if (source === undefined) {
 					continue;
 				}
 
-				var value = source[name];
-				if (value !== undefined) {
-					if (deep && typeof value === "object" && value !== null) {
-						value = merge(true, isArray(value) ? [] : {}, value);
+				if (typeof source !== "object" && typeof source !== "function") {
+					throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+				}
+
+				seen.push(source);
+				merged.push(target);
+
+				for (var name in source) {
+					/* Do not merge any key "$" */
+					if (name === "$") {
+						continue;
 					}
-					target[name] = value;
+
+					var value = source[name];
+					if (value !== undefined) {
+						if (deep && typeof value === "object" && value !== null) {
+							var found = arrayIndexOf(seen, value);
+							if (found === -1) {
+								var deepTarget = target[name];
+								if (deepTarget === undefined) {
+									deepTarget = isArray(value) ? [] : {};
+								}
+								value = _merge(true, deepTarget, value);
+							} else {
+								value = merged[found];
+							}
+						}
+						target[name] = value;
+					}
 				}
 			}
+			return target;
 		}
-		return target;
+
+		return _merge.apply(this, arguments);
 	}
 
 	/**
@@ -754,89 +777,160 @@
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 			var value = attrs[i].value;
-			var targetAttribute, targetProperty, eventName;
-			if (name === settings.keyDataAttribute) {
-				/* Body */
-				result.key = value;
-			} else if (name.indexOf(settings.attributeDataAttributePrefix) === 0) {
-				/* Attribute */
-				targetAttribute = name.substring(settings.attributeDataAttributePrefix.length);
-				addAttribute(targetAttribute, value);
-			} else if (name === settings.attributesDataAttribute) {
-				/* Attributes */
-				result.allAttributes = value;
-			} else if (name === settings.templateDataAttribute) {
-				/* Template */
-				assertTemplateEngine();
 
-				result.template = options.templateEngine.compile(value);
-			} else if (name === settings.templateIdDataAttribute) {
-				/* Template by id */
-				assertTemplateEngine();
-
-				result.template = options.templateEngine.compile(templateById(value));
-			} else if (name.indexOf(settings.templateAttributeDataAttributePrefix) === 0) {
-				/* Attribute template */
-				assertTemplateEngine();
-
-				targetAttribute = name.substring(settings.templateAttributeDataAttributePrefix.length);
-				addAttributeTemplate(targetAttribute, options.templateEngine.compile(value));
-			} else if (name.indexOf(settings.templateIdAttributeDataAttributePrefix) === 0) {
-				/* Attribute template by id */
-				assertTemplateEngine();
-
-				targetAttribute = name.substring(settings.templateIdAttributeDataAttributePrefix.length);
-				addAttributeTemplate(targetAttribute, options.templateEngine.compile(templateById(value)));
-			} else if (name.indexOf(settings.propertyDataAttributePrefix) === 0) {
-				/* Property */
-				targetProperty = name.substring(settings.propertyDataAttributePrefix.length);
-				targetProperty = targetProperty.replace(/-/g, ".");
-				addProperty(targetProperty, value);
-			} else if (name === settings.propertiesDataAttribute) {
-				result.allProperties = value;
-			} else if (name === settings.bindDataAttribute) {
-				/* Bind default event */
-				eventName = defaultEventName(dom);
-				addEvent(eventName, value);
-			} else if (name.indexOf(settings.bindDataAttributePrefix) === 0) {
-				/* Bind events */
-				eventName = name.substring(settings.bindDataAttributePrefix.length).toLowerCase();
-				addEvent(eventName, value);
-			} else if (name === settings.showDataAttribute) {
-				/* Show */
-				result.show = value;
-			} else if (name === settings.hideDataAttribute) {
-				/* Hide */
-				result.hide = value;
-			} else if (name === settings.repeatDataAttribute) {
-				/* Repeat */
-				result.repeat = value;
-			} else if (name === settings.repeatContainerIdDataAttribute) {
-				/* Repeat container id */
-				result.repeatContainerId = value;
-			} else if (name === settings.enabledDataAttribute) {
-				/* Enabled */
-				result.enabled = value;
-			} else if (name === settings.disabledDataAttribute) {
-				/* Disabled */
-				result.disabled = value;
-			} else if (name === settings.readOnlyDataAttribute) {
-				/* Read Only */
-				result.readOnly = value;
-			} else if (name === settings.readWriteDataAttribute) {
-				/* Read Write */
-				result.readWrite = value;
-			} else if (name === settings.optionsDataAttribute) {
-				/* Select options */
-				result.selectOptions = value;
-			} else if (name.indexOf(settings.warningDataAttributePrefix) === 0) {
-				/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
-				 * weren't recognized. Log these out to help developers catch errors.
-				 */
-				if (console.log !== undefined) {
-					console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
+			var matched = findDeclarationAttribute(name);
+			if (matched) {
+				switch (matched.name) {
+					case "key": {
+						/* Body */
+						result.key = value;
+						break;
+					}
+					case "attributePrefix": {
+						/* Attribute */
+						addAttribute(matched.suffix, value);
+						break;
+					}
+					case "attributes": {
+						/* Attributes */
+						result.allAttributes = value;
+						break;
+					}
+					case "template": {
+						/* Template */
+						assertTemplateEngine();
+						result.template = options.templateEngine.compile(value);
+						break;
+					}
+					case "templateId": {
+						/* Template by id */
+						assertTemplateEngine();
+						result.template = options.templateEngine.compile(templateById(value));
+						break;
+					}
+					case "templateAttributePrefix": {
+						/* Attribute template */
+						assertTemplateEngine();
+						addAttributeTemplate(matched.suffix, options.templateEngine.compile(value));
+						break;
+					}
+					case "templateIdAttributePrefix": {
+						/* Attribute template by id */
+						assertTemplateEngine();
+						addAttributeTemplate(matched.suffix, options.templateEngine.compile(templateById(value)));
+						break;
+					}
+					case "propertyPrefix": {
+						/* Property */
+						addProperty(matched.suffix.replace(/-/g, "."), value);
+						break;
+					}
+					case "properties": {
+						result.allProperties = value;
+						break;
+					}
+					case "on": {
+						/* Bind default event */
+						addEvent(defaultEventName(dom), value);
+						break;
+					}
+					case "onPrefix": {
+						/* Bind events */
+						addEvent(matched.suffix.toLowerCase(), value);
+						break;
+					}
+					case "show": {
+						/* Show */
+						result.show = value;
+						break;
+					}
+					case "hide": {
+						/* Hide */
+						result.hide = value;
+						break;
+					}
+					case "repeat": {
+						/* Repeat */
+						result.repeat = value;
+						break;
+					}
+					case "repeatContainerId": {
+						/* Repeat container id */
+						result.repeatContainerId = value;
+						break;
+					}
+					case "enabled": {
+						/* Enabled */
+						result.enabled = value;
+						break;
+					}
+					case "disabled": {
+						/* Disabled */
+						result.disabled = value;
+						break;
+					}
+					case "readOnly": {
+						/* Read Only */
+						result.readOnly = value;
+						break;
+					}
+					case "readWrite": {
+						/* Read Write */
+						result.readWrite = value;
+						break;
+					}
+					case "options": {
+						/* Select options */
+						result.selectOptions = value;
+						break;
+					}
+					case "warningPrefix": {
+						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
+						 * weren't recognized. Log these out to help developers catch errors.
+						 */
+						if (console.log !== undefined) {
+							console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
+						}
+						break;
+					}
+					default: {
+						/* In the future this can be used for custom attributes, as the developer has added a key
+						 * into the settings.attributes.
+						 */
+						throw new ConsistentException("Unhandled consistent declaration attribute: " + name);
+					}
 				}
 			}
+		}
+
+		function findDeclarationAttribute(name) {
+			for (var declAttr in settings.attributes) {
+				var attributes = settings.attributes[declAttr];
+				var i;
+				if (declAttr.lastIndexOf("Prefix") === declAttr.length - "Prefix".length) {
+					if (isArray(attributes)) {
+						for (i = 0; i < attributes.length; i++) {
+							if (name.indexOf(attributes[i]) === 0) {
+								return { name: declAttr, suffix: name.substring(attributes[i].length) };
+							}
+						}
+					} else if (name.indexOf(attributes) === 0) {
+						return { name: declAttr, suffix: name.substring(attributes.length) };
+					}
+				} else {
+					if (isArray(attributes)) {
+						for (i = 0; i < attributes.length; i++) {
+							if (name === attributes[i]) {
+								return { name: declAttr };
+							}
+						}
+					} else if (name === attributes) {
+						return { name: declAttr };
+					}
+				}
+			}
+
+			return false;
 		}
 
 		function assertTemplateEngine() {
@@ -919,7 +1013,15 @@
 	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
 	 * objects in the scope.
 	 */
-	function processSnapshot(snapshot, scope) {
+	function processSnapshot(snapshot, scope, seen) {
+		if (seen === undefined) {
+			seen = [];
+		}
+		if (arrayIndexOf(seen, snapshot) !== -1) {
+			return;
+		}
+		seen.push(snapshot);
+
 		var options = scope.$.options();
 		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
@@ -929,20 +1031,21 @@
 				/* Remove handler functions */
 				delete snapshot[name];
 			} else if (typeof snapshot[name] === "function") {
-				if (!valueFunctionPrefix || name.indexOf(valueFunctionPrefix) === 0) {
-					/* Evaluate value functions */
-					var propertyName,
-						value = snapshot[name].call(scope);
-					if(valueFunctionPrefix){
-						propertyName = name.replace(
-							new RegExp("^" + valueFunctionPrefix + "([A-Z])"),
-						   	function(){return arguments[1].toLowerCase()}
-						);
-						delete snapshot[name];
-					}else{
-						propertyName = name
+				/* Evaluate value functions */
+				if (!valueFunctionPrefix) {
+					snapshot[name] = snapshot[name].call(scope);
+				} else if (name.indexOf(valueFunctionPrefix) === 0) {
+					var propertyName;
+					if (prefixRequiresNextInitialCap(valueFunctionPrefix)) {
+						propertyName = name.substring(valueFunctionPrefix.length);
+						propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+					} else {
+						propertyName = name.substring(valueFunctionPrefix.length);
 					}
-					snapshot[propertyName] = value;
+					snapshot[propertyName] = snapshot[name].call(scope);
+
+					/* Delete the original value function */
+					delete snapshot[name];
 				} else {
 					/* Delete other functions as they are presumed to be foreign and not intended to
 					 * be used in the scope.
@@ -950,7 +1053,8 @@
 					delete snapshot[name];
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
-				processSnapshot(snapshot[name], scope);
+				/* Go deep recursively processing snapshot */
+				processSnapshot(snapshot[name], scope, seen);
 			}
 		}
 	}
@@ -991,9 +1095,9 @@
 					func.call(this._scope, options);
 				}
 
-				window.clearTimeout(this._scope.$._applyLaterTimeout);
+				window.clearTimeout(this._applyLaterTimeout);
 				var self = this;
-				this._scope.$._applyLaterTimeout = window.setTimeout(function() {
+				this._applyLaterTimeout = window.setTimeout(function() {
 					self._scope.$.apply(options);
 				}, 0);
 				return this._scope;
@@ -1009,8 +1113,26 @@
 				this._manager.bind(dom, options);
 				return this._scope;
 			},
-			merge: function(object) {
-				return merge(this._scope, object);
+			merge: function(object, keys) {
+				if (typeof object === "boolean") {
+					/* merge(true, object) */
+					return merge(object, this._scope, keys);
+				} else if (keys === undefined) {
+					/* merge(object) */
+					return merge(this._scope, object);
+				} else if (isArray(keys)) {
+					/* merge(object, keys) */
+					for (var i = 0; i < keys.length; i++) {
+						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
+					}
+					return this._scope;
+				} else if (typeof keys !== "object") {
+					/* merge(object, key) */
+					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
+					return this._scope;
+				} else {
+					throw new ConsistentException("Invalid keys argument to merge: " + keys);
+				}
 			},
 			replace: function(object) {
 				return this._manager.replaceScope(object);
@@ -1030,7 +1152,7 @@
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
 			snapshot: function(childScope) {
-				var temp = this._scope.$.snapshotLocal(childScope);
+				var temp = this.snapshotLocal(childScope);
 				if (this.parent()) {
 					temp = merge(this.parent().$.snapshot(childScope !== undefined ? childScope : this._scope), temp);
 				}
@@ -1069,15 +1191,8 @@
 					return undefined;
 				}
 			},
-			getLocal: function(key, evaluateFunctions) {
-				var value = getNestedProperty(this._scope, key);
-
-				/* Evaluate value functions */
-				if (evaluateFunctions && typeof value === "function") {
-					value = value.call(this._scope);
-				}
-
-				return value;
+			getLocal: function(key) {
+				return getNestedProperty(this._scope, key);
 			},
 			set: function(key, value) {
 				var parts = key.split(".");
@@ -1090,11 +1205,27 @@
 						current = next;
 					}
 				}
-				if (typeof current[parts[parts.length - 1]] !== "function") {
-					current[parts[parts.length - 1]] = value;
-				} else {
+				var lastPart = parts[parts.length - 1];
+				var valueFunctionPrefix = this.options().valueFunctionPrefix;
+				if (typeof current[lastPart] !== "function") {
+					if (valueFunctionPrefix) {
+						/* Check for possible value function */
+						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
+						if (typeof current[possibleValueFunction] === "function") {
+							current[possibleValueFunction].call(this._scope, value);
+							return this._scope;
+						}
+					}
+
+					current[lastPart] = value;
+				} else if (!valueFunctionPrefix) {
 					/* Value function */
-					current[parts[parts.length - 1]].call(this._scope, value);
+					current[lastPart].call(this._scope, value);
+				} else {
+					/* Overwrite the function with a scalar value. It is not valid to reference value functions
+					 * by their name including prefix, as the snapshot does not contain values like that
+					 */
+					current[lastPart] = value;
 				}
 				return this._scope;
 			},
@@ -1109,11 +1240,11 @@
 				}
 			},
 			getLocalEventHandler: function(key) {
-				key = mungeEventHandlerPropertyName(key, this._scope);
-				return this.getLocal(key, false);
+				key = mungePropertyName(key, this.options().eventHandlerPrefix);
+				return this.getLocal(key);
 			},
 			setEventHandler: function(key, value) {
-				key = mungeEventHandlerPropertyName(key, this._scope);
+				key = mungePropertyName(key, this.options().eventHandlerPrefix);
 				return this.set(key, value);
 			},
 			options: function(dom) {
@@ -1123,11 +1254,14 @@
 	};
 
 	/**
-	 * Event handler property names get the final part (parts are separated by dots) prefixes
-	 * with a $, so we can distinguish from other value-functions in the scope.
+	 * Some property names require a prefix, and these get added to the final part of the
+	 * property name where the parts are separated by dots. If the prefix ends with a letter
+	 * then the name will be initial-capped to provide a camel-casing.
 	 */
-	function mungeEventHandlerPropertyName(name, scope) {
-		var eventHandlerPrefix = scope.$.options().eventHandlerPrefix;
+	function mungePropertyName(name, prefix) {
+		if (!prefix) {
+			return name;
+		}
 
 		var parts = name.split(".");
 		var result = "";
@@ -1135,12 +1269,20 @@
 			result += parts[i] + ".";
 		}
 		var lastPart = parts[parts.length - 1];
-		if (lastPart.indexOf(eventHandlerPrefix) !== 0) {
-			result += eventHandlerPrefix + lastPart;
+		if (prefixRequiresNextInitialCap(prefix)) {
+			result += prefix + lastPart.substring(0, 1).toUpperCase() + lastPart.substring(1);
 		} else {
-			result += lastPart;
+			result += prefix + lastPart;
 		}
 		return result;
+	}
+
+	function prefixRequiresNextInitialCap(prefix) {
+		if (!prefix) {
+			return false;
+		}
+		var c = prefix.charAt(prefix.length - 1);
+		return (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z');
 	}
 
 	/**
@@ -1207,10 +1349,10 @@
 		}
 	}
 
-	function cloneScope(scope) {
-		var result = mergeOptions({}, scope);
-		result.$._scope = result;
-		return result;
+	function removeAttributes(dom, attributes) {
+		for (var i = 0; i < attributes.length; i++) {
+			dom.removeAttribute(attributes[i]);
+		}
 	}
 
 	ConsistentScopeManager.prototype = new Object();
@@ -1311,8 +1453,8 @@
 				repeatData.domNodes = [ node.dom.cloneNode(true) ];
 			}
 			for (i = 0; i < repeatData.domNodes.length; i++) {
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatDataAttribute);
-				repeatData.domNodes[i].removeAttribute(Consistent.settings.repeatContainerIdDataAttribute);
+				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
+				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
 			}
 			node.repeatData = repeatData;
 
@@ -1679,13 +1821,15 @@
 								ev.preventDefault();
 
 								func = self._scope.$.get(key);
+								var eventHandlerPrefix = self._options.eventHandlerPrefix;
 								if (typeof func === "function") {
-									throw new ConsistentException("Bound \"" + eventName +
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
-										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
+									throw new ConsistentException("Bound \"" + eventName + 
+										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) + 
+										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix + 
+										" prefix and is possibly a mistake?");
 								} else {
-									throw new ConsistentException("Bound \"" + eventName +
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
+									throw new ConsistentException("Bound \"" + eventName + 
+										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
 										"\"");
 								}
 							}

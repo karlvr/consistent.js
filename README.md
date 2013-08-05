@@ -9,7 +9,7 @@ Introduction
 ------------
 Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
 
-The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `data-ct-…` attributes to tell Consistent how to use the scope’s properties.
+The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `ct...` attributes to declare to Consistent how to use the scope’s properties. You can also use `data-ct...` instead of `ct...` if you prefer.
 
 The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it as it is contained in the scope.
 
@@ -22,7 +22,7 @@ Consistent includes a jQuery plugin, and the examples below show this approach. 
 <script src="src/jquery.consistent.js"></script>
 ```
 
-Or use a minified and combined version. The minified and combined script for jQuery is just over 6KB.
+Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is just over 7KB.
 
 ```html
 <script src="lib/consistent-for-jquery.min.js"></script>
@@ -32,7 +32,7 @@ Or use a minified and combined version. The minified and combined script for jQu
 Set the contents of an `h1` element with the `title` property in the scope.
 
 ```html
-<h1 data-ct="title"></h1>
+<h1 ct="title"></h1>
 ```
 
 Now create a scope using the jQuery plugin, and assign a value to it.
@@ -73,7 +73,7 @@ How Consistent applies the scope value to the DOM depends upon the element. For 
 Consistent supports pluggable templating engines. The examples use [Hogan](http://twitter.github.io/hogan.js/). Any templating engine that provides `compile(string)` and `render(object)` methods will work.
 
 ```html
-<h1 data-ct-tmpl="Welcome to {{name}}"></h1>
+<h1 ct-tmpl="Welcome to {{name}}"></h1>
 ```
 
 Now configure Consistent to use Hogan as its templating engine, and populate the scope.
@@ -88,7 +88,7 @@ scope.$.apply();
 You can also reference templates by an id, rather than writing them inline:
 
 ```html
-<h1 data-ct-tmpl-id="h1-template"></h1>
+<h1 ct-tmpl-id="h1-template"></h1>
 
 <script id="h1-template" type="text/x-hogan-template">
 	Welcome to {{name}}
@@ -104,10 +104,10 @@ If you need to create a large DOM structure and then have it bound to a scope, c
 Consistent can show and hide nodes based on the scope.
 
 ```html
-<h1 data-ct-show="showTitle">My title</h1>
+<h1 ct-show="showTitle">My title</h1>
 ```
 
-You can also use `data-ct-hide` to hide the element when the scope property is true.
+You can also use `ct-hide` to hide the element when the scope property is true.
 
 Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
 
@@ -125,7 +125,7 @@ As well as adding scalar values to the scope, you can also add value functions. 
 
 ```html
 <div id="container">
-	<p>The number of people is <span data-ct="numberOfPeople">&nbsp;</span>.</p>
+	<p>The number of people is <span ct="numberOfPeople">&nbsp;</span>.</p>
 </div>
 ```
 
@@ -153,7 +153,7 @@ Form elements are automatically associated with the scope property with the same
 <input type="checkbox" name="optin">
 ```
 
-Note that we don’t explicitly specify the scope property, it defaults to the name. You can explicitly specify the scope property using the `data-ct` attribute.
+Note that we don’t explicitly specify the scope property, it defaults to the name. You can explicitly specify the scope property using the `ct` attribute.
 
 Now create a scope and set the elements’ values.
 
@@ -182,7 +182,7 @@ Consistent automatically listens to the `change` event on form elements. When th
 You can control the `disabled` and `readOnly` properties of form elements.
 
 ```html
-<input type="text" name="email" data-ct-disabled="locked">
+<input type="text" name="email" ct-disabled="locked">
 ```
 
 ```javascript
@@ -192,10 +192,10 @@ scope.locked = true;
 It is often useful to use a value function in this case, so that the disabled state of the form element is calculated dynamically each time the scope is applied.
 
 The above shows how to control the `disabled` property, the full list is:
-* `data-ct-disabled`
-* `data-ct-enabled`
-* `data-ct-readonly`
-* `data-ct-readwrite`
+* `ct-disabled`
+* `ct-enabled`
+* `ct-readonly`
+* `ct-readwrite`
 
 Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.
 
@@ -204,7 +204,7 @@ Note that for each of disabled and readonly there is the opposite so that you ca
 You can set the options array for a `<select>` element from the scope.
 
 ```html
-<select name="product" data-ct-options="products"></select>
+<select name="product" ct-options="products"></select>
 ```
 
 Now set the options array either as an array of scalar values, such as strings:
@@ -226,17 +226,19 @@ scope.products = [
 
 You can also include `label` and `disabled` properties in the objects to set those properties in the created options.
 
-You can of course bind the selected option as well, e.g. `scope.product = "Bucket";`.
+You can of course bind the selected option as well, e.g. `scope.product = "bucket";`.
 
 ### Events
 
 Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
 
 ```html
-<a href="#" data-ct-bind-click="handleClick">Click me</a>
+<a href="#" ct-on-click="handleClick">Click me</a>
 ```
 
-Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`.
+Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`. You must follow this pattern otherwise Consistent will not find your event handler function.
+
+If you are using nested objects, the `$` prefix must be on the last part, e.g. `person.$handleClick`.
 
 ```javascript
 var scope = $("a").consistent();
@@ -262,11 +264,11 @@ Note that we don’t need to call `apply` after defining the event handler in th
 There is a shortcut for binding events, which is to omit the event name. This chooses the `click` event for most elements:
 
 ```html
-<a href="#" data-ct-bind="handleClick">Click me</a>
+<a href="#" ct-on="handleClick">Click me</a>
 ```
 
 The following special cases apply:
-  * `<input>` and `<textarea>` elements bind the `change` event
+  * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
 
 ### Repeating blocks
@@ -275,7 +277,7 @@ If your scope contains array values, you can repeat blocks of DOM nodes to repre
 
 ```html
 <ul>
-	<li data-ct-repeat="people" data-ct="name"></li>
+	<li ct-repeat="people" ct="name"></li>
 </ul>
 ```
 
@@ -299,7 +301,7 @@ scope.$.apply();
 Or remove an item:
 
 ```javascript
-scope.people.splice(0, 1);
+scope.people.shift();
 scope.$.apply();
 ```
 
@@ -313,10 +315,10 @@ Repeating clones the repeated element, including all of its children:
 
 ```html
 <table>
-	<tr data-ct-repeat="people">
-		<td>Person #<span data-ct="index"></span></td>
-		<td data-ct="name"></td>
-		<td data-ct="address"></td>
+	<tr ct-repeat="people">
+		<td>Person #<span ct="index"></span></td>
+		<td ct="name"></td>
+		<td ct="address"></td>
 	</tr>
 </table>
 ```
@@ -338,7 +340,7 @@ It is also possible to repeat a collection of elements. See Repeating multiple e
 You can set DOM element attributes from the scope.
 
 ```html
-<h1 data-ct-attr-class="titleClass">Title</h1>
+<h1 ct-attr-class="titleClass">Title</h1>
 ```
 
 Now create a scope and set the heading’s class.
@@ -358,9 +360,9 @@ You can also set DOM element properties, see the Properties section below.
 You can also use templates to update attributes.
 
 ```html
-<h1 data-ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
+<h1 ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
 
-<h1 data-ct-tmpl-id-attr-class="h1-class-template">Title</h1>
+<h1 ct-tmpl-id-attr-class="h1-class-template">Title</h1>
 <script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
 ```
 
@@ -370,8 +372,8 @@ In the examples above we’ve specifically targeted the example nodes, this isn�
 
 ```html
 <div id="container">
-	<h3 data-ct="name"></h3>
-	<p data-ct="body"></p>
+	<h3 ct="name"></h3>
+	<p ct="body"></p>
 </div>
 ```
 
@@ -385,10 +387,10 @@ Often you will have multiple blocks on the page and you’ll need to have an ind
 
 ```html
 <div class="container">
-	<p data-ct="body"></p>
+	<p ct="body"></p>
 </div>
 <div class="container">
-	<p data-ct="body"></p>
+	<p ct="body"></p>
 </div>
 ```
 
@@ -508,7 +510,7 @@ Advanced
 You can use nested properties in the scope.
 
 ```html
-<h1 data-ct="person.fullName"></h1>
+<h1 ct="person.fullName"></h1>
 ```
 
 ```javascript
@@ -551,7 +553,7 @@ Now the following will work.
 
 ```html
 <div id="item">
-	<h2 data-ct="title"></h2>
+	<h2 ct="title"></h2>
 </div>
 ```
 
@@ -566,7 +568,7 @@ Event handlers also work. Remember that event handlers receive a second argument
 
 ```html
 <div id="item">
-	<h2 data-ct="title" data-ct-bind-click="handleClick"></h2>
+	<h2 ct="title" ct-on-click="handleClick"></h2>
 </div>
 ```
 
@@ -592,34 +594,34 @@ The Repeating blocks section above introduces repeating. In that example you can
 
 ```html
 <table>
-	<tr data-ct-repeat="people" data-ct-repeat-container-id="rows"></tr>
+	<tr ct-repeat="people" ct-repeat-container-id="rows"></tr>
 </table>
 
 <table style="display:none">
 	<tbody id="rows">
 		<tr>
 			<td>Name</td>
-			<td data-ct="name"></td>
+			<td ct="name"></td>
 		</tr>
 		<tr>
 			<td>Address</td>
-			<td data-ct="address"></td>
+			<td ct="address"></td>
 		</tr>
 	</tbody>
 </table>
 ```
 
-Using the `data-ct-repeat-container-id` attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a `<tbody>` element created, even if it isn’t in the markup, therefore you should attach the id to an explicit `<tbody>` otherwise if the id is on the `<table>`, the repeating block will include the automatically created `<tbody>`.
+Using the `ct-repeat-container-id` attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a `<tbody>` element created, even if it isn’t in the markup, therefore you should attach the id to an explicit `<tbody>` otherwise if the id is on the `<table>`, the repeating block will include the automatically created `<tbody>`.
 
 ### Properties
 
 You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the `style` property, which exposes an object containing the DOM element’s style.
 
 ```html
-<p data-ct-prop-style-display="showHide">Lorem ipsum</p>
+<p ct-prop-style-display="showHide">Lorem ipsum</p>
 ```
 
-Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `data-ct-prop-` attribute.
+Note that properties may be nested, as in the case of `style.display` above, and we can specify this by `-` separating the property name when we declare the `ct-prop-` attribute.
 
 ```javascript
 var scope = $("p").consistent();
@@ -687,13 +689,24 @@ var scope = $("#container").consistent(options);
 
 ### Change prefix for event handler and value functions
 
-If you’re working with objects that use naming conventions that don’t fit with Consistent, when Consistent makes a snapshot of the scope (which occurs whenever you apply the scope), you may get unexpected results such as functions in your scope being called unexpectedly. This is because Consistent has interpreted those functions as value functions.
+If you’re adding existing objects to your scopes that use naming conventions that don’t fit with Consistent; when Consistent makes a snapshot of the scope (which occurs whenever you apply the scope), you may get unexpected results such as functions in your scope being called unexpectedly. This is because Consistent has interpreted those functions as value functions.
 
-You can pass options to the scope to change the way Consistent identifies value functions and event handler functions to avoid this problem.
+To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions.
 
-By default keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`.
+By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You may still omit the prefix when declaring the event handler to bind to in the DOM.
 
-By default keys containing value functions have no prefix, they are effectively every function that doesn’t have a key prefixed with a `$`. If you are populating your scope with objects that contain functions that are not intended to be used by Consistent, change the value function prefix so value functions are explicitly identified by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will remove all functions not matching the prefix from the snapshot.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this camel-casing do not use a prefix that ends with a letter.
+
+By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
+
+When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM. The value function prefix is removed when the snapshot is created. Also note that when Consistent updates the scope from the DOM if there is a value function that matches then the value function will be invoked with the new value as an argument.
+
+```html
+<div id="container">
+	<h1 ct="title"></h1>
+	<button ct-on="click">Button</button>
+</div>
+```
 
 ```javascript
 var options = {
@@ -701,55 +714,61 @@ var options = {
 	valueFunctionPrefix: "get"
 };
 var scope = $("#container").consistent(options);
+scope.getTitle = function() {
+	return "Consistent.js"
+};
+scope.doClick = function(ev) {
+	alert("Click!");
+};
 ```
-
-When Consistent 
 
 Reference
 ---------
 
 ### DOM attributes
 
+By default, DOM attributes are used to declare the binding between DOM nodes and the scope. The preferred attributes style starts with `ct`. You can also use `data-ct` instead of `ct`.
+
 #### Binding values
 
-* `data-ct` the name of a property in the scope to use to set the value of this element. Where setting the value means setting the `innerHTML`, or other properties as appropriate to the element type.
-* `data-ct-tmpl` a template that will be rendered with the scope as its context, and then used to set the value of this element.
-* `data-ct-tmpl-id` the id of a DOM element that contains template text, e.g. a `<script type="text/x-hogan-template">` element.
+* `ct` the name of a property in the scope to use to set the value of this element. Where setting the value means setting the `innerHTML`, or other properties as appropriate to the element type.
+* `ct-tmpl` a template that will be rendered with the scope as its context, and then used to set the value of this element.
+* `ct-tmpl-id` the id of a DOM element that contains template text, e.g. a `<script type="text/x-hogan-template">` element.
 
 #### Form properties
 
-* `data-ct-disabled` make this element disabled when the named property in the scope is true.
-* `data-ct-enabled` make this element enabled when the named property in the scope is true.
-* `data-ct-readonly` make this element read-only when the named property in the scope is true.
-* `data-ct-readwrite` make this element not read-only when the named property in the scope is true.
-* `data-ct-options` set the `<select>` options array based on the array in the named property in the scope. The array should contain either scalar values, or objects each with `text` and `value` properties. Each object may also contain a `disabled` or `label` property to set those properties on the options.
+* `ct-disabled` make this element disabled when the named property in the scope is true.
+* `ct-enabled` make this element enabled when the named property in the scope is true.
+* `ct-readonly` make this element read-only when the named property in the scope is true.
+* `ct-readwrite` make this element not read-only when the named property in the scope is true.
+* `ct-options` set the `<select>` options array based on the array in the named property in the scope. The array should contain either scalar values, or objects each with `text` and `value` properties. Each object may also contain a `disabled` or `label` property to set those properties on the options.
 
 #### Attributes and properties
 
-The `NAME` segment in the following list represents the name of the attribute or property. In the case of properties, the name will have -s changed to .s to enable access to nested properties, e.g. `data-ct-prop-style-display` affects the `style.display` property.
+The `NAME` segment in the following list represents the name of the attribute or property. In the case of properties, the name will have -s changed to .s to enable access to nested properties, e.g. `ct-prop-style-display` affects the `style.display` property.
 
-* `data-ct-attr-NAME` the name of a property in the scope to use to set the value of the given attribute on this element.
-* `data-ct-prop-NAME` the name of a property in the scope to use to set the value of the given property on this element.
-* `data-ct-tmpl-attr-NAME` a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.
-* `data-ct-tmpl-id-attr-NAME` the id of a DOM element that contains template text.
+* `ct-attr-NAME` the name of a property in the scope to use to set the value of the given attribute on this element.
+* `ct-prop-NAME` the name of a property in the scope to use to set the value of the given property on this element.
+* `ct-tmpl-attr-NAME` a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.
+* `ct-tmpl-id-attr-NAME` the id of a DOM element that contains template text.
 
-* `data-ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
-* `data-ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
+* `ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
+* `ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
 
 #### Visibility
 
-* `data-ct-show` show this element when the named property in the scope is true, otherwise hide it.
-* `data-ct-hide` the opposite of show.
+* `ct-show` show this element when the named property in the scope is true, otherwise hide it.
+* `ct-hide` the opposite of show.
 
 #### Event handlers
 
-* `data-ct-bind` binds the default event for this element to the named event handler function in the scope.
-* `data-ct-bind-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
+* `ct-on` binds the default event for this element to the named event handler function in the scope.
+* `ct-on-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
 
 #### Repeating blocks
 
-* `data-ct-repeat` repeats this element, and all of its children, for each item in the array in the named property in the scope.
-* `data-ct-repeat-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
+* `ct-repeat` repeats this element, and all of its children, for each item in the array in the named property in the scope.
+* `ct-repeat-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
 
 
 ### Scope functions
@@ -770,15 +789,18 @@ All scope functions are nested inside the `$` object, and therefore you call the
 #### Scope
 * `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values.
 * `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
-* `merge(object)` merges properties in the given object into the scope.
+* `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.
+* `merge(object, keys)` merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
-* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. If the scope contains a value function for the given key, it is evaluated and its result returned.
+
+* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. The value may be a scalar value or a function in the case of a value function or event handler.
 * `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.
+
 * `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
 * `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
-* `setEventHandler(key)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
+* `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
 
 #### Watch
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.

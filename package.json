@@ -1,6 +1,6 @@
 {
   "name": "consistent.js",
-  "version": "0.4.3",
+  "version": "0.5.2",
   "description": "A small and simple Javascript framework to enable an abstract model to be synced with the DOM.",
   "author": "Karl von Randow",
   "license": "Apache License Version 2.0",
@@ -18,6 +18,6 @@
     "karma": "~0.8"
   },
   "scripts": {
-    "test": "./node_modules/.bin/karma start test/karma.conf.js --single-run --browsers PhantomJS,Firefox"
+    "test": "test/run-tests.sh"
   }
 }

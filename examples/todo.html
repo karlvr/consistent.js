@@ -17,16 +17,16 @@
 
 	<h2>Todo</h2>
 	<div id="todo">
-		<span data-ct-tmpl="{{remaining}} of {{todos.length}} remaining"></span>
-		[ <a href="#" data-ct-bind="archive">archive</a> ]
+		<span ct-tmpl="{{remaining}} of {{todos.length}} remaining"></span>
+		[ <a href="#" ct-on="archive">archive</a> ]
 		<ul class="unstyled">
-			<li data-ct-repeat="todos">
+			<li ct-repeat="todos">
 				<input type="checkbox" name="done">
-				<span data-ct="text" data-ct-tmpl-attr-class="done-{{done}}"></span>
+				<span ct="text" ct-tmpl-attr-class="done-{{done}}"></span>
 			</li>
 		</ul>
-		<form data-ct-bind="addTodo">
-			<input type="text" data-ct="todoText" size="30" placeholder="add new todo here">
+		<form ct-on="addTodo">
+			<input type="text" ct="todoText" size="30" placeholder="add new todo here">
 			<input type="submit" value="add">
 		</form>
 	</div>

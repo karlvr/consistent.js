@@ -38,7 +38,7 @@ bubble up from child scopes.
 <h1>Consistent.js</h1>
 
 <div id="container">
-	<h2 data-ct="title">My title</h2>
+	<h2 ct="title">My title</h2>
 </div>
 
 <div id="sidebar">
@@ -47,19 +47,19 @@ bubble up from child scopes.
 
 <script id="myTemplate" type="text/x-hogan-template">
 	{{#objects}}
-		<div class="object" data-object-id="{{id}}" data-ct-tmpl-id-attr-class="object-class-template">
-			<h3 data-ct="title">{{title}}</h2>
-			<p data-ct="body">{{body}}</p>
-			<p data-ct="status">{{status}}</p>
+		<div class="object" data-object-id="{{id}}" ct-tmpl-id-attr-class="object-class-template">
+			<h3 ct="title">{{title}}</h2>
+			<p ct="body">{{body}}</p>
+			<p ct="status">{{status}}</p>
 		</div>
 	{{/objects}}
 </script>
 
 <script id="myTemplateSide" type="text/x-hogan-template">
 	{{#objects}}
-		<div class="object" data-object-id="{{id}}" data-ct-tmpl-id-attr-class="object-class-template">
-			<h4 data-ct="title">{{title}}</h4>
-			<button data-ct-bind-click="handleClick" data-ct="buttonLabel">Change</button>
+		<div class="object" data-object-id="{{id}}" ct-tmpl-id-attr-class="object-class-template">
+			<h4 ct="title">{{title}}</h4>
+			<button ct-on-click="handleClick" ct="buttonLabel">Change</button>
 		</div>
 	{{/objects}}
 </script>
