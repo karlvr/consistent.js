@@ -147,6 +147,28 @@
 		return _plainObject.toString.call(object) === "[object Array]";
 	}
 
+	function arrayIndexOf(array, searchElement, fromIndex) {
+		if (typeof array.indexOf === "function") {
+			return array.indexOf(searchElement, fromIndex);
+		} else {
+			if (fromIndex === undefined) {
+				fromIndex = 0;
+			}
+			if (fromIndex < 0) {
+				fromIndex += array.length;
+				if (fromIndex < 0) {
+					fromIndex = 0;
+				}
+			}
+			for (var i = fromIndex; i < array.length; i++) {
+				if (array[i] === searchElement) {
+					return i;
+				}
+			}
+			return -1;
+		}
+	}
+
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
 	 * copy.
@@ -448,7 +470,7 @@
 				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
 					if (dom.type === "checkbox") {
 						if (isArray(value)) {
-							dom.checked = (value.indexOf(dom.value) !== -1);
+							dom.checked = (arrayIndexOf(value, dom.value) !== -1);
 						} else if (typeof value === "boolean") {
 							dom.checked = value;
 						} else {
@@ -1102,7 +1124,7 @@
 		}
 
 		/* Prevent an infinite loop if there is a cycle in the graph */
-		if (seen.indexOf(aObject) !== -1 || seen.indexOf(bObject) !== -1) {
+		if (arrayIndexOf(seen, aObject) !== -1 || arrayIndexOf(seen, bObject) !== -1) {
 			return result;
 		}
 		seen.push(aObject);
@@ -1420,7 +1442,7 @@
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
-					if (dirty.indexOf(key) === -1) {
+					if (arrayIndexOf(dirty, key) === -1) {
 						dirty.push(key);
 					}
 					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key), 
@@ -1675,7 +1697,7 @@
 			return;
 		}
 
-		i = this._domNodes.indexOf(dom);
+		i = arrayIndexOf(this._domNodes, dom);
 		if (i !== -1) {
 			var node = this._nodes[i];
 			var options = node.options;
@@ -1732,7 +1754,7 @@
 
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
-			var i = watchers.indexOf(callback);
+			var i = arrayIndexOf(watchers, callback);
 			watchers.splice(i, 1);
 		}
 	};
@@ -1767,19 +1789,3 @@
 	};
 
 })(window);
-
-// Add ECMA262-5 Array methods if not supported natively
-//
-if (!('indexOf' in Array.prototype)) {
-    Array.prototype.indexOf= function(find, i /*opt*/) {
-        if (i===undefined) i= 0;
-        if (i<0) i+= this.length;
-        if (i<0) i= 0;
-        for (var n= this.length; i<n; i++) {
-            if (i in this && this[i]===find) {
-                return i;
-            }
-        }
-        return -1;
-    };
-}
