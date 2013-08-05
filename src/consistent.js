@@ -1006,12 +1006,15 @@
 				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(scope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
-					var propertyName = name.replace(
-						new RegExp("^" + valueFunctionPrefix + "([A-Z])"),
-					   	function(){return arguments[1].toLowerCase()}
-					);
+					var propertyName;
+					if (prefixRequiresNextInitialCap(valueFunctionPrefix)) {
+						propertyName = name.substring(valueFunctionPrefix.length);
+						propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+					} else {
+						propertyName = name.substring(valueFunctionPrefix.length);
+					}
 					snapshot[propertyName] = snapshot[name].call(scope);
-					
+
 					/* Delete the original value function */
 					delete snapshot[name];
 				} else {
