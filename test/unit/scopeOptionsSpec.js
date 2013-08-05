@@ -37,7 +37,7 @@ describe('Scope options tests', function() {
 		};
 
 		var snapshot = scope.$.snapshot();
-		expect(snapshot.getValue).toBe("success");
+		expect(snapshot.value).toBe("success");
 	});
 
 	/* Event handler */

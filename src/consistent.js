@@ -1002,9 +1002,18 @@
 				/* Remove handler functions */
 				delete snapshot[name];
 			} else if (typeof snapshot[name] === "function") {
-				if (!valueFunctionPrefix || name.indexOf(valueFunctionPrefix) === 0) {
-					/* Evaluate value functions */
+				/* Evaluate value functions */
+				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(scope);
+				} else if (name.indexOf(valueFunctionPrefix) === 0) {
+					var propertyName = name.replace(
+						new RegExp("^" + valueFunctionPrefix + "([A-Z])"),
+					   	function(){return arguments[1].toLowerCase()}
+					);
+					snapshot[propertyName] = snapshot[name].call(scope);
+					
+					/* Delete the original value function */
+					delete snapshot[name];
 				} else {
 					/* Delete other functions as they are presumed to be foreign and not intended to
 					 * be used in the scope.
