@@ -999,8 +999,14 @@
 				this._manager.bind(dom, options);
 				return this._scope;
 			},
-			merge: function(object) {
-				return merge(this._scope, object);
+			merge: function(object, keys) {
+				if (keys === undefined) {
+					return merge(this._scope, object);
+				} else {
+					for (var i = 0; i < keys.length; i++) {
+						setNestedProperty(keys[i], getNestedProperty(object, keys[i]));
+					}
+				}
 			},
 			replace: function(object) {
 				return this._manager.replaceScope(object);
@@ -1131,7 +1137,7 @@
 		if (!prefix) {
 			return name;
 		}
-		
+
 		var parts = name.split(".");
 		var result = "";
 		for (var i = 0; i < parts.length - 1; i++) {
