@@ -178,44 +178,67 @@
 	 * $ object and there are pointers in there that cause cycles.
 	 */
 	function merge() {
-		var objectsStart = 0;
-		var deep = false;
-		if (typeof arguments[0] === "boolean") {
-			deep = arguments[0];
-			objectsStart++;
-		}
-		var target = arguments[objectsStart];
-		if (typeof target !== "object" && typeof target !== "function") {
-			throw new ConsistentException("First object argument to merge is not appropriate: " + typeof target);
-		}
-		if (target === null) {
-			throw new ConsistentException("First object argument to merge is not appropriate: " + target);
-		}
-		for (var i = objectsStart + 1; i < arguments.length; i++) {
-			var source = arguments[i];
-			if (source === undefined) {
-				continue;
-			}
+		/* Support cycles */
+		var seen = [];
+		var merged = [];
 
-			if (typeof source !== "object" && typeof source !== "function") {
-				throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+		return _merge.apply(this, arguments);
+
+		function _merge() {
+			var objectsStart = 0;
+			var deep = false;
+			if (typeof arguments[0] === "boolean") {
+				deep = arguments[0];
+				objectsStart++;
 			}
-			for (var name in source) {
-				/* Do not merge any key "$" */
-				if (name === "$") {
+			var target = arguments[objectsStart];
+			if (typeof target !== "object" && typeof target !== "function") {
+				throw new ConsistentException("First object argument to merge is not appropriate: " + typeof target);
+			}
+			if (target === null) {
+				throw new ConsistentException("First object argument to merge is not appropriate: " + target);
+			}
+			for (var i = objectsStart + 1; i < arguments.length; i++) {
+				var source = arguments[i];
+				if (source === undefined) {
 					continue;
 				}
 
-				var value = source[name];
-				if (value !== undefined) {
-					if (deep && typeof value === "object" && value !== null) {
-						value = merge(true, isArray(value) ? [] : {}, value);
+				if (typeof source !== "object" && typeof source !== "function") {
+					throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+				}
+
+				seen.push(source);
+				merged.push(target);
+
+				for (var name in source) {
+					/* Do not merge any key "$" */
+					if (name === "$") {
+						continue;
 					}
-					target[name] = value;
+
+					var value = source[name];
+					if (value !== undefined) {
+						if (deep && typeof value === "object" && value !== null) {
+							var found = arrayIndexOf(seen, value);
+							if (found === -1) {
+								var deepTarget = target[name];
+								if (deepTarget === undefined) {
+									deepTarget = isArray(value) ? [] : {};
+								}
+								seen.push(value);
+								merged.push(deepTarget);
+								value = _merge(true, deepTarget, value);
+							} else {
+								value = merged[found];
+							}
+						}
+						target[name] = value;
+					}
 				}
 			}
+			return target;
 		}
-		return target;
 	}
 
 	/**
@@ -992,7 +1015,15 @@
 	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
 	 * objects in the scope.
 	 */
-	function processSnapshot(snapshot, scope) {
+	function processSnapshot(snapshot, scope, seen) {
+		if (seen === undefined) {
+			seen = [];
+		}
+		if (arrayIndexOf(seen, snapshot) !== -1) {
+			return;
+		}
+		seen.push(snapshot);
+
 		var options = scope.$.options();
 		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
@@ -1025,7 +1056,7 @@
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], scope);
+				processSnapshot(snapshot[name], scope, seen);
 			}
 		}
 	}
