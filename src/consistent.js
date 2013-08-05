@@ -1173,7 +1173,7 @@
 						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
 						if (typeof current[possibleValueFunction] === "function") {
 							current[possibleValueFunction].call(this._scope, value);
-							return;
+							return this._scope;
 						}
 					}
 
