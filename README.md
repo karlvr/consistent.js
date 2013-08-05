@@ -685,6 +685,26 @@ options.$.remove = function(dom) {
 var scope = $("#container").consistent(options);
 ```
 
+### Change prefix for event handler and value functions
+
+If you’re working with objects that use naming conventions that don’t fit with Consistent, when Consistent makes a snapshot of the scope (which occurs whenever you apply the scope), you may get unexpected results such as functions in your scope being called unexpectedly. This is because Consistent has interpreted those functions as value functions.
+
+You can pass options to the scope to change the way Consistent identifies value functions and event handler functions to avoid this problem.
+
+By default keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`.
+
+By default keys containing value functions have no prefix, they are effectively every function that doesn’t have a key prefixed with a `$`. If you are populating your scope with objects that contain functions that are not intended to be used by Consistent, change the value function prefix so value functions are explicitly identified by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will remove all functions not matching the prefix from the snapshot.
+
+```javascript
+var options = {
+	eventHandlerPrefix: "do",
+	valueFunctionPrefix: "get"
+};
+var scope = $("#container").consistent(options);
+```
+
+When Consistent 
+
 Reference
 ---------
 

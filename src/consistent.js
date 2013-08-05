@@ -310,6 +310,8 @@
 
 		templateEngine: null,
 		autoListenToChange: true,
+		eventHandlerPrefix: "$",
+		valueFunctionPrefix: "",
 
 		$: {
 			getNodeOptions: function(node, options) {
@@ -918,13 +920,24 @@
 	 * objects in the scope.
 	 */
 	function processSnapshot(snapshot, scope) {
+		var options = scope.$.options();
+		var eventHandlerPrefix = options.eventHandlerPrefix;
+		var valueFunctionPrefix = options.valueFunctionPrefix;
+
 		for (var name in snapshot) {
-			if (name.indexOf("$") === 0) {
+			if (name.indexOf(eventHandlerPrefix) === 0) {
 				/* Remove handler functions */
 				delete snapshot[name];
 			} else if (typeof snapshot[name] === "function") {
-				/* Evaluate value functions */
-				snapshot[name] = snapshot[name].call(scope);
+				if (!valueFunctionPrefix || name.indexOf(valueFunctionPrefix) === 0) {
+					/* Evaluate value functions */
+					snapshot[name] = snapshot[name].call(scope);
+				} else {
+					/* Delete other functions as they are presumed to be foreign and not intended to
+					 * be used in the scope.
+					 */
+					delete snapshot[name];
+				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				processSnapshot(snapshot[name], scope);
 			}
@@ -1085,11 +1098,11 @@
 				}
 			},
 			getLocalEventHandler: function(key) {
-				key = mungeEventHandlerPropertyName(key);
+				key = mungeEventHandlerPropertyName(key, this._scope);
 				return this.getLocal(key, false);
 			},
 			setEventHandler: function(key, value) {
-				key = mungeEventHandlerPropertyName(key);
+				key = mungeEventHandlerPropertyName(key, this._scope);
 				return this.set(key, value);
 			},
 			options: function(dom) {
@@ -1102,15 +1115,17 @@
 	 * Event handler property names get the final part (parts are separated by dots) prefixes
 	 * with a $, so we can distinguish from other value-functions in the scope.
 	 */
-	function mungeEventHandlerPropertyName(name) {
+	function mungeEventHandlerPropertyName(name, scope) {
+		var eventHandlerPrefix = scope.$.options().eventHandlerPrefix;
+
 		var parts = name.split(".");
 		var result = "";
 		for (var i = 0; i < parts.length - 1; i++) {
 			result += parts[i] + ".";
 		}
 		var lastPart = parts[parts.length - 1];
-		if (lastPart.indexOf("$") !== 0) {
-			result += "$" + lastPart;
+		if (lastPart.indexOf(eventHandlerPrefix) !== 0) {
+			result += eventHandlerPrefix + lastPart;
 		} else {
 			result += lastPart;
 		}
@@ -1655,11 +1670,11 @@
 								func = self._scope.$.get(key);
 								if (typeof func === "function") {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key) + 
+										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) + 
 										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
 								} else {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key) +
+										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
 										"\"");
 								}
 							}
