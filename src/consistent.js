@@ -193,10 +193,10 @@
 			}
 			var target = arguments[objectsStart];
 			if (typeof target !== "object" && typeof target !== "function") {
-				throw new ConsistentException("First object argument to merge is not appropriate: " + typeof target);
+				throw new ConsistentException("Target object argument to merge is not appropriate: " + typeof target);
 			}
 			if (target === null) {
-				throw new ConsistentException("First object argument to merge is not appropriate: " + target);
+				throw new ConsistentException("Target object argument to merge is not appropriate: " + target);
 			}
 			for (var i = objectsStart + 1; i < arguments.length; i++) {
 				var source = arguments[i];
@@ -1095,9 +1095,9 @@
 					func.call(this._scope, options);
 				}
 
-				window.clearTimeout(this._scope.$._applyLaterTimeout);
+				window.clearTimeout(this._applyLaterTimeout);
 				var self = this;
-				this._scope.$._applyLaterTimeout = window.setTimeout(function() {
+				this._applyLaterTimeout = window.setTimeout(function() {
 					self._scope.$.apply(options);
 				}, 0);
 				return this._scope;
@@ -1151,7 +1151,7 @@
 			 * If there is a parent scope, the values from that scope are merged in.
 			 */
 			snapshot: function(childScope) {
-				var temp = this._scope.$.snapshotLocal(childScope);
+				var temp = this.snapshotLocal(childScope);
 				if (this.parent()) {
 					temp = merge(this.parent().$.snapshot(childScope !== undefined ? childScope : this._scope), temp);
 				}
