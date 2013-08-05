@@ -1165,11 +1165,27 @@
 						current = next;
 					}
 				}
-				if (typeof current[parts[parts.length - 1]] !== "function") {
-					current[parts[parts.length - 1]] = value;
-				} else {
+				var lastPart = parts[parts.length - 1];
+				var valueFunctionPrefix = this.options().valueFunctionPrefix;
+				if (typeof current[lastPart] !== "function") {
+					if (valueFunctionPrefix) {
+						/* Check for possible value function */
+						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
+						if (typeof current[possibleValueFunction] === "function") {
+							current[possibleValueFunction].call(this._scope, value);
+							return;
+						}
+					}
+
+					current[lastPart] = value;
+				} else if (!valueFunctionPrefix) {
 					/* Value function */
-					current[parts[parts.length - 1]].call(this._scope, value);
+					current[lastPart].call(this._scope, value);
+				} else {
+					/* Overwrite the function with a scalar value. It is not valid to reference value functions
+					 * by their name including prefix, as the snapshot does not contain values like that
+					 */
+					current[lastPart] = value;
 				}
 				return this._scope;
 			},
