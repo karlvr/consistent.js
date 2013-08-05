@@ -697,11 +697,11 @@ When you set an event handler prefix ending with a letter, e.g. "do", Consistent
 
 By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
 
-There is a slight inconsistency (sorry) with value functions. When referencing a value function in a DOM attribute you must use the full name of the property, you cannot omit the prefix as you can with event handlers. This is because Consistent doesn’t know whether you intend to use a scalar value or a value function.
+When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM. The value function prefix is removed when the snapshot is created. Also note that when Consistent updates the scope from the DOM if there is a value function that matches then the value function will be invoked with the new value as an argument.
 
 ```html
 <div id="container">
-	<h1 ct="getTitle"></h1>
+	<h1 ct="title"></h1>
 	<button ct-on="click">Button</button>
 </div>
 ```
