@@ -10,16 +10,16 @@
 <h1>Consistent.js</h1>
 
 <div id="container">
-	<p>The selected title is <span data-ct="selected">not yet determined</span>.</p>
+	<p>The selected title is <span ct="selected">not yet determined</span>.</p>
 </div>
 
 <script id="myTemplate" type="text/html">
 	<div>
-		<h2 data-ct="title">Title</h2>
-		<p data-ct="body">Paragaph</p>
-		<p data-ct="rootProperty">Should be replaced</p>
-		<p data-ct-tmpl="{{rootProperty}}">Should also be replaced</p>
-		<p><a href="#" data-ct-bind-click="select">Select</a></p>
+		<h2 ct="title">Title</h2>
+		<p ct="body">Paragaph</p>
+		<p ct="rootProperty">Should be replaced</p>
+		<p ct-tmpl="{{rootProperty}}">Should also be replaced</p>
+		<p><a href="#" ct-bind-click="select">Select</a></p>
 	</div>
 </script>
 

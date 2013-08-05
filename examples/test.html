@@ -14,35 +14,35 @@ p.world {
 <body>
 <h1>Consistent.js</h1>
 
-<p id="aDomNode" class="consistent" data-ct="hello">My text changes.</p>
+<p id="aDomNode" class="consistent" ct="hello">My text changes.</p>
 <input type="text" name="hello" value="hello world" class="consistent">
-<input type="text" name="somethingElse" data-ct="hello" value="hello world" class="consistent">
+<input type="text" name="somethingElse" ct="hello" value="hello world" class="consistent">
 <textarea name="hello" class="consistent"></textarea>
 
-<p class="consistent" data-ct-attr-class="hello">My text doesn't change but my class does.</p>
+<p class="consistent" ct-attr-class="hello">My text doesn't change but my class does.</p>
 
 <!-- Templates -->
-<p class="consistent" data-ct-tmpl="{{hello}} {{world}}">My text changes, using a template.</p>
-<p class="consistent" data-ct-tmpl-attr-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
+<p class="consistent" ct-tmpl="{{hello}} {{world}}">My text changes, using a template.</p>
+<p class="consistent" ct-tmpl-attr-class="{{hello}} {{world}}">My text doesn't change but my class does, using a template.</p>
 
 <button id="action">Action</button>
 
 <!-- Binding -->
-<p class="consistent" data-ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" data-ct="clickCount">0</span> times.</p>
+<p class="consistent" ct-bind-click="clickHandler">This paragraph is clickable. It has been clicked <span class="consistent" ct="clickCount">0</span> times.</p>
 <p>
-	<a class="consistent" href="fail" data-ct-bind-click="clickHandler">Click to update the above too</a>
+	<a class="consistent" href="fail" ct-bind-click="clickHandler">Click to update the above too</a>
 </p>
 
 <!-- Undefined -->
-<p class="consistent" data-ct="undefinedKey">This text should not be changed to "undefined"</p>
-<p class="consistent" data-ct="nullKey">This text should be hidden as it is set to null</p>
+<p class="consistent" ct="undefinedKey">This text should not be changed to "undefined"</p>
+<p class="consistent" ct="nullKey">This text should be hidden as it is set to null</p>
 
 <!-- Template by id -->
-<p class="consistent" data-ct-tmpl-id="myTemplate">Text should have changed</p>
+<p class="consistent" ct-tmpl-id="myTemplate">Text should have changed</p>
 <script id="myTemplate" type="text/x-hogan-template">
 	<strong>Template by id worked</strong>
 </script>
-<p class="consistent" data-ct-tmpl-id-attr-class="myClassTemplate">Should be pink when hello=world</p>
+<p class="consistent" ct-tmpl-id-attr-class="myClassTemplate">Should be pink when hello=world</p>
 <script id="myClassTemplate" type="text/x-hogan-template">{{hello}}</script>
 
 <div id="anInconsistentNode"></div>
