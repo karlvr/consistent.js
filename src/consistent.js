@@ -1129,6 +1129,7 @@
 				} else if (typeof keys !== "object") {
 					/* merge(object, key) */
 					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
+					return this._scope;
 				} else {
 					throw new ConsistentException("Invalid keys argument to merge: " + keys);
 				}
