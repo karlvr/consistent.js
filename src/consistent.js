@@ -939,6 +939,7 @@
 					delete snapshot[name];
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
+				/* Go deep recursively processing snapshot */
 				processSnapshot(snapshot[name], scope);
 			}
 		}
@@ -1058,15 +1059,8 @@
 					return undefined;
 				}
 			},
-			getLocal: function(key, evaluateFunctions) {
-				var value = getNestedProperty(this._scope, key);
-
-				/* Evaluate value functions */
-				if (evaluateFunctions && typeof value === "function") {
-					value = value.call(this._scope);
-				}
-
-				return value;
+			getLocal: function(key) {
+				return getNestedProperty(this._scope, key);
 			},
 			set: function(key, value) {
 				var parts = key.split(".");
@@ -1098,11 +1092,29 @@
 				}
 			},
 			getLocalEventHandler: function(key) {
-				key = mungeEventHandlerPropertyName(key, this._scope);
-				return this.getLocal(key, false);
+				key = mungePropertyName(key, this.options().eventHandlerPrefix);
+				return this.getLocal(key);
 			},
 			setEventHandler: function(key, value) {
-				key = mungeEventHandlerPropertyName(key, this._scope);
+				key = mungePropertyName(key, this.options().eventHandlerPrefix);
+				return this.set(key, value);
+			},
+			getValueFunction: function(key) {
+				var local = this.getLocalValueFunction(key);
+				if (local !== undefined) {
+					return local;
+				} else if (this.parent()) {
+					return this.parent().$.getValueFunction(key);
+				} else {
+					return undefined;
+				}
+			},
+			getLocalValueFunction: function(key) {
+				key = mungePropertyName(key, this.options().valueFunctionPrefix);
+				return this.getLocal(key);
+			},
+			setLocalValueFunction: function(key, value) {
+				key = mungePropertyName(key, this.options().valueFunctionPrefix);
 				return this.set(key, value);
 			},
 			options: function(dom) {
@@ -1112,20 +1124,18 @@
 	};
 
 	/**
-	 * Event handler property names get the final part (parts are separated by dots) prefixes
-	 * with a $, so we can distinguish from other value-functions in the scope.
+	 * Some property names require a prefix, and these get added to the final part of the
+	 * property name where the parts are separated by dots.
 	 */
-	function mungeEventHandlerPropertyName(name, scope) {
-		var eventHandlerPrefix = scope.$.options().eventHandlerPrefix;
-
+	function mungePropertyName(name, prefix) {
 		var parts = name.split(".");
 		var result = "";
 		for (var i = 0; i < parts.length - 1; i++) {
 			result += parts[i] + ".";
 		}
 		var lastPart = parts[parts.length - 1];
-		if (lastPart.indexOf(eventHandlerPrefix) !== 0) {
-			result += eventHandlerPrefix + lastPart;
+		if (lastPart.indexOf(prefix) !== 0) {
+			result += prefix + lastPart;
 		} else {
 			result += lastPart;
 		}
@@ -1670,11 +1680,11 @@
 								func = self._scope.$.get(key);
 								if (typeof func === "function") {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) + 
+										"\" event wanted scope function in key \"" + mungePropertyName(key, self._options.eventHandlerPrefix) + 
 										"\", there was one in \"" + key + "\" which is missing the $ and is possibly a mistake.");
 								} else {
 									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event wanted scope function in key \"" + mungeEventHandlerPropertyName(key, self._scope) +
+										"\" event wanted scope function in key \"" + mungePropertyName(key, self._options.eventHandlerPrefix) +
 										"\"");
 								}
 							}
