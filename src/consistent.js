@@ -872,6 +872,12 @@
 						}
 						break;
 					}
+					default: {
+						/* In the future this can be used for custom attributes, as the developer has added a key
+						 * into the settings.attributes.
+						 */
+						throw new ConsistentException("Unhandled consistent declaration attribute: " + name);
+					}
 				}
 			}
 		}
