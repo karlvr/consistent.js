@@ -226,8 +226,6 @@
 								if (deepTarget === undefined) {
 									deepTarget = isArray(value) ? [] : {};
 								}
-								seen.push(value);
-								merged.push(deepTarget);
 								value = _merge(true, deepTarget, value);
 							} else {
 								value = merged[found];
