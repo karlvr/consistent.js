@@ -22,7 +22,7 @@ describe('Merge tests', function() {
 
 		expect(scope.a).not.toBeDefined();
 		
-		scope.$.merge(object1);
+		expect(scope.$.merge(object1)).toBe(scope); /* Chaining */
 
 		expect(scope.a).toBe(object1.a);
 		expect(scope.b).toBe(object1.b);
@@ -61,7 +61,7 @@ describe('Merge tests', function() {
 		scope.d = {
 			z: 1
 		};
-		scope.$.merge(true, object1);
+		expect(scope.$.merge(true, object1)).toBe(scope); /* Chaining */
 
 		/* scope.d.z will NOT have been overwritten by the shallow merge */
 		expect(scope.d.z).toBeDefined();
@@ -70,7 +70,7 @@ describe('Merge tests', function() {
 	it("Keyed object merge", function() {
 		var scope = Consistent();
 
-		scope.$.merge(object1, [ "a", "c" ]);
+		expect(scope.$.merge(object1, [ "a", "c" ])).toBe(scope);
 
 		expect(scope.a).toBe(object1.a);
 		expect(scope.b).not.toBeDefined();
@@ -115,7 +115,7 @@ describe('Merge tests', function() {
 
 	it("Single key object merge", function() {
 		var scope = Consistent();
-		scope.$.merge(object1, "a");
+		expect(scope.$.merge(object1, "a")).toBe(scope);
 		expect(scope.a).toEqual(object1.a);
 	});
 
