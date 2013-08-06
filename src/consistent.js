@@ -1954,8 +1954,8 @@
 				dom.removeEventListener("change", options.$._changeListener, false);
 			}
 
-			this._domNodes.slice(i, 1);
-			this._nodes.slice(i, 1);
+			this._domNodes.splice(i, 1);
+			this._nodes.splice(i, 1);
 		}
 
 		/* Unbind children */
