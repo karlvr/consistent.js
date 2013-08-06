@@ -6,22 +6,59 @@ describe('Scope nodes function tests', function() {
 		loadFixture("nodes.html");
 	});
 
+	var pages = [
+		{ url: "a", name: "b" },
+		{ url: "c", name: "d" }
+	];
+
 	it("nodes() only returns nodes with bindings", function() {
 		var scope = $("#fixture").consistent();
 		
 		var nodes = scope.$.nodes();
-		for (var i = 0; i < nodes.length; i++) {
-			expect(nodes[i].nodeName).not.toBe("SECTION");
-			expect(nodes[i].nodeName).not.toBe("NAV");
-			expect(nodes[i].nodeName).not.toBe("UL");
-			expect(nodes[i].nodeName).not.toBe("DIV");
 
-			/* Repeat nodes are not included */
-			expect(nodes[i].nodeName).not.toBe("LI");
-		}
+		/* Repeat nodes are not included */
+		expect(nodes.length).toBe(1);
+
+		nodes = nodesByName(nodes);
+		expect(nodes["H1"].length).toBe(1);
 	});
 
-	it("roots() only returns the root and doesn't have to have bindings", function() {
+	it("nodes() includes child scope nodes", function() {
+		var scope = $("#fixture").consistent();
+		scope.pages = pages;
+		scope.$.apply();
+		
+		var nodes = nodesByName(scope.$.nodes());
+
+		expect(nodes["H1"].length).toBe(1);
+
+		expect(nodes["SECTION"]).not.toBeDefined();
+		expect(nodes["NAV"]).not.toBeDefined();
+		expect(nodes["UL"]).not.toBeDefined();
+		expect(nodes["DIV"]).not.toBeDefined();
+
+		/* Repeat section nodes are not included */
+		expect(nodes["ARTICLE"]).not.toBeDefined();
+		expect(nodes["H2"]).not.toBeDefined();
+		expect(nodes["LI"]).not.toBeDefined();
+
+		/* But, now that we've applied we should have some repeated child nodes */
+		expect(nodes["A"].length).toBe(2);
+	});
+
+	it("nodesLocal() should not include child scope nodes", function() {
+		var scope = $("#fixture").consistent();
+		scope.pages = pages;
+		scope.$.apply();
+
+		var nodes = scope.$.nodesLocal();
+		expect(nodes.length).toBe(1);
+
+		nodes = nodesByName(nodes);
+		expect(nodes["H1"].length).toBe(1);
+	});
+
+	it("roots() only returns the root nodes and don't have to have bindings", function() {
 		var scope = $("#fixture").consistent();
 
 		var roots = scope.$.roots();
