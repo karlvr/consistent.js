@@ -131,4 +131,9 @@ describe('Basic tests', function() {
 		expect(scope.comments).toBe("Go on then");
 	});
 
+	it("Scope does not contain a cycle", function() {
+		var scope = Consistent();
+		expect(function() { JSON.stringify(scope); }).not.toThrow();
+	});
+
 });
