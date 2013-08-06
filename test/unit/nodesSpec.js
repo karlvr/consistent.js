@@ -6,7 +6,7 @@ describe('Scope nodes function tests', function() {
 		loadFixture("nodes.html");
 	});
 
-	it("Nodes only returns nodes with bindings", function() {
+	it("nodes() only returns nodes with bindings", function() {
 		var scope = $("#fixture").consistent();
 		
 		var nodes = scope.$.nodes();
@@ -14,13 +14,14 @@ describe('Scope nodes function tests', function() {
 			expect(nodes[i].nodeName).not.toBe("SECTION");
 			expect(nodes[i].nodeName).not.toBe("NAV");
 			expect(nodes[i].nodeName).not.toBe("UL");
+			expect(nodes[i].nodeName).not.toBe("DIV");
 
 			/* Repeat nodes are not included */
 			expect(nodes[i].nodeName).not.toBe("LI");
 		}
 	});
 
-	it("Roots only returns the root and doesn't have to have bindings", function() {
+	it("roots() only returns the root and doesn't have to have bindings", function() {
 		var scope = $("#fixture").consistent();
 
 		var roots = scope.$.roots();
