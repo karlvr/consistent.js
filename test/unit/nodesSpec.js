@@ -64,12 +64,12 @@ describe('Scope nodes function tests', function() {
 		expect(nodes["ARTICLE"].length).toBe(pages.length);
 	});
 
-	it("nodesLocal() does not include child scope nodes", function() {
+	it("nodes(false) does not include child scope nodes", function() {
 		var scope = $("#fixture").consistent();
 		scope.pages = pages;
 		scope.$.apply();
 
-		var nodes = scope.$.nodesLocal();
+		var nodes = scope.$.nodes(false);
 		expect(nodes.length).toBe(1);
 
 		nodes = nodesByName(nodes);

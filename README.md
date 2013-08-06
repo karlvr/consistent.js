@@ -482,7 +482,7 @@ $.ajax({
 });
 ```
 
-The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes use `snapshotLocal` instead.
+The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `snapshot(false)`.
 
 License
 -------
@@ -531,7 +531,7 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope use `getLocal` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass true for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
 
 ### Parent scopes
 
@@ -583,7 +583,7 @@ rootScope.$handleClick = function(ev, scope) {
 
 To get an array of DOM nodes that have been bound to a scope, and that have declared bindings (e.g. have `ct...` attributes), you can use the `nodes()` function. Even if a node has been passed to a Consistent scope’s `bind` function, if a node doesn’t declare bindings then it will not be included in the result from `nodes()`.
 
-`nodes()` includes any bound nodes in child scopes as well. If you don’t want to include child scopes, use the `nodesLocal()` function instead.
+`nodes()` includes any bound nodes in child scopes as well. If you don’t want to include child scopes, pass true for the optional `includeParents` parameter, e.g. `nodes(false)`.
 
 Note that DOM nodes that define a repeating section (i.e. have a `ct-repeat` declaration) are not included in the result from `nodes()`, as those nodes no longer exist in the DOM. However, as nodes from child scopes are included the result may include the repeated nodes if they declare bindings.
 
@@ -789,24 +789,20 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
 * `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
-* `nodes()` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes.
-* `nodesLocal()` as for `nodes` but doesn’t include child scopes.
+* `nodes([includeParents])` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes unless the optional `includeParents` parameter is false.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
 #### Scope
-* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values.
-* `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
+* `snapshot([includeParents])` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional `includeParents` parameter is false.
 * `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.
 * `merge(object, keys)` merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 
-* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. The value may be a scalar value or a function in the case of a value function or event handler.
-* `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
+* `get(key [, includeParents])` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. The value may be a scalar value or a function (in the case of a value function or event handler) if the scope contains a property with the given key, otherwise it returns undefined.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.
 
-* `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
-* `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
+* `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
 * `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
 
 #### Watch

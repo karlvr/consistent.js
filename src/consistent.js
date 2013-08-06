@@ -1164,31 +1164,28 @@
 			 * that contains Consistent functionality, any properties with a $ prefix (event handlers) and
 			 * replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
+			 * @param includeParents If false, only include the local scope in the snapshot
+			 * @param childScope internal use
 			 */
-			snapshot: function(childScope) {
-				var temp = this.snapshotLocal(childScope);
-				if (this.parent()) {
-					temp = merge(this.parent().$.snapshot(childScope !== undefined ? childScope : this._scope), temp);
-				}
-				return temp;
-			},
-			snapshotLocal: function(childScope) {
+			snapshot: function(includeParents, childScope) {
 				var temp = merge(true, {}, this._scope);
 				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
+
+				if (includeParents !== false && this.parent()) {
+					temp = merge(this.parent().$.snapshot(false, childScope !== undefined ? childScope : this._scope), temp);
+				}
 				return temp;
 			},
 
-			nodes: function() {
-				var result = [];
-				result = result.concat(this.nodesLocal());
-				var children = this.children();
-				for (var i = 0; i < children.length; i++) {
-					result = result.concat(children[i].$.nodes());
+			nodes: function(includeParents) {
+				var result = this._manager._domNodes;
+				if (includeParents !== false) {
+					var children = this.children();
+					for (var i = 0; i < children.length; i++) {
+						result = result.concat(children[i].$.nodes());
+					}
 				}
 				return result;
-			},
-			nodesLocal: function() {
-				return this._manager._domNodes;
 			},
 			roots: function() {
 				return this._manager._rootDomNodes;
@@ -1216,18 +1213,15 @@
 				this._manager.unwatch(key, handler);
 				return this._scope;
 			},
-			get: function(key) {
-				var local = this.getLocal(key);
-				if (local !== undefined) {
-					return local;
-				} else if (this.parent()) {
+			get: function(key, includeParents) {
+				var value = getNestedProperty(this._scope, key);
+				if (value !== undefined) {
+					return value;
+				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.get(key);
 				} else {
 					return undefined;
 				}
-			},
-			getLocal: function(key) {
-				return getNestedProperty(this._scope, key);
 			},
 			set: function(key, value) {
 				var parts = key.split(".");
@@ -1264,19 +1258,15 @@
 				}
 				return this._scope;
 			},
-			getEventHandler: function(key) {
-				var local = this.getLocalEventHandler(key);
-				if (local !== undefined) {
-					return local;
-				} else if (this.parent()) {
+			getEventHandler: function(key, includeParents) {
+				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), true);
+				if (value !== undefined) {
+					return value;
+				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.getEventHandler(key);
 				} else {
 					return undefined;
 				}
-			},
-			getLocalEventHandler: function(key) {
-				key = mungePropertyName(key, this.options().eventHandlerPrefix);
-				return this.getLocal(key);
 			},
 			setEventHandler: function(key, value) {
 				key = mungePropertyName(key, this.options().eventHandlerPrefix);
