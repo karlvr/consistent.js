@@ -1073,10 +1073,10 @@
 		$: {
 			_type: SCOPE_TYPE,
 
-			/* The root of the scope */
+			/* Function returning the root of the scope */
 			_scope: null,
 
-			/* The manager */
+			/* Function returning the manager */
 			_manager: null,
 
 			/* The index of this scope in a repeating section */
@@ -1088,12 +1088,13 @@
 					options = undefined;
 				}
 
+				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(this._scope, options);
+					func.call(scope, options);
 				}
 
-				this._manager.apply(options);
-				return this._scope;
+				this._manager().apply(options);
+				return scope;
 			},
 			applyLater: function(options, func) {
 				if (typeof options === "function") {
@@ -1101,60 +1102,62 @@
 					options = undefined;
 				}
 
+				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(this._scope, options);
+					func.call(scope, options);
 				}
 
 				window.clearTimeout(this._applyLaterTimeout);
-				var self = this;
 				this._applyLaterTimeout = window.setTimeout(function() {
-					self._scope.$.apply(options);
+					scope.$.apply(options);
 				}, 0);
-				return this._scope;
+				return scope;
 			},
 			needsApply: function() {
-				return this._manager.needsApply();
+				return this._manager().needsApply();
 			},
 			update: function() {
-				this._manager.update();
-				return this._scope;
+				this._manager().update();
+				return this._scope();
 			},
 			bind: function(dom, options) {
-				this._manager.bind(dom, options);
-				return this._scope;
+				this._manager().bind(dom, options);
+				return this._scope();
 			},
 			unbind: function(dom) {
-				this._manager.unbind(dom);
-				return this._scope;
+				this._manager().unbind(dom);
+				return this._scope();
 			},
 			merge: function(object, keys) {
+				var scope = this._scope();
 				if (typeof object === "boolean") {
 					/* merge(true, object) */
-					return merge(object, this._scope, keys);
+					return merge(object, scope, keys);
 				} else if (keys === undefined) {
 					/* merge(object) */
-					return merge(this._scope, object);
+					return merge(scope, object);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
-						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
+						setNestedProperty(scope, keys[i], getNestedProperty(object, keys[i]));
 					}
-					return this._scope;
+					return scope;
 				} else if (typeof keys !== "object") {
 					/* merge(object, key) */
-					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
-					return this._scope;
+					setNestedProperty(scope, keys, getNestedProperty(object, keys));
+					return scope;
 				} else {
 					throw new ConsistentException("Invalid keys argument to merge: " + keys);
 				}
 			},
 			replace: function(object) {
-				return this._manager.replaceScope(object);
+				return this._manager().replaceScope(object);
 			},
 			clear: function() {
-				for (var i in this._scope) {
+				var scope = this._scope();
+				for (var i in scope) {
 					if (i !== "$") {
-						delete this._scope[i];
+						delete scope[i];
 					}
 				}
 			},
@@ -1172,11 +1175,12 @@
 					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
 				}
 
-				var temp = merge(true, {}, this._scope);
-				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
+				var scope = this._scope();
+				var temp = merge(true, {}, scope);
+				processSnapshot(temp, childScope !== undefined ? childScope : scope);
 
 				if (includeParents !== false && this.parent()) {
-					temp = merge(this.parent().$.snapshot(false, childScope !== undefined ? childScope : this._scope), temp);
+					temp = merge(this.parent().$.snapshot(false, childScope !== undefined ? childScope : scope), temp);
 				}
 				return temp;
 			},
@@ -1185,8 +1189,8 @@
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
 				}
-				
-				var result = this._manager._domNodes;
+
+				var result = this._manager()._domNodes;
 				if (includeParents !== false) {
 					var children = this.children();
 					for (var i = 0; i < children.length; i++) {
@@ -1196,37 +1200,39 @@
 				return result;
 			},
 			roots: function() {
-				return this._manager._rootDomNodes;
+				return this._manager()._rootDomNodes;
 			},
 
 			parent: function() {
-				if (this._manager._parentScopeManager !== null) {
-					return this._manager._parentScopeManager._scope;
+				var parentScopeManager = this._manager()._parentScopeManager;
+				if (parentScopeManager !== null) {
+					return parentScopeManager._scope;
 				} else {
 					return null;
 				}
 			},
 			children: function() {
 				var result = [];
-				for (var i = 0; i < this._manager._childScopeManagers.length; i++) {
-					result.push(this._manager._childScopeManagers[i]._scope);
+				var childScopeManagers = this._manager()._childScopeManagers;
+				for (var i = 0; i < childScopeManagers.length; i++) {
+					result.push(childScopeManagers[i]._scope);
 				}
 				return result;
 			},
 			watch: function(key, handler) {
-				this._manager.watch(key, handler);
-				return this._scope;
+				this._manager().watch(key, handler);
+				return this._scope();
 			},
 			unwatch: function(key, handler) {
-				this._manager.unwatch(key, handler);
-				return this._scope;
+				this._manager().unwatch(key, handler);
+				return this._scope();
 			},
 			get: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
 				}
 
-				var value = getNestedProperty(this._scope, key);
+				var value = getNestedProperty(this._scope(), key);
 				if (value !== undefined) {
 					return value;
 				} else if (includeParents !== false && this.parent()) {
@@ -1236,8 +1242,10 @@
 				}
 			},
 			set: function(key, value) {
+				var scope = this._scope();
+
 				var parts = key.split(".");
-				var current = this._scope;
+				var current = scope;
 				for (var i = 0; i < parts.length - 1; i++) {
 					var next = current[parts[i]];
 					if (next === undefined) {
@@ -1253,22 +1261,22 @@
 						/* Check for possible value function */
 						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
 						if (typeof current[possibleValueFunction] === "function") {
-							current[possibleValueFunction].call(this._scope, value);
-							return this._scope;
+							current[possibleValueFunction].call(scope, value);
+							return scope;
 						}
 					}
 
 					current[lastPart] = value;
 				} else if (!valueFunctionPrefix) {
 					/* Value function */
-					current[lastPart].call(this._scope, value);
+					current[lastPart].call(scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
 					 */
 					current[lastPart] = value;
 				}
-				return this._scope;
+				return scope;
 			},
 			getEventHandler: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
@@ -1289,7 +1297,7 @@
 				return this.set(key, value);
 			},
 			options: function(dom) {
-				return this._manager.getOptions(dom);
+				return this._manager().getOptions(dom);
 			}
 		}
 	};
@@ -1407,7 +1415,7 @@
 		scopeId++;
 
 		if (parentScope) {
-			this._parentScopeManager = parentScope.$._manager;
+			this._parentScopeManager = parentScope.$._manager();
 			this._parentScopeManager._childScopeManagers.push(this);
 		} else {
 			this._parentScopeManager = null;
@@ -1422,9 +1430,14 @@
 		this._nodesDirty = false;
 		this._applying = false;
 
+		var self = this;
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
-		this._scope.$._manager = this;
-		this._scope.$._scope = this._scope;
+		this._scope.$._manager = function() {
+			return self;
+		};
+		this._scope.$._scope = function() {
+			return self._scope;
+		};
 
 		this._cleanScopeSnapshot = this._scope.$.snapshot();
 	}
@@ -2019,7 +2032,6 @@
 
 	ConsistentScopeManager.prototype.replaceScope = function(newScope) {
 		newScope.$ = this._scope.$;
-		newScope.$._scope = newScope;
 		this._scope = newScope;
 		return newScope;
 	};
