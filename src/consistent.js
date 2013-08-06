@@ -1175,13 +1175,34 @@
 			},
 
 			nodes: function() {
+				var result = [];
+				result = result.concat(this.nodesLocal());
+				var children = this.children();
+				for (var i = 0; i < children.length; i++) {
+					result = result.concat(children[i].$.nodes());
+				}
+				return result;
+			},
+			nodesLocal: function() {
 				return this._manager._domNodes;
 			},
 			roots: function() {
 				return this._manager._rootDomNodes;
 			},
+
 			parent: function() {
-				return this._manager._parentScope;
+				if (this._manager._parentScopeManager !== null) {
+					return this._manager._parentScopeManager._scope;
+				} else {
+					return null;
+				}
+			},
+			children: function() {
+				var result = [];
+				for (var i = 0; i < this._manager._childScopeManagers.length; i++) {
+					result.push(this._manager._childScopeManagers[i]._scope);
+				}
+				return result;
 			},
 			watch: function(key, handler) {
 				this._manager.watch(key, handler);
@@ -1375,7 +1396,13 @@
 		this._id = "ConsistentScope" + scopeId;
 		scopeId++;
 
-		this._parentScope = parentScope;
+		if (parentScope) {
+			this._parentScopeManager = parentScope.$._manager;
+			this._parentScopeManager._childScopeManagers.push(this);
+		} else {
+			this._parentScopeManager = null;
+		}
+		this._childScopeManagers = [];
 		this._options = options;
 		this._nodes = [];
 		this._domNodes = [];
@@ -1423,8 +1450,8 @@
 			this._nodesDirty = false;
 
 			/* Apply parent scope */
-			if (this._parentScope) {
-				this._parentScope.$.apply(options);
+			if (this._parentScopeManager) {
+				this._parentScopeManager._scope.$.apply(options);
 			}
 
 			var scopeOptions = options !== undefined ? mergeOptions({}, this._options, options) : this._options;
@@ -1663,8 +1690,8 @@
 			}
 		}
 
-		if (this._parentScope) {
-			this._parentScope.$._manager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+		if (this._parentScopeManager) {
+			this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
 		return notified;
@@ -1700,8 +1727,8 @@
 			}
 		}
 
-		if (this._parentScope) {
-			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
+		if (this._parentScopeManager) {
+			this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;
@@ -1935,10 +1962,6 @@
 			}
 			child = child.nextSibling;
 		}
-	};
-
-	ConsistentScopeManager.prototype.nodes = function() {
-		return _domNodes;
 	};
 
 	ConsistentScopeManager.prototype.watch = function(key, callback) {

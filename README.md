@@ -787,7 +787,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
 * `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
-* `nodes()` returns an array of DOM nodes that are bound to this scope.
+* `nodes()` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes.
+* `nodesLocal()` as for `nodes` but doesn’t include child scopes.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
 #### Scope
@@ -812,6 +813,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.
+* `children()` returns an array containing the immediate child scopes of this scope.
 * `options([node])` returns the options object for the given node, or for the scope as a whole. Note that you can modify the returned options object, but changes to the scope’s options will not affect node options.
 
 ### Scope properties
