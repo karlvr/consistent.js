@@ -1407,11 +1407,14 @@
 			for (var i = 0; i < n; i++) {
 				var node = this._nodes[i];
 				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
-				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 
-				/* Repeating */
+				/* Repeating nodes do not get applied themselves. The DOM node has
+				 * been switched out for something else.
+				 */
 				if (nodeOptions.bindings.repeat) {
 					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
+				} else {
+					nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 				}
 			}
 
