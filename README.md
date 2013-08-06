@@ -230,7 +230,7 @@ You can of course bind the selected option as well, e.g. `scope.product = "bucke
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
+Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You must not include the `$` prefix when specifying the function in the DOM.
 
 ```html
 <a href="#" ct-on-click="handleClick">Click me</a>
