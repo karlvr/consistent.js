@@ -1260,6 +1260,7 @@
 			},
 			getEventHandler: function(key, includeParents) {
 				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), true);
+				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), false);
 				if (value !== undefined) {
 					return value;
 				} else if (includeParents !== false && this.parent()) {
