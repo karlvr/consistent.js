@@ -40,13 +40,31 @@ describe('Scope nodes function tests', function() {
 		/* Repeat section nodes are not included */
 		expect(nodes["ARTICLE"]).not.toBeDefined();
 		expect(nodes["H2"]).not.toBeDefined();
+
+		/* But no LI elements, as they don't have any bindings as far as Consistent is concerned,
+		 * even though they have ct-repeat on them, they lose that when we consume them.
+		 */
 		expect(nodes["LI"]).not.toBeDefined();
 
 		/* But, now that we've applied we should have some repeated child nodes */
-		expect(nodes["A"].length).toBe(2);
+		expect(nodes["A"].length).toBe(pages.length);
 	});
 
-	it("nodesLocal() should not include child scope nodes", function() {
+	it("nodes() doesn't include repeat elements that don't have other bindings", function() {
+		var scope = $("#fixture").consistent();
+		scope.articles = pages;
+		scope.$.apply();
+
+		var nodes = nodesByName(scope.$.nodes());
+
+		/* li tags just have repeat binding */
+		expect(nodes["LI"]).not.toBeDefined();
+
+		/* article tags have another binding */
+		expect(nodes["ARTICLE"].length).toBe(pages.length);
+	});
+
+	it("nodesLocal() does not include child scope nodes", function() {
 		var scope = $("#fixture").consistent();
 		scope.pages = pages;
 		scope.$.apply();
