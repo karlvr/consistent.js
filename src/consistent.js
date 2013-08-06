@@ -344,13 +344,14 @@
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
 				var name, value, i;
+				var bindings = options.bindings;
 
 				/* Select options */
-				if (options.selectOptions) {
+				if (bindings.selectOptions) {
 					/* This must come before the setValue, as the select's options need to be setup before
 					 * its value can be set.
 					 */
-					value = getNestedProperty(snapshot, options.selectOptions);
+					value = getNestedProperty(snapshot, bindings.selectOptions);
 					if (value !== undefined) {
 						var selectedValue = dom.selectedIndex !== -1 ? inputOptionValue(dom.options[dom.selectedIndex]) : undefined;
 						dom.length = value.length;
@@ -377,20 +378,20 @@
 				}
 
 				/* Value */
-				if (options.key) {
+				if (bindings.key) {
 					/* Key */
-					value = getNestedProperty(snapshot, options.key);
+					value = getNestedProperty(snapshot, bindings.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
-				} else if (options.template !== undefined && options.template !== null) {
+				} else if (bindings.template !== undefined && bindings.template !== null) {
 					/* Template - note that "" is a valid template, so we have to use this longer check in the if condition */
-					this.setValue(dom, options.template.render(snapshot));
+					this.setValue(dom, bindings.template.render(snapshot));
 				}
 
 				/* Attributes */
-				if (options.attributes) {
-					var attrs = options.attributes;
+				if (bindings.attributes) {
+					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							value = getNestedProperty(snapshot, attrs[i].key);
@@ -405,8 +406,8 @@
 						}
 					}
 				}
-				if (options.allAttributes) {
-					value = getNestedProperty(snapshot, options.allAttributes);
+				if (bindings.allAttributes) {
+					value = getNestedProperty(snapshot, bindings.allAttributes);
 					for (name in value) {
 						if (value[name] !== undefined) {
 							value = value[name];
@@ -420,8 +421,8 @@
 				}
 
 				/* Properties */
-				if (options.properties) {
-					var props = options.properties;
+				if (bindings.properties) {
+					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
@@ -429,8 +430,8 @@
 						}
 					}
 				}
-				if (options.allProperties) {
-					value = getNestedProperty(snapshot, options.allProperties);
+				if (bindings.allProperties) {
+					value = getNestedProperty(snapshot, bindings.allProperties);
 					var names = getNestedPropertyNames(value);
 					for (i = 0; i < names.length; i++) {
 						var propertyValue = getNestedProperty(value, names[i]);
@@ -441,8 +442,8 @@
 				}
 
 				/* Visibility */
-				if (options.show) {
-					value = getNestedProperty(snapshot, options.show);
+				if (bindings.show) {
+					value = getNestedProperty(snapshot, bindings.show);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -451,8 +452,8 @@
 						}
 					}
 				}
-				if (options.hide) {
-					value = getNestedProperty(snapshot, options.hide);
+				if (bindings.hide) {
+					value = getNestedProperty(snapshot, bindings.hide);
 					if (value !== undefined) {
 						if (!value) {
 							this.show(dom);
@@ -463,28 +464,28 @@
 				}
 
 				/* Enabled / disabled */
-				if (options.enabled) {
-					value = getNestedProperty(snapshot, options.enabled);
+				if (bindings.enabled) {
+					value = getNestedProperty(snapshot, bindings.enabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !value);
 					}
 				}
-				if (options.disabled) {
-					value = getNestedProperty(snapshot, options.disabled);
+				if (bindings.disabled) {
+					value = getNestedProperty(snapshot, bindings.disabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !!value);
 					}
 				}
 
 				/* Read only */
-				if (options.readOnly) {
-					value = getNestedProperty(snapshot, options.readOnly);
+				if (bindings.readOnly) {
+					value = getNestedProperty(snapshot, bindings.readOnly);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !!value);
 					}
 				}
-				if (options.readWrite) {
-					value = getNestedProperty(snapshot, options.readWrite);
+				if (bindings.readWrite) {
+					value = getNestedProperty(snapshot, bindings.readWrite);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !value);
 					}
@@ -562,14 +563,15 @@
 			/** Update the given scope with the given dom object */
 			update: function(dom, scope, options) {
 				var value, i;
+				var bindings = options.bindings;
 
 				/* Value */
-				if (options.key) {
+				if (bindings.key) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
 							/* Special checkbox support */
-							var scopeValue = scope.$.get(options.key);
+							var scopeValue = scope.$.get(bindings.key);
 							if (isArray(scopeValue)) {
 								i = arrayIndexOf(scopeValue, dom.value);
 								if (value) {
@@ -587,28 +589,28 @@
 								 * This will be graduated to an array later if another checkbox is set.
 								 */
 								if (value) {
-									scope.$.set(options.key, dom.value);
+									scope.$.set(bindings.key, dom.value);
 								}
 							} else if (typeof scopeValue === "boolean" || dom.value === "on") {
 								/* If the scope already contains a boolean, or this checkbox has a
 								 * default value of "on" then we put a boolean into the scope.
 								 */
-								scope.$.set(options.key, value);
+								scope.$.set(bindings.key, value);
 							} else if (value && scopeValue !== dom.value) {
 								/* If the scope already contains a scalar value, and it's not the same as
 								 * our checkbox's value, then graduate to an array in the scope.
 								 */
-								scope.$.set(options.key, [ scopeValue, dom.value ]);
+								scope.$.set(bindings.key, [ scopeValue, dom.value ]);
 							}
 						} else {
-							scope.$.set(options.key, value);
+							scope.$.set(bindings.key, value);
 						}
 					}
 				}
 
 				/* Attributes */
-				if (options.attributes) {
-					var attrs = options.attributes;
+				if (bindings.attributes) {
+					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							value = this.getAttributeValue(dom, attrs[i].name);
@@ -616,8 +618,8 @@
 						}
 					}
 				}
-				if (options.allAttributes) {
-					value = scope.$.get(options.allAttributes);
+				if (bindings.allAttributes) {
+					value = scope.$.get(bindings.allAttributes);
 					if (value !== undefined) {
 						for (i in value) {
 							value[i] = this.getAttributeValue(dom, i);
@@ -626,15 +628,15 @@
 				}
 
 				/* Properties */
-				if (options.properties) {
-					var props = options.properties;
+				if (bindings.properties) {
+					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
 				}
-				if (options.allProperties) {
-					value = scope.$.get(options.allProperties);
+				if (bindings.allProperties) {
+					value = scope.$.get(bindings.allProperties);
 					if (value !== undefined) {
 						var names = getNestedPropertyNames(value);
 						for (i = 0; i < names.length; i++) {
@@ -644,33 +646,33 @@
 				}
 
 				/* Visibility */
-				if (options.show) {
+				if (bindings.show) {
 					value = this.isShowing(dom);
-					scope.$.set(options.show, value);
+					scope.$.set(bindings.show, value);
 				}
-				if (options.hide) {
+				if (bindings.hide) {
 					value = this.isShowing(dom);
-					scope.$.set(options.hide, !value);
+					scope.$.set(bindings.hide, !value);
 				}
 
 				/* Enabled / disabled */
-				if (options.enabled) {
+				if (bindings.enabled) {
 					value = this.getPropertyValue(dom, "disabled");
-					scope.$.set(options.enabled, !value);
+					scope.$.set(bindings.enabled, !value);
 				}
-				if (options.disabled) {
+				if (bindings.disabled) {
 					value = this.getPropertyValue(dom, "disabled");
-					scope.$.set(options.disabled, value);
+					scope.$.set(bindings.disabled, value);
 				}
 
 				/* Read only */
-				if (options.readOnly) {
+				if (bindings.readOnly) {
 					value = this.getPropertyValue(dom, "readOnly");
-					scope.$.set(options.readOnly, value);
+					scope.$.set(bindings.readOnly, value);
 				}
-				if (options.readWrite) {
+				if (bindings.readWrite) {
 					value = this.getPropertyValue(dom, "readOnly");
-					scope.$.set(options.readWrite, !value);
+					scope.$.set(bindings.readWrite, !value);
 				}
 			},
 
@@ -762,13 +764,14 @@
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
 	Consistent.getNodeOptions = Consistent.defaultGetNodeOptions = function(dom, options) {
-		var result = mergeOptions({}, options);
+		var result = mergeOptions({ bindings: {} }, options);
+		var bindings = result.bindings;
 
 		var nodeName = dom.nodeName;
 		if (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT") {
-			if (result.key === undefined) {
+			if (bindings.key === undefined) {
 				/* Default key for input and textarea elements */
-				result.key = dom.getAttribute("name");
+				bindings.key = dom.getAttribute("name");
 			}
 		}
 
@@ -783,7 +786,7 @@
 				switch (matched.name) {
 					case "key": {
 						/* Body */
-						result.key = value;
+						bindings.key = value;
 						break;
 					}
 					case "attributePrefix": {
@@ -793,19 +796,19 @@
 					}
 					case "attributes": {
 						/* Attributes */
-						result.allAttributes = value;
+						bindings.allAttributes = value;
 						break;
 					}
 					case "template": {
 						/* Template */
 						assertTemplateEngine();
-						result.template = options.templateEngine.compile(value);
+						bindings.template = options.templateEngine.compile(value);
 						break;
 					}
 					case "templateId": {
 						/* Template by id */
 						assertTemplateEngine();
-						result.template = options.templateEngine.compile(templateById(value));
+						bindings.template = options.templateEngine.compile(templateById(value));
 						break;
 					}
 					case "templateAttributePrefix": {
@@ -826,7 +829,7 @@
 						break;
 					}
 					case "properties": {
-						result.allProperties = value;
+						bindings.allProperties = value;
 						break;
 					}
 					case "on": {
@@ -841,47 +844,47 @@
 					}
 					case "show": {
 						/* Show */
-						result.show = value;
+						bindings.show = value;
 						break;
 					}
 					case "hide": {
 						/* Hide */
-						result.hide = value;
+						bindings.hide = value;
 						break;
 					}
 					case "repeat": {
 						/* Repeat */
-						result.repeat = value;
+						bindings.repeat = value;
 						break;
 					}
 					case "repeatContainerId": {
 						/* Repeat container id */
-						result.repeatContainerId = value;
+						bindings.repeatContainerId = value;
 						break;
 					}
 					case "enabled": {
 						/* Enabled */
-						result.enabled = value;
+						bindings.enabled = value;
 						break;
 					}
 					case "disabled": {
 						/* Disabled */
-						result.disabled = value;
+						bindings.disabled = value;
 						break;
 					}
 					case "readOnly": {
 						/* Read Only */
-						result.readOnly = value;
+						bindings.readOnly = value;
 						break;
 					}
 					case "readWrite": {
 						/* Read Write */
-						result.readWrite = value;
+						bindings.readWrite = value;
 						break;
 					}
 					case "options": {
 						/* Select options */
-						result.selectOptions = value;
+						bindings.selectOptions = value;
 						break;
 					}
 					case "warningPrefix": {
@@ -949,15 +952,15 @@
 		}
 
 		function prepareAttributes() {
-			if (result.attributes === undefined) {
-				result.attributes = [];
+			if (bindings.attributes === undefined) {
+				bindings.attributes = [];
 			}
 		}
 
 		function addAttribute(name, key) {
 			prepareAttributes();
 
-			result.attributes.push({
+			bindings.attributes.push({
 				"name": name,
 				"key": key
 			});
@@ -965,31 +968,31 @@
 
 		function addAttributeTemplate(name, template) {
 			prepareAttributes();
-			result.attributes.push({
+			bindings.attributes.push({
 				"name": name,
 				"template": template
 			});
 		}
 
 		function addProperty(name, key) {
-			if (result.properties === undefined) {
-				result.properties = [];
+			if (bindings.properties === undefined) {
+				bindings.properties = [];
 			}
 
-			result.properties.push({
+			bindings.properties.push({
 				"name": name,
 				"key": key
 			});
 		}
 
 		function addEvent(eventName, eventHandlerKey) {
-			if (result.events === undefined) {
-				result.events = {};
+			if (bindings.events === undefined) {
+				bindings.events = {};
 			}
-			if (result.events[eventName] === undefined) {
-				result.events[eventName] = { keys: [] };
+			if (bindings.events[eventName] === undefined) {
+				bindings.events[eventName] = { keys: [] };
 			}
-			result.events[eventName].keys.push(eventHandlerKey);
+			bindings.events[eventName].keys.push(eventHandlerKey);
 		}
 
 		function defaultEventName(dom) {
@@ -1400,7 +1403,7 @@
 				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 
 				/* Repeating */
-				if (nodeOptions.repeat) {
+				if (nodeOptions.bindings.repeat) {
 					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
 				}
 			}
@@ -1434,7 +1437,7 @@
 		 *     ]
 		 * }
 		 */
-		var repeatKey = options.repeat;
+		var repeatKey = options.bindings.repeat;
 		var i;
 
 		var repeatData = node.repeatData;
@@ -1442,12 +1445,12 @@
 			/* Initialise repeat for this node */
 			repeatData = { version: 0, items: [] };
 
-			if (options.repeatContainerId) {
-				var source = document.getElementById(options.repeatContainerId);
+			if (options.bindings.repeatContainerId) {
+				var source = document.getElementById(options.bindings.repeatContainerId);
 				if (source !== null) {
 					repeatData.domNodes = source.children;
 				} else {
-					throw new ConsistentException("Couldn't find element with id \"" + options.repeatId + "\" for repeat container.");
+					throw new ConsistentException("Couldn't find element with id \"" + options.bindings.repeatId + "\" for repeat container.");
 				}
 			} else {
 				repeatData.domNodes = [ node.dom.cloneNode(true) ];
@@ -1787,7 +1790,7 @@
 			var self = this;
 
 			/* Bind events */
-			for (var eventName in nodeOptions.events) {
+			for (var eventName in nodeOptions.bindings.events) {
 				(function(eventName, keys) {
 					var listener = function(ev) {
 						var i;
@@ -1835,9 +1838,9 @@
 							}
 						}
 					};
-					nodeOptions.events[eventName].listener = listener;
+					nodeOptions.bindings.events[eventName].listener = listener;
 					addEventListener(dom, eventName, listener);
-				})(eventName, nodeOptions.events[eventName].keys);
+				})(eventName, nodeOptions.bindings.events[eventName].keys);
 			}
 
 			/* Handle specific nodes differently */
@@ -1859,7 +1862,7 @@
 		}
 
 		/* Bind children */
-		if (nodeOptions === undefined || !nodeOptions.repeat) {
+		if (nodeOptions === undefined || !nodeOptions.bindings.repeat) {
 			/* Skip children of a node which is a repeating node, as we will be duplicating that DOM. */
 			var child = dom.firstChild;
 			while (child !== null) {
@@ -1886,8 +1889,8 @@
 			var options = node.options;
 
 			/* Unbind events */
-			for (var eventName in options.events) {
-				dom.removeEventListener(eventName, options.events[eventName].listener, false);
+			for (var eventName in options.bindings.events) {
+				dom.removeEventListener(eventName, options.bindings.events[eventName].listener, false);
 			}
 
 			/* Unbind changes */
