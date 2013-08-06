@@ -728,6 +728,14 @@ scope.doClick = function(ev) {
 };
 ```
 
+See [Merging only specified keys](#merging-only-specified-keys) below for an alternative to this approach.
+
+### Merging only specified keys
+
+The `merge` function in the scope provides an easy way to merge properties from existing objects. It also has an optional argument, `keys`, which is an array of keys to copy into the scope. This enables you to pick and choose which properties from your existing objects you put into the scope.
+
+The keys array supports nested properties using `.` separators, e.g. `person.name`.
+
 Reference
 ---------
 
@@ -844,6 +852,6 @@ Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from
 Troubleshooting
 ---------------
 
-### JSON.stringify cannot serialize cyclic structures
+### Functions in objects in the scope are called unexpectedly
 
-The Consistent scope contains some cycles. When you want to use the scope for output, such as Ajax or simply turning it into a JSON string, first call `scope.$.snapshot()` to get a plain JavaScript object without cycles. See the documentation for `snapshot`.
+See the section [Change prefix for event handler and value functions](#change-prefix-for-event-handler-and-value-functions) above for an explanation and a solution to this problem.
