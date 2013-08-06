@@ -1168,6 +1168,10 @@
 			 * @param childScope internal use
 			 */
 			snapshot: function(includeParents, childScope) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+				}
+
 				var temp = merge(true, {}, this._scope);
 				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
 
@@ -1178,6 +1182,10 @@
 			},
 
 			nodes: function(includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+				}
+				
 				var result = this._manager._domNodes;
 				if (includeParents !== false) {
 					var children = this.children();
@@ -1214,6 +1222,10 @@
 				return this._scope;
 			},
 			get: function(key, includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+				}
+
 				var value = getNestedProperty(this._scope, key);
 				if (value !== undefined) {
 					return value;
@@ -1259,7 +1271,10 @@
 				return this._scope;
 			},
 			getEventHandler: function(key, includeParents) {
-				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), true);
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+				}
+
 				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), false);
 				if (value !== undefined) {
 					return value;
