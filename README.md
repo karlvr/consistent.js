@@ -732,9 +732,33 @@ See [Merging only specified keys](#merging-only-specified-keys) below for an alt
 
 ### Merging only specified keys
 
-The `merge` function in the scope provides an easy way to merge properties from existing objects. It also has an optional argument, `keys`, which is an array of keys to copy into the scope. This enables you to pick and choose which properties from your existing objects you put into the scope.
+The `merge` function provides an easy way to merge properties from existing objects into the scope. It also has an optional argument, `keys`, which is an array of strings. This enables you to pick and choose which properties from your existing objects you merge into the scope.
 
 The keys array supports nested properties using `.` separators, e.g. `person.name`.
+
+```javascript
+var object = {
+	title: "Consistent.js",
+	subtitle: "A JavaScript framework",
+	person: {
+		name: "Arthur",
+		age: 4,
+		gender: "m"
+	},
+	location: {
+		city: "Auckland",
+		country: "New Zealand"
+	},
+	friends: [
+		"Bob",
+		"Carl"
+	]
+};
+
+scope.merge(object, [ "title", "person.name", "person.age", "location", friends" ]);
+```
+
+The above results in the title, the person’s name and age, and the location and friends arrays all being copied into the scope. The subtitle and the person’s gender are not copied.
 
 Reference
 ---------
