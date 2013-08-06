@@ -1554,7 +1554,7 @@
 					 */
 					insertDomNodesBefore(item.domNodes, item.after.nextSibling, insertBefore.parentNode);
 				}
-				removeDomNodes(item.domNodes);
+				removeDomNodes(item.domNodes, item.scope);
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
@@ -1579,8 +1579,9 @@
 			return result;
 		}
 
-		function removeDomNodes(domNodes) {
+		function removeDomNodes(domNodes, scope) {
 			for (var i = 0; i < domNodes.length; i++) {
+				scope.$.unbind(domNodes[i]);
 				options.$.remove(domNodes[i]);
 			}
 		}
