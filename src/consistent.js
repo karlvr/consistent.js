@@ -52,7 +52,7 @@
 				/* Options only */
 				return Consistent.createScope(null, arg0);
 			} else {
-				throw new ConsistentException("Unexpected argument to Consistent(): " + arg0);
+				throw exception("Unexpected argument to Consistent(): " + arg0);
 			}
 		} else {
 			/* No arguments */
@@ -198,10 +198,10 @@
 			}
 			var target = arguments[objectsStart];
 			if (typeof target !== "object" && typeof target !== "function") {
-				throw new ConsistentException("Target object argument to merge is not appropriate: " + typeof target);
+				throw exception("Target object argument to merge is not appropriate: " + typeof target);
 			}
 			if (target === null) {
-				throw new ConsistentException("Target object argument to merge is not appropriate: " + target);
+				throw exception("Target object argument to merge is not appropriate: " + target);
 			}
 			for (var i = objectsStart + 1; i < arguments.length; i++) {
 				var source = arguments[i];
@@ -210,7 +210,7 @@
 				}
 
 				if (typeof source !== "object" && typeof source !== "function") {
-					throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+					throw exception("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
 				}
 
 				seen.push(source);
@@ -907,7 +907,7 @@
 						/* In the future this can be used for custom attributes, as the developer has added a key
 						 * into the settings.attributes.
 						 */
-						throw new ConsistentException("Unhandled consistent declaration attribute: " + name);
+						throw exception("Unhandled consistent declaration attribute: " + name);
 					}
 				}
 			}
@@ -945,7 +945,7 @@
 
 		function assertTemplateEngine() {
 			if (!options.templateEngine) {
-				throw new ConsistentException("templateEngine not configured in options");
+				throw exception("templateEngine not configured in options");
 			}
 		}
 
@@ -954,7 +954,7 @@
 			if (templateElement !== null) {
 				return templateElement.innerHTML;
 			} else {
-				throw new ConsistentException("Template not found with id: " + templateId);
+				throw exception("Template not found with id: " + templateId);
 			}
 		}
 
@@ -1147,7 +1147,7 @@
 					setNestedProperty(scope, keys, getNestedProperty(object, keys));
 					return scope;
 				} else {
-					throw new ConsistentException("Invalid keys argument to merge: " + keys);
+					throw exception("Invalid keys argument to merge: " + keys);
 				}
 			},
 			replace: function(object) {
@@ -1172,7 +1172,7 @@
 			 */
 			snapshot: function(includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
@@ -1187,7 +1187,7 @@
 
 			nodes: function(includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
 				var result = this._manager()._domNodes;
@@ -1229,7 +1229,7 @@
 			},
 			get: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
 				var value = getNestedProperty(this._scope(), key);
@@ -1280,7 +1280,7 @@
 			},
 			getEventHandler: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw new ConsistentException("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
 				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), false);
@@ -1512,7 +1512,7 @@
 
 		/* Sanity check */
 		if (typeof repeatSnapshot !== "object") {
-			throw new ConsistentException("Repeat for key \"" + repeatKey +
+			throw exception("Repeat for key \"" + repeatKey +
 				"\" is not an object in the scope, found " + typeof repeatSnapshot);
 		}
 
@@ -1651,7 +1651,7 @@
 			while (notified) {
 				notified = false;
 				if (loops >= Consistent.settings.maxWatcherLoops) {
-					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
+					throw exception("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
@@ -1764,7 +1764,7 @@
 		} else if (dom.attachEvent) {
 			dom.attachEvent("on" + eventName, listener);
 		} else {
-			throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
+			throw exception("Unable to attach event to DOM node. Cannot find supported method.");
 		}
 	}
 
@@ -1787,7 +1787,7 @@
 			/* IE support */
 			dom.fireEvent("on" + name);
 		} else {
-			throw new ConsistentException("Unable to fire a DOM event. Cannot find supported method.");
+			throw exception("Unable to fire a DOM event. Cannot find supported method.");
 		}
 		return ev;
 	}
@@ -1835,7 +1835,7 @@
 						if (source !== null) {
 							repeatData.domNodes = source.children;
 						} else {
-							throw new ConsistentException("Couldn't find element with id \"" + nodeOptions.bindings.repeatContainerId + "\" for repeat container.");
+							throw exception("Couldn't find element with id \"" + nodeOptions.bindings.repeatContainerId + "\" for repeat container.");
 						}
 					} else {
 						repeatData.domNodes = [ dom.cloneNode(true) ];
@@ -1900,12 +1900,12 @@
 										func = self._scope.$.get(key);
 										var eventHandlerPrefix = self._options.eventHandlerPrefix;
 										if (typeof func === "function") {
-											throw new ConsistentException("Bound \"" + eventName +
+											throw exception("Bound \"" + eventName +
 												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
 												"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
 												" prefix and is possibly a mistake?");
 										} else {
-											throw new ConsistentException("Bound \"" + eventName +
+											throw exception("Bound \"" + eventName +
 												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
 												"\"");
 										}
@@ -2039,14 +2039,19 @@
 
 	/* Exceptions */
 
+	function exception(message) {
+		return new ConsistentException(message);
+	}
+
 	ConsistentException.prototype = new Object();
 
 	function ConsistentException(message) {
-		this._message = message;
+		this.name = "ConsistentException";
+		this.message = message;
 	}
 
 	ConsistentException.prototype.toString = function() {
-		return "Consistent.js exception: " + this._message;
+		return "Consistent.js exception: " + this.message;
 	};
 
 })(window);
