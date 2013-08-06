@@ -149,6 +149,13 @@
 		return _plainObject.toString.call(object) === "[object Array]";
 	}
 
+	function isEmptyObject(object) {
+		for (var i in object) {
+			return false;
+		}
+		return true;
+	}
+
 	function arrayIndexOf(array, searchElement, fromIndex) {
 		if (typeof array.indexOf === "function") {
 			return array.indexOf(searchElement, fromIndex);
@@ -1778,86 +1785,96 @@
 			nodeOptions = mergeOptions({}, this._options, options);
 			nodeOptions = nodeOptions.$.getNodeOptions(dom, nodeOptions);
 
-			this._nodes.push({ dom: dom, options: nodeOptions });
-			this._domNodes.push(dom);
+			/* Mark the node as being part of this scope, although we do nothing with it.
+			 * That way you can still ask which scope it's a part of and find out.
+			 */	
+			dom[Consistent.settings.scopeIdKey] = this._id;
+			/* Also record root nodes, as for the roots it doesn't matter if we've actually
+			 * bound them or not, we simply want to know which nodes were the roots of our
+			 * binding.
+			 */
 			if (parentDom === undefined) {
 				this._rootDomNodes.push(dom);
 			}
-			this._nodesDirty = true;
 
-			dom[Consistent.settings.scopeIdKey] = this._id;
+			/* Check that are some bindings to apply */
+			if (!isEmptyObject(nodeOptions.bindings)) {
+				this._nodes.push({ dom: dom, options: nodeOptions });
+				this._domNodes.push(dom);
+				this._nodesDirty = true;
 
-			var self = this;
+				var self = this;
 
-			/* Bind events */
-			for (var eventName in nodeOptions.bindings.events) {
-				(function(eventName, keys) {
-					var listener = function(ev) {
-						var i;
+				/* Bind events */
+				for (var eventName in nodeOptions.bindings.events) {
+					(function(eventName, keys) {
+						var listener = function(ev) {
+							var i;
 
-						enhanceEvent(ev);
+							enhanceEvent(ev);
 
-						if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
-							/* When you use return to submit a form from an input element it doesn't fire the
-							 * change event on the element before submitting, so the scope isn't updated. So we
-							 * simulate the change event if there is an active element.
-							 */
-							for (i = 0; i < dom.elements.length; i++) {
-								if (document.activeElement === dom.elements[i]) {
-									dispatchSimpleEvent(dom.elements[i], "change");
-								}
-							}
-						}
-
-						for (i = 0; i < keys.length; i++) {
-							var key = keys[i];
-							var func = self._scope.$.getEventHandler(key);
-							if (func !== undefined) {
-								var result = func.call(dom, ev, self._scope);
-								if (result === false)
-									break;
-							} else {
-								/* An error has occured, so prevent the event from doing anything and throw an error.
-								 * If we don't prevent default and this is an <a> tag then the browser will navigate away
-								 * and blank the error console and it will be hard to see this error.
+							if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
+								/* When you use return to submit a form from an input element it doesn't fire the
+								 * change event on the element before submitting, so the scope isn't updated. So we
+								 * simulate the change event if there is an active element.
 								 */
-								ev.preventDefault();
-
-								func = self._scope.$.get(key);
-								var eventHandlerPrefix = self._options.eventHandlerPrefix;
-								if (typeof func === "function") {
-									throw new ConsistentException("Bound \"" + eventName +
-										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
-										" prefix and is possibly a mistake?");
-								} else {
-									throw new ConsistentException("Bound \"" + eventName +
-										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-										"\"");
+								for (i = 0; i < dom.elements.length; i++) {
+									if (document.activeElement === dom.elements[i]) {
+										dispatchSimpleEvent(dom.elements[i], "change");
+									}
 								}
 							}
-						}
-					};
-					nodeOptions.bindings.events[eventName].listener = listener;
-					addEventListener(dom, eventName, listener);
-				})(eventName, nodeOptions.bindings.events[eventName].keys);
-			}
 
-			/* Handle specific nodes differently */
-			var nodeName = dom.nodeName;
-			if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-				/* For input and textarea nodes we bind to their change event by default. */
-				var listener = function(ev) {
-					enhanceEvent(ev);
-					nodeOptions.$.update(dom, self._scope, nodeOptions);
-					self._scope.$.apply();
-				};
-				addEventListener(dom, "change", listener, false);
-				if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
-					addEventListener(dom, "click", listener, false);
+							for (i = 0; i < keys.length; i++) {
+								var key = keys[i];
+								var func = self._scope.$.getEventHandler(key);
+								if (func !== undefined) {
+									var result = func.call(dom, ev, self._scope);
+									if (result === false)
+										break;
+								} else {
+									/* An error has occured, so prevent the event from doing anything and throw an error.
+									 * If we don't prevent default and this is an <a> tag then the browser will navigate away
+									 * and blank the error console and it will be hard to see this error.
+									 */
+									ev.preventDefault();
+
+									func = self._scope.$.get(key);
+									var eventHandlerPrefix = self._options.eventHandlerPrefix;
+									if (typeof func === "function") {
+										throw new ConsistentException("Bound \"" + eventName +
+											"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+											"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
+											" prefix and is possibly a mistake?");
+									} else {
+										throw new ConsistentException("Bound \"" + eventName +
+											"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+											"\"");
+									}
+								}
+							}
+						};
+						nodeOptions.bindings.events[eventName].listener = listener;
+						addEventListener(dom, eventName, listener);
+					})(eventName, nodeOptions.bindings.events[eventName].keys);
 				}
 
-				nodeOptions.$._changeListener = listener;
+				/* Handle specific nodes differently */
+				var nodeName = dom.nodeName;
+				if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+					/* For input and textarea nodes we bind to their change event by default. */
+					var listener = function(ev) {
+						enhanceEvent(ev);
+						nodeOptions.$.update(dom, self._scope, nodeOptions);
+						self._scope.$.apply();
+					};
+					addEventListener(dom, "change", listener, false);
+					if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
+						addEventListener(dom, "click", listener, false);
+					}
+
+					nodeOptions.$._changeListener = listener;
+				}
 			}
 		}
 

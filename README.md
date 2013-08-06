@@ -368,7 +368,7 @@ You can also use templates to update attributes.
 
 ### Binding to DOM nodes
 
-In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container element.
+In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well. You typically bind a container element:
 
 ```html
 <div id="container">
@@ -581,7 +581,9 @@ rootScope.$handleClick = function(ev, scope) {
 
 ### Getting the nodes bound to a scope
 
-If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes`, which returns all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound – as opposed to those that were bound as they are children of the explicitly bound nodes.
+To get an array of DOM nodes that have been bound to a scope, and which have declared Consistent bindings (i.e. Consistent will actually modify them when the scope is applied), you can use the `nodes()` function. Even if a node has been passed to a Consistent scope’s `bind` function, if a node isn’t involved in updating or applying the scope (i.e. it has no `ct` attributes, and isn’t an input element) then it will not be included in the result from `nodes()`.
+
+To get an array of the DOM nodes that have been passed to a scope’s bind function use the `roots()` function. Note that the root nodes do not need to have declared Consistent bindings.
 
 ```javascript
 $(scope.$.nodes()).addClass("found");
