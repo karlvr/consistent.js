@@ -583,6 +583,8 @@ rootScope.$handleClick = function(ev, scope) {
 
 To get an array of DOM nodes that have been bound to a scope, and which have declared Consistent bindings (i.e. Consistent will actually modify them when the scope is applied), you can use the `nodes()` function. Even if a node has been passed to a Consistent scope’s `bind` function, if a node isn’t involved in updating or applying the scope (i.e. it has no `ct` attributes, and isn’t an input element) then it will not be included in the result from `nodes()`.
 
+Note that DOM nodes that define a repeating section (i.e. have a `ct-repeat` declaration) are not included in the result from `nodes()`, as those nodes no longer exist in the DOM.
+
 To get an array of the DOM nodes that have been passed to a scope’s bind function use the `roots()` function. Note that the root nodes do not need to have declared Consistent bindings.
 
 ```javascript

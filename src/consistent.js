@@ -1379,6 +1379,7 @@
 		this._options = options;
 		this._nodes = [];
 		this._domNodes = [];
+		this._repeatNodes = [];
 		this._rootDomNodes = [];
 		this._watchers = {};
 		this._nodesDirty = false;
@@ -1404,18 +1405,19 @@
 		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
 			var n = this._nodes.length;
-			for (var i = 0; i < n; i++) {
+			var i, nodeOptions;
+			for (i = 0; i < n; i++) {
 				var node = this._nodes[i];
-				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
+				nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
 
-				/* Repeating nodes do not get applied themselves. The DOM node has
-				 * been switched out for something else.
-				 */
-				if (nodeOptions.bindings.repeat) {
-					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
-				} else {
-					nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
-				}
+				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
+			}
+
+			n = this._repeatNodes.length;
+			for (i = 0; i < n; i++) {
+				var repeatData = this._repeatNodes[i];
+				nodeOptions = options !== undefined ? mergeOptions({}, repeatData.options, options) : repeatData.options;
+				this._handleRepeat(repeatData, nodeOptions, this._cleanScopeSnapshot);
 			}
 
 			this._nodesDirty = false;
@@ -1432,7 +1434,7 @@
 		this._applying = false;
 	};
 
-	ConsistentScopeManager.prototype._handleRepeat = function(node, options, snapshot) {
+	ConsistentScopeManager.prototype._handleRepeat = function(repeatData, options, snapshot) {
 		/* Repeat data is an object containing:
 		 * {
 		 *     domNodes: an array of top-level DOM nodes to use to repeat,
@@ -1449,37 +1451,6 @@
 		 */
 		var repeatKey = options.bindings.repeat;
 		var i;
-
-		var repeatData = node.repeatData;
-		if (repeatData === undefined) {
-			/* Initialise repeat for this node */
-			repeatData = { version: 0, items: [] };
-
-			if (options.bindings.repeatContainerId) {
-				var source = document.getElementById(options.bindings.repeatContainerId);
-				if (source !== null) {
-					repeatData.domNodes = source.children;
-				} else {
-					throw new ConsistentException("Couldn't find element with id \"" + options.bindings.repeatId + "\" for repeat container.");
-				}
-			} else {
-				repeatData.domNodes = [ node.dom.cloneNode(true) ];
-			}
-			for (i = 0; i < repeatData.domNodes.length; i++) {
-				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
-				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
-			}
-			node.repeatData = repeatData;
-
-			var replacement = document.createComment("Consistent repeat " + repeatKey);
-			node.dom.parentNode.insertBefore(replacement, node.dom);
-			node.dom.parentNode.removeChild(node.dom);
-			replacement[Consistent.settings.scopeIdKey] = this._id;
-			node.dom = replacement;
-
-			repeatData.insertBefore = document.createComment("/Consistent repeat " + repeatKey);
-			node.dom.parentNode.insertBefore(repeatData.insertBefore, replacement.nextSibling);
-		}
 
 		var repeatContext = this._scope.$.get(repeatKey);
 		var repeatSnapshot = getNestedProperty(snapshot, repeatKey);
@@ -1774,8 +1745,9 @@
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
+		var i;
 		if (isArray(dom)) {
-			for (var i = 0; i < dom.length; i++) {
+			for (i = 0; i < dom.length; i++) {
 				this.bind(dom[i], options, parentDom);
 			}
 			return;
@@ -1802,81 +1774,114 @@
 
 			/* Check that are some bindings to apply */
 			if (!isEmptyObject(nodeOptions.bindings)) {
-				this._nodes.push({ dom: dom, options: nodeOptions });
-				this._domNodes.push(dom);
-				this._nodesDirty = true;
+				if (nodeOptions.bindings.repeat !== undefined) {
+					/* Repeat nodes */
+					var repeatData = { version: 0, items: [], options: nodeOptions };
+					var repeatKey = nodeOptions.bindings.repeat;
 
-				var self = this;
-
-				/* Bind events */
-				for (var eventName in nodeOptions.bindings.events) {
-					(function(eventName, keys) {
-						var listener = function(ev) {
-							var i;
-
-							enhanceEvent(ev);
-
-							if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
-								/* When you use return to submit a form from an input element it doesn't fire the
-								 * change event on the element before submitting, so the scope isn't updated. So we
-								 * simulate the change event if there is an active element.
-								 */
-								for (i = 0; i < dom.elements.length; i++) {
-									if (document.activeElement === dom.elements[i]) {
-										dispatchSimpleEvent(dom.elements[i], "change");
-									}
-								}
-							}
-
-							for (i = 0; i < keys.length; i++) {
-								var key = keys[i];
-								var func = self._scope.$.getEventHandler(key);
-								if (func !== undefined) {
-									var result = func.call(dom, ev, self._scope);
-									if (result === false)
-										break;
-								} else {
-									/* An error has occured, so prevent the event from doing anything and throw an error.
-									 * If we don't prevent default and this is an <a> tag then the browser will navigate away
-									 * and blank the error console and it will be hard to see this error.
-									 */
-									ev.preventDefault();
-
-									func = self._scope.$.get(key);
-									var eventHandlerPrefix = self._options.eventHandlerPrefix;
-									if (typeof func === "function") {
-										throw new ConsistentException("Bound \"" + eventName +
-											"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-											"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
-											" prefix and is possibly a mistake?");
-									} else {
-										throw new ConsistentException("Bound \"" + eventName +
-											"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-											"\"");
-									}
-								}
-							}
-						};
-						nodeOptions.bindings.events[eventName].listener = listener;
-						addEventListener(dom, eventName, listener);
-					})(eventName, nodeOptions.bindings.events[eventName].keys);
-				}
-
-				/* Handle specific nodes differently */
-				var nodeName = dom.nodeName;
-				if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-					/* For input and textarea nodes we bind to their change event by default. */
-					var listener = function(ev) {
-						enhanceEvent(ev);
-						nodeOptions.$.update(dom, self._scope, nodeOptions);
-						self._scope.$.apply();
-					};
-					addEventListener(dom, "change", listener, false);
-					if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
-						addEventListener(dom, "click", listener, false);
+					if (nodeOptions.bindings.repeatContainerId) {
+						var source = document.getElementById(nodeOptions.bindings.repeatContainerId);
+						if (source !== null) {
+							repeatData.domNodes = source.children;
+						} else {
+							throw new ConsistentException("Couldn't find element with id \"" + nodeOptions.bindings.repeatContainerId + "\" for repeat container.");
+						}
+					} else {
+						repeatData.domNodes = [ dom.cloneNode(true) ];
+					}
+					for (i = 0; i < repeatData.domNodes.length; i++) {
+						removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
+						removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
 					}
 
-					nodeOptions.$._changeListener = listener;
+					var replacement = document.createComment("Consistent repeat " + repeatKey);
+					dom.parentNode.insertBefore(replacement, dom);
+					dom.parentNode.removeChild(dom);
+					replacement[Consistent.settings.scopeIdKey] = this._id;
+
+					repeatData.insertBefore = document.createComment("/Consistent repeat " + repeatKey);
+					replacement.parentNode.insertBefore(repeatData.insertBefore, replacement.nextSibling);
+
+					this._repeatNodes.push(repeatData);
+					this._nodesDirty = true;
+				} else {
+					/* Normal nodes */
+					this._nodes.push({ dom: dom, options: nodeOptions });
+					this._domNodes.push(dom);
+					this._nodesDirty = true;
+
+					var self = this;
+
+					/* Bind events */
+					for (var eventName in nodeOptions.bindings.events) {
+						(function(eventName, keys) {
+							var listener = function(ev) {
+								var i;
+
+								enhanceEvent(ev);
+
+								if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
+									/* When you use return to submit a form from an input element it doesn't fire the
+									 * change event on the element before submitting, so the scope isn't updated. So we
+									 * simulate the change event if there is an active element.
+									 */
+									for (i = 0; i < dom.elements.length; i++) {
+										if (document.activeElement === dom.elements[i]) {
+											dispatchSimpleEvent(dom.elements[i], "change");
+										}
+									}
+								}
+
+								for (i = 0; i < keys.length; i++) {
+									var key = keys[i];
+									var func = self._scope.$.getEventHandler(key);
+									if (func !== undefined) {
+										var result = func.call(dom, ev, self._scope);
+										if (result === false)
+											break;
+									} else {
+										/* An error has occured, so prevent the event from doing anything and throw an error.
+										 * If we don't prevent default and this is an <a> tag then the browser will navigate away
+										 * and blank the error console and it will be hard to see this error.
+										 */
+										ev.preventDefault();
+
+										func = self._scope.$.get(key);
+										var eventHandlerPrefix = self._options.eventHandlerPrefix;
+										if (typeof func === "function") {
+											throw new ConsistentException("Bound \"" + eventName +
+												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+												"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
+												" prefix and is possibly a mistake?");
+										} else {
+											throw new ConsistentException("Bound \"" + eventName +
+												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+												"\"");
+										}
+									}
+								}
+							};
+							nodeOptions.bindings.events[eventName].listener = listener;
+							addEventListener(dom, eventName, listener);
+						})(eventName, nodeOptions.bindings.events[eventName].keys);
+					}
+
+					/* Handle specific nodes differently */
+					var nodeName = dom.nodeName;
+					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+						/* For input and textarea nodes we bind to their change event by default. */
+						var listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "change", listener, false);
+						if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
+							addEventListener(dom, "click", listener, false);
+						}
+
+						nodeOptions.$._changeListener = listener;
+					}
 				}
 			}
 		}
