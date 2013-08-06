@@ -1123,6 +1123,10 @@
 				this._manager.bind(dom, options);
 				return this._scope;
 			},
+			unbind: function(dom) {
+				this._manager.unbind(dom);
+				return this._scope;
+			},
 			merge: function(object, keys) {
 				if (typeof object === "boolean") {
 					/* merge(true, object) */
