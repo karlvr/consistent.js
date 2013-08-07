@@ -18,3 +18,15 @@ function dispatchHTMLEvent(domNodes, name) {
 		domNodes[i].dispatchEvent(ev);
 	}
 }
+
+function nodesByName(nodes) {
+	var result = {};
+	for (var i = 0; i < nodes.length; i++) {
+		var nodeName = nodes[i].nodeName;
+		if (result[nodeName] === undefined) {
+			result[nodeName] = [];
+		}
+		result[nodeName].push(nodes[i]);
+	}
+	return result;
+}

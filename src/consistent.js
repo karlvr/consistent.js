@@ -1,5 +1,5 @@
-/*! 
- * Consistent.js 0.5.2
+/*!
+ * Consistent.js 0.7.1
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -52,7 +52,7 @@
 				/* Options only */
 				return Consistent.createScope(null, arg0);
 			} else {
-				throw new ConsistentException("Unexpected argument to Consistent(): " + arg0);
+				throw exception("Unexpected argument to Consistent(): " + arg0);
 			}
 		} else {
 			/* No arguments */
@@ -99,6 +99,8 @@
 				propertyPrefix: [ "data-ct-prop-", "ct-prop-" ],
 				templateAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
 				templateIdAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
+				classAttribute: [ "data-ct-class", "ct-class" ],
+				classAddAttribute: [ "data-ct-add-class", "ct-add-class" ],
 
 				on: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
 				onPrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
@@ -112,6 +114,7 @@
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
 			oldDisplayKey: "__ConsistentOldDisplay",
+			addedClassesKey: "__ConsistentAddedClasses",
 
 			maxWatcherLoops: 100
 		},
@@ -147,6 +150,13 @@
 
 	function isArray(object) {
 		return _plainObject.toString.call(object) === "[object Array]";
+	}
+
+	function isEmptyObject(object) {
+		for (var i in object) {
+			return false;
+		}
+		return true;
 	}
 
 	function arrayIndexOf(array, searchElement, fromIndex) {
@@ -191,10 +201,10 @@
 			}
 			var target = arguments[objectsStart];
 			if (typeof target !== "object" && typeof target !== "function") {
-				throw new ConsistentException("Target object argument to merge is not appropriate: " + typeof target);
+				throw exception("Target object argument to merge is not appropriate: " + typeof target);
 			}
 			if (target === null) {
-				throw new ConsistentException("Target object argument to merge is not appropriate: " + target);
+				throw exception("Target object argument to merge is not appropriate: " + target);
 			}
 			for (var i = objectsStart + 1; i < arguments.length; i++) {
 				var source = arguments[i];
@@ -203,7 +213,7 @@
 				}
 
 				if (typeof source !== "object" && typeof source !== "function") {
-					throw new ConsistentException("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
+					throw exception("Argument " + (i+1) + " to merge is not appropriate: " + typeof source);
 				}
 
 				seen.push(source);
@@ -344,13 +354,14 @@
 			/** Apply the given snapshot to the given dom object */
 			apply: function(dom, snapshot, options) {
 				var name, value, i;
+				var bindings = options.bindings;
 
 				/* Select options */
-				if (options.selectOptions) {
+				if (bindings.selectOptions) {
 					/* This must come before the setValue, as the select's options need to be setup before
 					 * its value can be set.
 					 */
-					value = getNestedProperty(snapshot, options.selectOptions);
+					value = getNestedProperty(snapshot, bindings.selectOptions);
 					if (value !== undefined) {
 						var selectedValue = dom.selectedIndex !== -1 ? inputOptionValue(dom.options[dom.selectedIndex]) : undefined;
 						dom.length = value.length;
@@ -359,8 +370,8 @@
 							if (typeof value[i] === "object") {
 								var optionText = value[i].text;
 								var optionValue = value[i].value;
-								newOption = new Option(optionText !== undefined ? optionText : "", 
-									optionValue !== undefined ? optionValue : "", 
+								newOption = new Option(optionText !== undefined ? optionText : "",
+									optionValue !== undefined ? optionValue : "",
 									false, optionValue == selectedValue);
 								if (value[i].label !== undefined) {
 									newOption.label = value[i].label;
@@ -377,20 +388,20 @@
 				}
 
 				/* Value */
-				if (options.key) {
+				if (bindings.key) {
 					/* Key */
-					value = getNestedProperty(snapshot, options.key);
+					value = getNestedProperty(snapshot, bindings.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
-				} else if (options.template !== undefined && options.template !== null) {
+				} else if (bindings.template !== undefined && bindings.template !== null) {
 					/* Template - note that "" is a valid template, so we have to use this longer check in the if condition */
-					this.setValue(dom, options.template.render(snapshot));
+					this.setValue(dom, bindings.template.render(snapshot));
 				}
 
 				/* Attributes */
-				if (options.attributes) {
-					var attrs = options.attributes;
+				if (bindings.attributes) {
+					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							value = getNestedProperty(snapshot, attrs[i].key);
@@ -405,8 +416,8 @@
 						}
 					}
 				}
-				if (options.allAttributes) {
-					value = getNestedProperty(snapshot, options.allAttributes);
+				if (bindings.allAttributes) {
+					value = getNestedProperty(snapshot, bindings.allAttributes);
 					for (name in value) {
 						if (value[name] !== undefined) {
 							value = value[name];
@@ -418,10 +429,25 @@
 						}
 					}
 				}
+				if (bindings.classAttribute) {
+					value = getNestedProperty(snapshot, bindings.classAttribute);
+					if (value !== undefined) {
+						if (isArray(value)) {
+							value = value.join(" ");
+						}
+						this.setAttributeValue(dom, "class", value);
+					}
+				}
+				if (bindings.classAddAttribute) {
+					value = getNestedProperty(snapshot, bindings.classAddAttribute);
+					if (value !== undefined)  {
+						this.addRemoveClasses(dom, value);
+					}
+				}
 
 				/* Properties */
-				if (options.properties) {
-					var props = options.properties;
+				if (bindings.properties) {
+					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = getNestedProperty(snapshot, props[i].key);
 						if (value !== undefined) {
@@ -429,8 +455,8 @@
 						}
 					}
 				}
-				if (options.allProperties) {
-					value = getNestedProperty(snapshot, options.allProperties);
+				if (bindings.allProperties) {
+					value = getNestedProperty(snapshot, bindings.allProperties);
 					var names = getNestedPropertyNames(value);
 					for (i = 0; i < names.length; i++) {
 						var propertyValue = getNestedProperty(value, names[i]);
@@ -441,8 +467,8 @@
 				}
 
 				/* Visibility */
-				if (options.show) {
-					value = getNestedProperty(snapshot, options.show);
+				if (bindings.show) {
+					value = getNestedProperty(snapshot, bindings.show);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -451,8 +477,8 @@
 						}
 					}
 				}
-				if (options.hide) {
-					value = getNestedProperty(snapshot, options.hide);
+				if (bindings.hide) {
+					value = getNestedProperty(snapshot, bindings.hide);
 					if (value !== undefined) {
 						if (!value) {
 							this.show(dom);
@@ -463,28 +489,28 @@
 				}
 
 				/* Enabled / disabled */
-				if (options.enabled) {
-					value = getNestedProperty(snapshot, options.enabled);
+				if (bindings.enabled) {
+					value = getNestedProperty(snapshot, bindings.enabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !value);
 					}
 				}
-				if (options.disabled) {
-					value = getNestedProperty(snapshot, options.disabled);
+				if (bindings.disabled) {
+					value = getNestedProperty(snapshot, bindings.disabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !!value);
 					}
 				}
 
 				/* Read only */
-				if (options.readOnly) {
-					value = getNestedProperty(snapshot, options.readOnly);
+				if (bindings.readOnly) {
+					value = getNestedProperty(snapshot, bindings.readOnly);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !!value);
 					}
 				}
-				if (options.readWrite) {
-					value = getNestedProperty(snapshot, options.readWrite);
+				if (bindings.readWrite) {
+					value = getNestedProperty(snapshot, bindings.readWrite);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !value);
 					}
@@ -522,7 +548,7 @@
 					if (value === null) {
 						value = "";
 					}
-					
+
 					var i;
 					if (isArray(value)) {
 						for (i = 0; i < dom.options.length; i++) {
@@ -562,14 +588,15 @@
 			/** Update the given scope with the given dom object */
 			update: function(dom, scope, options) {
 				var value, i;
+				var bindings = options.bindings;
 
 				/* Value */
-				if (options.key) {
+				if (bindings.key) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
 							/* Special checkbox support */
-							var scopeValue = scope.$.get(options.key);
+							var scopeValue = scope.$.get(bindings.key);
 							if (isArray(scopeValue)) {
 								i = arrayIndexOf(scopeValue, dom.value);
 								if (value) {
@@ -587,28 +614,28 @@
 								 * This will be graduated to an array later if another checkbox is set.
 								 */
 								if (value) {
-									scope.$.set(options.key, dom.value);
+									scope.$.set(bindings.key, dom.value);
 								}
 							} else if (typeof scopeValue === "boolean" || dom.value === "on") {
 								/* If the scope already contains a boolean, or this checkbox has a
 								 * default value of "on" then we put a boolean into the scope.
 								 */
-								scope.$.set(options.key, value);
+								scope.$.set(bindings.key, value);
 							} else if (value && scopeValue !== dom.value) {
 								/* If the scope already contains a scalar value, and it's not the same as
 								 * our checkbox's value, then graduate to an array in the scope.
 								 */
-								scope.$.set(options.key, [ scopeValue, dom.value ]);
+								scope.$.set(bindings.key, [ scopeValue, dom.value ]);
 							}
 						} else {
-							scope.$.set(options.key, value);
+							scope.$.set(bindings.key, value);
 						}
 					}
 				}
 
 				/* Attributes */
-				if (options.attributes) {
-					var attrs = options.attributes;
+				if (bindings.attributes) {
+					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
 							value = this.getAttributeValue(dom, attrs[i].name);
@@ -616,25 +643,33 @@
 						}
 					}
 				}
-				if (options.allAttributes) {
-					value = scope.$.get(options.allAttributes);
+				if (bindings.allAttributes) {
+					value = scope.$.get(bindings.allAttributes);
 					if (value !== undefined) {
 						for (i in value) {
 							value[i] = this.getAttributeValue(dom, i);
 						}
 					}
 				}
+				if (bindings.classAttribute) {
+					value = this.getAttributeValue(dom, "class");
+					if (isArray(scope.$.get(bindings.classAttribute))) {
+						/* Convert to array */
+						value = value.split(" ");
+					} 
+					scope.$.set(bindings.classAttribute, value);
+				}
 
 				/* Properties */
-				if (options.properties) {
-					var props = options.properties;
+				if (bindings.properties) {
+					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
 				}
-				if (options.allProperties) {
-					value = scope.$.get(options.allProperties);
+				if (bindings.allProperties) {
+					value = scope.$.get(bindings.allProperties);
 					if (value !== undefined) {
 						var names = getNestedPropertyNames(value);
 						for (i = 0; i < names.length; i++) {
@@ -644,33 +679,33 @@
 				}
 
 				/* Visibility */
-				if (options.show) {
+				if (bindings.show) {
 					value = this.isShowing(dom);
-					scope.$.set(options.show, value);
+					scope.$.set(bindings.show, value);
 				}
-				if (options.hide) {
+				if (bindings.hide) {
 					value = this.isShowing(dom);
-					scope.$.set(options.hide, !value);
+					scope.$.set(bindings.hide, !value);
 				}
 
 				/* Enabled / disabled */
-				if (options.enabled) {
+				if (bindings.enabled) {
 					value = this.getPropertyValue(dom, "disabled");
-					scope.$.set(options.enabled, !value);
+					scope.$.set(bindings.enabled, !value);
 				}
-				if (options.disabled) {
+				if (bindings.disabled) {
 					value = this.getPropertyValue(dom, "disabled");
-					scope.$.set(options.disabled, value);
+					scope.$.set(bindings.disabled, value);
 				}
 
 				/* Read only */
-				if (options.readOnly) {
+				if (bindings.readOnly) {
 					value = this.getPropertyValue(dom, "readOnly");
-					scope.$.set(options.readOnly, value);
+					scope.$.set(bindings.readOnly, value);
 				}
-				if (options.readWrite) {
+				if (bindings.readWrite) {
 					value = this.getPropertyValue(dom, "readOnly");
-					scope.$.set(options.readWrite, !value);
+					scope.$.set(bindings.readWrite, !value);
 				}
 			},
 
@@ -713,6 +748,62 @@
 
 			getPropertyValue: function(dom, name) {
 				return getNestedProperty(dom, name);
+			},
+
+			addRemoveClasses: function(dom, classesStringOrArray) {
+				var newClasses = classesStringOrArrayToArray(classesStringOrArray);
+				var existingClasses = classesStringOrArrayToArray(this.getAttributeValue(dom, "class"));
+				var addedClasses = dom[Consistent.settings.addedClassesKey];
+				if (!addedClasses) {
+					addedClasses = [];
+					dom[Consistent.settings.addedClassesKey] = addedClasses;
+				}
+
+				var i, j, k;
+				/* Find classes we've added previously that are not in the new array of classes,
+				 * and remove them.
+				 */
+				for (i = 0; i < addedClasses.length; i++) {
+					j = arrayIndexOf(newClasses, addedClasses[i]);
+					if (j === -1) {
+						/* No longer in list of classes, so remove */
+						k = arrayIndexOf(existingClasses, addedClasses[i]);
+						if (k !== -1) {
+							existingClasses.splice(k, 1);
+						}
+						addedClasses.splice(i, 1);
+						i--;
+					}
+				}
+
+				/* Find new classes to add */
+				for (i = 0; i < newClasses.length; i++) {
+					var newClass = newClasses[i];
+					j = arrayIndexOf(addedClasses, newClass);
+					if (j === -1) {
+						/* New class to add */
+						k = arrayIndexOf(existingClasses, newClass);
+						if (k === -1) {
+							/* Not existing */
+							existingClasses.push(newClass);
+							addedClasses.push(newClass);
+						}
+					}
+				}
+
+				this.setAttributeValue(dom, "class", existingClasses.join(" "));
+
+				function classesStringOrArrayToArray(ob) {
+					if (ob === null) {
+						return [];
+					} else if (typeof ob === "string") {
+						return ob.split(" ");
+					} else if (isArray(ob)) {
+						return ob;
+					} else {
+						throw exception("Unsupported value for add class: " + typeof ob);
+					}
+				}
 			},
 
 			show: function(dom) {
@@ -762,13 +853,14 @@
 	  * @return The merged options based on options discovered from the dom and the given options.
 	  */
 	Consistent.getNodeOptions = Consistent.defaultGetNodeOptions = function(dom, options) {
-		var result = mergeOptions({}, options);
+		var result = mergeOptions({ bindings: {} }, options);
+		var bindings = result.bindings;
 
 		var nodeName = dom.nodeName;
 		if (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT") {
-			if (result.key === undefined) {
+			if (bindings.key === undefined) {
 				/* Default key for input and textarea elements */
-				result.key = dom.getAttribute("name");
+				bindings.key = dom.getAttribute("name");
 			}
 		}
 
@@ -783,7 +875,7 @@
 				switch (matched.name) {
 					case "key": {
 						/* Body */
-						result.key = value;
+						bindings.key = value;
 						break;
 					}
 					case "attributePrefix": {
@@ -793,19 +885,19 @@
 					}
 					case "attributes": {
 						/* Attributes */
-						result.allAttributes = value;
+						bindings.allAttributes = value;
 						break;
 					}
 					case "template": {
 						/* Template */
 						assertTemplateEngine();
-						result.template = options.templateEngine.compile(value);
+						bindings.template = options.templateEngine.compile(value);
 						break;
 					}
 					case "templateId": {
 						/* Template by id */
 						assertTemplateEngine();
-						result.template = options.templateEngine.compile(templateById(value));
+						bindings.template = options.templateEngine.compile(templateById(value));
 						break;
 					}
 					case "templateAttributePrefix": {
@@ -826,7 +918,7 @@
 						break;
 					}
 					case "properties": {
-						result.allProperties = value;
+						bindings.allProperties = value;
 						break;
 					}
 					case "on": {
@@ -841,54 +933,62 @@
 					}
 					case "show": {
 						/* Show */
-						result.show = value;
+						bindings.show = value;
 						break;
 					}
 					case "hide": {
 						/* Hide */
-						result.hide = value;
+						bindings.hide = value;
 						break;
 					}
 					case "repeat": {
 						/* Repeat */
-						result.repeat = value;
+						bindings.repeat = value;
 						break;
 					}
 					case "repeatContainerId": {
 						/* Repeat container id */
-						result.repeatContainerId = value;
+						bindings.repeatContainerId = value;
 						break;
 					}
 					case "enabled": {
 						/* Enabled */
-						result.enabled = value;
+						bindings.enabled = value;
 						break;
 					}
 					case "disabled": {
 						/* Disabled */
-						result.disabled = value;
+						bindings.disabled = value;
 						break;
 					}
 					case "readOnly": {
 						/* Read Only */
-						result.readOnly = value;
+						bindings.readOnly = value;
 						break;
 					}
 					case "readWrite": {
 						/* Read Write */
-						result.readWrite = value;
+						bindings.readWrite = value;
 						break;
 					}
 					case "options": {
 						/* Select options */
-						result.selectOptions = value;
+						bindings.selectOptions = value;
+						break;
+					}
+					case "classAttribute": {
+						bindings.classAttribute = value;
+						break;
+					}
+					case "classAddAttribute": {
+						bindings.classAddAttribute = value;
 						break;
 					}
 					case "warningPrefix": {
 						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 						 * weren't recognized. Log these out to help developers catch errors.
 						 */
-						if (console.log !== undefined) {
+						if (typeof console !== "undefined" && console.log !== undefined) {
 							console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
 						}
 						break;
@@ -897,7 +997,7 @@
 						/* In the future this can be used for custom attributes, as the developer has added a key
 						 * into the settings.attributes.
 						 */
-						throw new ConsistentException("Unhandled consistent declaration attribute: " + name);
+						throw exception("Unhandled consistent declaration attribute: " + name);
 					}
 				}
 			}
@@ -935,7 +1035,7 @@
 
 		function assertTemplateEngine() {
 			if (!options.templateEngine) {
-				throw new ConsistentException("templateEngine not configured in options");
+				throw exception("templateEngine not configured in options");
 			}
 		}
 
@@ -944,20 +1044,20 @@
 			if (templateElement !== null) {
 				return templateElement.innerHTML;
 			} else {
-				throw new ConsistentException("Template not found with id: " + templateId);
+				throw exception("Template not found with id: " + templateId);
 			}
 		}
 
 		function prepareAttributes() {
-			if (result.attributes === undefined) {
-				result.attributes = [];
+			if (bindings.attributes === undefined) {
+				bindings.attributes = [];
 			}
 		}
 
 		function addAttribute(name, key) {
 			prepareAttributes();
 
-			result.attributes.push({
+			bindings.attributes.push({
 				"name": name,
 				"key": key
 			});
@@ -965,31 +1065,31 @@
 
 		function addAttributeTemplate(name, template) {
 			prepareAttributes();
-			result.attributes.push({
+			bindings.attributes.push({
 				"name": name,
 				"template": template
 			});
 		}
 
 		function addProperty(name, key) {
-			if (result.properties === undefined) {
-				result.properties = [];
+			if (bindings.properties === undefined) {
+				bindings.properties = [];
 			}
 
-			result.properties.push({
+			bindings.properties.push({
 				"name": name,
 				"key": key
 			});
 		}
 
 		function addEvent(eventName, eventHandlerKey) {
-			if (result.events === undefined) {
-				result.events = {};
+			if (bindings.events === undefined) {
+				bindings.events = {};
 			}
-			if (result.events[eventName] === undefined) {
-				result.events[eventName] = { keys: [] };
+			if (bindings.events[eventName] === undefined) {
+				bindings.events[eventName] = { keys: [] };
 			}
-			result.events[eventName].keys.push(eventHandlerKey);
+			bindings.events[eventName].keys.push(eventHandlerKey);
 		}
 
 		function defaultEventName(dom) {
@@ -1002,7 +1102,7 @@
 				return "click";
 			}
 		}
-			
+
 		return result;
 	};
 
@@ -1013,7 +1113,7 @@
 	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
 	 * objects in the scope.
 	 */
-	function processSnapshot(snapshot, scope, seen) {
+	function processSnapshot(snapshot, dontRemoveEventHandlers, scope, seen) {
 		if (seen === undefined) {
 			seen = [];
 		}
@@ -1025,36 +1125,48 @@
 		var options = scope.$.options();
 		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
+		var propertyName;
 
 		for (var name in snapshot) {
 			if (name.indexOf(eventHandlerPrefix) === 0) {
-				/* Remove handler functions */
-				delete snapshot[name];
+				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
+				if (dontRemoveEventHandlers) {
+					propertyName = propertyNameFromPrefixed(name, eventHandlerPrefix);
+					if (propertyName === name || snapshot[propertyName] === undefined) {
+						snapshot[propertyName] = snapshot[name];
+					}
+					if (propertyName !== name) {
+						delete snapshot[name];
+					}
+				} else {
+					delete snapshot[name];
+				}
 			} else if (typeof snapshot[name] === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(scope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
-					var propertyName;
-					if (prefixRequiresNextInitialCap(valueFunctionPrefix)) {
-						propertyName = name.substring(valueFunctionPrefix.length);
-						propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
-					} else {
-						propertyName = name.substring(valueFunctionPrefix.length);
-					}
+					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
 					snapshot[propertyName] = snapshot[name].call(scope);
 
 					/* Delete the original value function */
 					delete snapshot[name];
-				} else {
-					/* Delete other functions as they are presumed to be foreign and not intended to
-					 * be used in the scope.
-					 */
-					delete snapshot[name];
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], scope, seen);
+				processSnapshot(snapshot[name], dontRemoveEventHandlers, scope, seen);
+			}
+		}
+
+		function propertyNameFromPrefixed(name, prefix) {
+			if (prefix === undefined) {
+				return name;
+			}
+			if (prefixRequiresNextInitialCap(prefix)) {
+				var propertyName = name.substring(prefix.length);
+				return propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+			} else {
+				return name.substring(prefix.length);
 			}
 		}
 	}
@@ -1063,10 +1175,10 @@
 		$: {
 			_type: SCOPE_TYPE,
 
-			/* The root of the scope */
+			/* Function returning the root of the scope */
 			_scope: null,
 
-			/* The manager */
+			/* Function returning the manager */
 			_manager: null,
 
 			/* The index of this scope in a repeating section */
@@ -1078,12 +1190,13 @@
 					options = undefined;
 				}
 
+				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(this._scope, options);
+					func.call(scope, options);
 				}
 
-				this._manager.apply(options);
-				return this._scope;
+				this._manager().apply(options);
+				return scope;
 			},
 			applyLater: function(options, func) {
 				if (typeof options === "function") {
@@ -1091,112 +1204,172 @@
 					options = undefined;
 				}
 
+				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(this._scope, options);
+					func.call(scope, options);
 				}
 
 				window.clearTimeout(this._applyLaterTimeout);
-				var self = this;
 				this._applyLaterTimeout = window.setTimeout(function() {
-					self._scope.$.apply(options);
+					scope.$.apply(options);
 				}, 0);
-				return this._scope;
+				return scope;
 			},
 			needsApply: function() {
-				return this._manager.needsApply();
+				return this._manager().needsApply();
 			},
 			update: function() {
-				this._manager.update();
-				return this._scope;
+				this._manager().update();
+				return this._scope();
 			},
 			bind: function(dom, options) {
-				this._manager.bind(dom, options);
-				return this._scope;
+				this._manager().bind(dom, options);
+				return this._scope();
+			},
+			unbind: function(dom) {
+				this._manager().unbind(dom);
+				return this._scope();
 			},
 			merge: function(object, keys) {
+				var scope = this._scope();
 				if (typeof object === "boolean") {
 					/* merge(true, object) */
-					return merge(object, this._scope, keys);
+					return merge(object, scope, keys);
 				} else if (keys === undefined) {
 					/* merge(object) */
-					return merge(this._scope, object);
+					return merge(scope, object);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
-						setNestedProperty(this._scope, keys[i], getNestedProperty(object, keys[i]));
+						setNestedProperty(scope, keys[i], getNestedProperty(object, keys[i]));
 					}
-					return this._scope;
+					return scope;
 				} else if (typeof keys !== "object") {
 					/* merge(object, key) */
-					setNestedProperty(this._scope, keys, getNestedProperty(object, keys));
-					return this._scope;
+					setNestedProperty(scope, keys, getNestedProperty(object, keys));
+					return scope;
 				} else {
-					throw new ConsistentException("Invalid keys argument to merge: " + keys);
+					throw exception("Invalid keys argument to merge: " + keys);
 				}
 			},
 			replace: function(object) {
-				return this._manager.replaceScope(object);
+				return this._manager().replaceScope(object);
 			},
 			clear: function() {
-				for (var i in this._scope) {
+				var scope = this._scope();
+				for (var i in scope) {
 					if (i !== "$") {
-						delete this._scope[i];
+						delete scope[i];
 					}
 				}
 			},
 
 			/**
-			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
-			 * that contains Consistent functionality, any properties with a $ prefix (event handlers) and
-			 * replacing any value functions with their current value.
+			 * Return a plain object with a snapshot of the model values from the scope, excluding the $ object
+			 * that contains Consistent functionality, any properties beginning with the event handler prefix,
+			 * and replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
+			 * @param includeParents If false, only include the local scope properties
+			 * @param childScope internal use
 			 */
-			snapshot: function(childScope) {
-				var temp = this.snapshotLocal(childScope);
-				if (this.parent()) {
-					temp = merge(this.parent().$.snapshot(childScope !== undefined ? childScope : this._scope), temp);
+			model: function(includeParents, childScope) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var scope = this._scope();
+				var temp = merge(true, {}, scope);
+				processSnapshot(temp, false, childScope !== undefined ? childScope : scope);
+
+				if (includeParents !== false && this.parent()) {
+					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
 				return temp;
 			},
-			snapshotLocal: function(childScope) {
-				var temp = merge(true, {}, this._scope);
-				processSnapshot(temp, childScope !== undefined ? childScope : this._scope);
+
+			/**
+			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
+			 * that contains Consistent functionality, and replacing any value functions with their current value.
+			 * If there is a parent scope, the values from that scope are merged in.
+			 * @param includeParents If false, only include the local scope in the snapshot
+			 * @param childScope internal use
+			 */
+			snapshot: function(includeParents, childScope) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var scope = this._scope();
+				var temp = merge(true, {}, scope);
+				processSnapshot(temp, true, childScope !== undefined ? childScope : scope);
+
+				if (includeParents !== false && this.parent()) {
+					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
+				}
 				return temp;
 			},
 
-			nodes: function() {
-				return this._manager._domNodes;
+			nodes: function(includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var result = this._manager()._domNodes;
+				if (includeParents !== false) {
+					var children = this.children();
+					for (var i = 0; i < children.length; i++) {
+						result = result.concat(children[i].$.nodes());
+					}
+				}
+				return result;
 			},
 			roots: function() {
-				return this._manager._rootDomNodes;
+				return this._manager()._rootDomNodes;
 			},
+
 			parent: function() {
-				return this._manager._parentScope;
+				var parentScopeManager = this._manager()._parentScopeManager;
+				if (parentScopeManager !== null) {
+					return parentScopeManager._scope;
+				} else {
+					return null;
+				}
+			},
+			children: function() {
+				var result = [];
+				var childScopeManagers = this._manager()._childScopeManagers;
+				for (var i = 0; i < childScopeManagers.length; i++) {
+					result.push(childScopeManagers[i]._scope);
+				}
+				return result;
 			},
 			watch: function(key, handler) {
-				this._manager.watch(key, handler);
-				return this._scope;
+				this._manager().watch(key, handler);
+				return this._scope();
 			},
 			unwatch: function(key, handler) {
-				this._manager.unwatch(key, handler);
-				return this._scope;
+				this._manager().unwatch(key, handler);
+				return this._scope();
 			},
-			get: function(key) {
-				var local = this.getLocal(key);
-				if (local !== undefined) {
-					return local;
-				} else if (this.parent()) {
+			get: function(key, includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var value = getNestedProperty(this._scope(), key);
+				if (value !== undefined) {
+					return value;
+				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.get(key);
 				} else {
 					return undefined;
 				}
 			},
-			getLocal: function(key) {
-				return getNestedProperty(this._scope, key);
-			},
 			set: function(key, value) {
+				var scope = this._scope();
+
 				var parts = key.split(".");
-				var current = this._scope;
+				var current = scope;
 				for (var i = 0; i < parts.length - 1; i++) {
 					var next = current[parts[i]];
 					if (next === undefined) {
@@ -1212,43 +1385,43 @@
 						/* Check for possible value function */
 						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
 						if (typeof current[possibleValueFunction] === "function") {
-							current[possibleValueFunction].call(this._scope, value);
-							return this._scope;
+							current[possibleValueFunction].call(scope, value);
+							return scope;
 						}
 					}
 
 					current[lastPart] = value;
 				} else if (!valueFunctionPrefix) {
 					/* Value function */
-					current[lastPart].call(this._scope, value);
+					current[lastPart].call(scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
 					 */
 					current[lastPart] = value;
 				}
-				return this._scope;
+				return scope;
 			},
-			getEventHandler: function(key) {
-				var local = this.getLocalEventHandler(key);
-				if (local !== undefined) {
-					return local;
-				} else if (this.parent()) {
+			getEventHandler: function(key, includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), false);
+				if (value !== undefined) {
+					return value;
+				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.getEventHandler(key);
 				} else {
 					return undefined;
 				}
-			},
-			getLocalEventHandler: function(key) {
-				key = mungePropertyName(key, this.options().eventHandlerPrefix);
-				return this.getLocal(key);
 			},
 			setEventHandler: function(key, value) {
 				key = mungePropertyName(key, this.options().eventHandlerPrefix);
 				return this.set(key, value);
 			},
 			options: function(dom) {
-				return this._manager.getOptions(dom);
+				return this._manager().getOptions(dom);
 			}
 		}
 	};
@@ -1365,18 +1538,30 @@
 		this._id = "ConsistentScope" + scopeId;
 		scopeId++;
 
-		this._parentScope = parentScope;
+		if (parentScope) {
+			this._parentScopeManager = parentScope.$._manager();
+			this._parentScopeManager._childScopeManagers.push(this);
+		} else {
+			this._parentScopeManager = null;
+		}
+		this._childScopeManagers = [];
 		this._options = options;
 		this._nodes = [];
 		this._domNodes = [];
+		this._repeatNodes = [];
 		this._rootDomNodes = [];
 		this._watchers = {};
 		this._nodesDirty = false;
 		this._applying = false;
 
+		var self = this;
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
-		this._scope.$._manager = this;
-		this._scope.$._scope = this._scope;
+		this._scope.$._manager = function() {
+			return self;
+		};
+		this._scope.$._scope = function() {
+			return self._scope;
+		};
 
 		this._cleanScopeSnapshot = this._scope.$.snapshot();
 	}
@@ -1394,22 +1579,26 @@
 		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
 			var n = this._nodes.length;
-			for (var i = 0; i < n; i++) {
+			var i, nodeOptions;
+			for (i = 0; i < n; i++) {
 				var node = this._nodes[i];
-				var nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
-				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
+				nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;
 
-				/* Repeating */
-				if (nodeOptions.repeat) {
-					this._handleRepeat(node, nodeOptions, this._cleanScopeSnapshot);
-				}
+				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
+			}
+
+			n = this._repeatNodes.length;
+			for (i = 0; i < n; i++) {
+				var repeatData = this._repeatNodes[i];
+				nodeOptions = options !== undefined ? mergeOptions({}, repeatData.options, options) : repeatData.options;
+				this._handleRepeat(repeatData, nodeOptions, this._cleanScopeSnapshot);
 			}
 
 			this._nodesDirty = false;
 
 			/* Apply parent scope */
-			if (this._parentScope) {
-				this._parentScope.$.apply(options);
+			if (this._parentScopeManager) {
+				this._parentScopeManager._scope.$.apply(options);
 			}
 
 			var scopeOptions = options !== undefined ? mergeOptions({}, this._options, options) : this._options;
@@ -1419,14 +1608,14 @@
 		this._applying = false;
 	};
 
-	ConsistentScopeManager.prototype._handleRepeat = function(node, options, snapshot) {
+	ConsistentScopeManager.prototype._handleRepeat = function(repeatData, options, snapshot) {
 		/* Repeat data is an object containing:
 		 * {
 		 *     domNodes: an array of top-level DOM nodes to use to repeat,
 		 *     version: version counter to track deletions,
 		 *     insertBefore: the DOM node to insert before,
 		 *     items: [
-		 *         object: the data object, 
+		 *         object: the data object,
 		 *         domNodes: an array of top-level DOM nodes created,
 		 *         scope: the child scope created,
 		 *         version: version counter to track deletions,
@@ -1434,39 +1623,8 @@
 		 *     ]
 		 * }
 		 */
-		var repeatKey = options.repeat;
+		var repeatKey = options.bindings.repeat;
 		var i;
-
-		var repeatData = node.repeatData;
-		if (repeatData === undefined) {
-			/* Initialise repeat for this node */
-			repeatData = { version: 0, items: [] };
-
-			if (options.repeatContainerId) {
-				var source = document.getElementById(options.repeatContainerId);
-				if (source !== null) {
-					repeatData.domNodes = source.children;
-				} else {
-					throw new ConsistentException("Couldn't find element with id \"" + options.repeatId + "\" for repeat container.");
-				}
-			} else {
-				repeatData.domNodes = [ node.dom.cloneNode(true) ];
-			}
-			for (i = 0; i < repeatData.domNodes.length; i++) {
-				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
-				removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
-			}
-			node.repeatData = repeatData;
-
-			var replacement = document.createComment("Consistent repeat " + repeatKey);
-			node.dom.parentNode.insertBefore(replacement, node.dom);
-			node.dom.parentNode.removeChild(node.dom);
-			replacement[Consistent.settings.scopeIdKey] = this._id;
-			node.dom = replacement;
-
-			repeatData.insertBefore = document.createComment("/Consistent repeat " + repeatKey);
-			node.dom.parentNode.insertBefore(repeatData.insertBefore, replacement.nextSibling);
-		}
 
 		var repeatContext = this._scope.$.get(repeatKey);
 		var repeatSnapshot = getNestedProperty(snapshot, repeatKey);
@@ -1478,7 +1636,7 @@
 
 		/* Sanity check */
 		if (typeof repeatSnapshot !== "object") {
-			throw new ConsistentException("Repeat for key \"" + repeatKey + 
+			throw exception("Repeat for key \"" + repeatKey +
 				"\" is not an object in the scope, found " + typeof repeatSnapshot);
 		}
 
@@ -1498,7 +1656,7 @@
 			if (item === undefined) {
 				/* New object */
 				var domNodes = newDomNodes();
-				
+
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$.bind(domNodes);
 				childScope = childScope.$.replace(object);
@@ -1539,7 +1697,7 @@
 					 */
 					insertDomNodesBefore(item.domNodes, item.after.nextSibling, insertBefore.parentNode);
 				}
-				removeDomNodes(item.domNodes);
+				removeDomNodes(item.domNodes, item.scope);
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
@@ -1564,8 +1722,9 @@
 			return result;
 		}
 
-		function removeDomNodes(domNodes) {
+		function removeDomNodes(domNodes, scope) {
 			for (var i = 0; i < domNodes.length; i++) {
+				scope.$.unbind(domNodes[i]);
 				options.$.remove(domNodes[i]);
 			}
 		}
@@ -1616,7 +1775,7 @@
 			while (notified) {
 				notified = false;
 				if (loops >= Consistent.settings.maxWatcherLoops) {
-					throw new ConsistentException("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
+					throw exception("Too many loops while notifying watchers. There is likely to be an infinite loop caused by watcher functions continously changing the scope. You may otherwise increase Consistent.settings.maxWatcherLoops if this is not the case.");
 				}
 
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
@@ -1625,8 +1784,8 @@
 					if (arrayIndexOf(dirty, key) === -1) {
 						dirty.push(key);
 					}
-					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key), 
-						getNestedProperty(currentCleanScopeSnapshot, key), 
+					notified |= this._notifyWatchers(key, getNestedProperty(nextCleanScopeSnapshot, key),
+						getNestedProperty(currentCleanScopeSnapshot, key),
 						this._scope, notifyingState);
 				}
 
@@ -1679,8 +1838,8 @@
 			}
 		}
 
-		if (this._parentScope) {
-			this._parentScope.$._manager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+		if (this._parentScopeManager) {
+			this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
 		return notified;
@@ -1708,7 +1867,7 @@
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
 					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
-					
+
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
 					notified = true;
@@ -1716,8 +1875,8 @@
 			}
 		}
 
-		if (this._parentScope) {
-			this._parentScope.$._manager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
+		if (this._parentScopeManager) {
+			this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;
@@ -1729,7 +1888,7 @@
 		} else if (dom.attachEvent) {
 			dom.attachEvent("on" + eventName, listener);
 		} else {
-			throw new ConsistentException("Unable to attach event to DOM node. Cannot find supported method.");
+			throw exception("Unable to attach event to DOM node. Cannot find supported method.");
 		}
 	}
 
@@ -1752,7 +1911,7 @@
 			/* IE support */
 			dom.fireEvent("on" + name);
 		} else {
-			throw new ConsistentException("Unable to fire a DOM event. Cannot find supported method.");
+			throw exception("Unable to fire a DOM event. Cannot find supported method.");
 		}
 		return ev;
 	}
@@ -1761,8 +1920,9 @@
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
+		var i;
 		if (isArray(dom)) {
-			for (var i = 0; i < dom.length; i++) {
+			for (i = 0; i < dom.length; i++) {
 				this.bind(dom[i], options, parentDom);
 			}
 			return;
@@ -1775,91 +1935,139 @@
 			nodeOptions = mergeOptions({}, this._options, options);
 			nodeOptions = nodeOptions.$.getNodeOptions(dom, nodeOptions);
 
-			this._nodes.push({ dom: dom, options: nodeOptions });
-			this._domNodes.push(dom);
+			/* Mark the node as being part of this scope, although we do nothing with it.
+			 * That way you can still ask which scope it's a part of and find out.
+			 */	
+			dom[Consistent.settings.scopeIdKey] = this._id;
+			/* Also record root nodes, as for the roots it doesn't matter if we've actually
+			 * bound them or not, we simply want to know which nodes were the roots of our
+			 * binding.
+			 */
 			if (parentDom === undefined) {
 				this._rootDomNodes.push(dom);
 			}
-			this._nodesDirty = true;
 
-			dom[Consistent.settings.scopeIdKey] = this._id;
+			/* Check that are some bindings to apply */
+			if (!isEmptyObject(nodeOptions.bindings)) {
+				if (nodeOptions.bindings.repeat !== undefined) {
+					/* Repeat nodes */
+					var repeatData = { version: 0, items: [], options: nodeOptions };
+					var repeatKey = nodeOptions.bindings.repeat;
 
-			var self = this;
+					if (nodeOptions.bindings.repeatContainerId) {
+						var source = document.getElementById(nodeOptions.bindings.repeatContainerId);
+						if (source !== null) {
+							repeatData.domNodes = source.children;
+						} else {
+							throw exception("Couldn't find element with id \"" + nodeOptions.bindings.repeatContainerId + "\" for repeat container.");
+						}
+					} else {
+						repeatData.domNodes = [ dom.cloneNode(true) ];
+					}
+					for (i = 0; i < repeatData.domNodes.length; i++) {
+						removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeat);
+						removeAttributes(repeatData.domNodes[i], Consistent.settings.attributes.repeatContainerId);
+					}
 
-			/* Bind events */
-			for (var eventName in nodeOptions.events) {
-				(function(eventName, keys) {
-					var listener = function(ev) {
-						var i;
+					var replacement = document.createComment("Consistent repeat " + repeatKey);
+					dom.parentNode.insertBefore(replacement, dom);
+					dom.parentNode.removeChild(dom);
+					replacement[Consistent.settings.scopeIdKey] = this._id;
 
-						enhanceEvent(ev);
+					repeatData.insertBefore = document.createComment("/Consistent repeat " + repeatKey);
+					replacement.parentNode.insertBefore(repeatData.insertBefore, replacement.nextSibling);
 
-						if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
-							/* When you use return to submit a form from an input element it doesn't fire the
-							 * change event on the element before submitting, so the scope isn't updated. So we
-							 * simulate the change event if there is an active element.
-							 */
-							for (i = 0; i < dom.elements.length; i++) {
-								if (document.activeElement === dom.elements[i]) {
-									dispatchSimpleEvent(dom.elements[i], "change");
+					this._repeatNodes.push(repeatData);
+					this._nodesDirty = true;
+				} else {
+					/* Normal nodes */
+					this._nodes.push({ dom: dom, options: nodeOptions });
+					this._domNodes.push(dom);
+					this._nodesDirty = true;
+
+					var self = this;
+
+					/* Bind events */
+					for (var eventName in nodeOptions.bindings.events) {
+						(function(eventName, keys) {
+							var listener = function(ev) {
+								var i;
+
+								enhanceEvent(ev);
+
+								if (support.needChangeEventForActiveOnSubmit && eventName === "submit" && dom.nodeName === "FORM") {
+									/* When you use return to submit a form from an input element it doesn't fire the
+									 * change event on the element before submitting, so the scope isn't updated. So we
+									 * simulate the change event if there is an active element.
+									 */
+									for (i = 0; i < dom.elements.length; i++) {
+										if (document.activeElement === dom.elements[i]) {
+											dispatchSimpleEvent(dom.elements[i], "change");
+										}
+									}
 								}
-							}
+
+								for (i = 0; i < keys.length; i++) {
+									var key = keys[i];
+									var func = self._scope.$.getEventHandler(key);
+									if (func !== undefined) {
+										/* If the func is defined but "falsey" then we simply don't invoke the function,
+										 * but this is not an error.
+										 */
+										if (func) {
+											var result = func.call(dom, ev, self._scope);
+											if (result === false)
+												break;
+										}
+									} else {
+										/* An error has occured, so prevent the event from doing anything and throw an error.
+										 * If we don't prevent default and this is an <a> tag then the browser will navigate away
+										 * and blank the error console and it will be hard to see this error.
+										 */
+										ev.preventDefault();
+
+										func = self._scope.$.get(key);
+										var eventHandlerPrefix = self._options.eventHandlerPrefix;
+										if (typeof func === "function") {
+											throw exception("Bound \"" + eventName +
+												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+												"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
+												" prefix and is possibly a mistake?");
+										} else {
+											throw exception("Bound \"" + eventName +
+												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+												"\"");
+										}
+									}
+								}
+							};
+							nodeOptions.bindings.events[eventName].listener = listener;
+							addEventListener(dom, eventName, listener);
+						})(eventName, nodeOptions.bindings.events[eventName].keys);
+					}
+
+					/* Handle specific nodes differently */
+					var nodeName = dom.nodeName;
+					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+						/* For input and textarea nodes we bind to their change event by default. */
+						var listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "change", listener, false);
+						if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
+							addEventListener(dom, "click", listener, false);
 						}
 
-						for (i = 0; i < keys.length; i++) {
-							var key = keys[i];
-							var func = self._scope.$.getEventHandler(key);
-							if (func !== undefined) {
-								var result = func.call(dom, ev, self._scope);
-								if (result === false)
-									break;
-							} else {
-								/* An error has occured, so prevent the event from doing anything and throw an error.
-								 * If we don't prevent default and this is an <a> tag then the browser will navigate away
-								 * and blank the error console and it will be hard to see this error.
-								 */
-								ev.preventDefault();
-
-								func = self._scope.$.get(key);
-								var eventHandlerPrefix = self._options.eventHandlerPrefix;
-								if (typeof func === "function") {
-									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) + 
-										"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix + 
-										" prefix and is possibly a mistake?");
-								} else {
-									throw new ConsistentException("Bound \"" + eventName + 
-										"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-										"\"");
-								}
-							}
-						}
-					};
-					nodeOptions.events[eventName].listener = listener;
-					addEventListener(dom, eventName, listener);
-				})(eventName, nodeOptions.events[eventName].keys);
-			}
-
-			/* Handle specific nodes differently */
-			var nodeName = dom.nodeName;
-			if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-				/* For input and textarea nodes we bind to their change event by default. */
-				var listener = function(ev) {
-					enhanceEvent(ev);
-					nodeOptions.$.update(dom, self._scope, nodeOptions);
-					self._scope.$.apply();
-				};
-				addEventListener(dom, "change", listener, false);
-				if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
-					addEventListener(dom, "click", listener, false);
+						nodeOptions.$._changeListener = listener;
+					}
 				}
-
-				nodeOptions.$._changeListener = listener;
 			}
 		}
 
 		/* Bind children */
-		if (nodeOptions === undefined || !nodeOptions.repeat) {
+		if (nodeOptions === undefined || !nodeOptions.bindings.repeat) {
 			/* Skip children of a node which is a repeating node, as we will be duplicating that DOM. */
 			var child = dom.firstChild;
 			while (child !== null) {
@@ -1886,8 +2094,8 @@
 			var options = node.options;
 
 			/* Unbind events */
-			for (var eventName in options.events) {
-				dom.removeEventListener(eventName, options.events[eventName].listener, false);
+			for (var eventName in options.bindings.events) {
+				dom.removeEventListener(eventName, options.bindings.events[eventName].listener, false);
 			}
 
 			/* Unbind changes */
@@ -1895,8 +2103,8 @@
 				dom.removeEventListener("change", options.$._changeListener, false);
 			}
 
-			this._domNodes.slice(i, 1);
-			this._nodes.slice(i, 1);
+			this._domNodes.splice(i, 1);
+			this._nodes.splice(i, 1);
 		}
 
 		/* Unbind children */
@@ -1907,10 +2115,6 @@
 			}
 			child = child.nextSibling;
 		}
-	};
-
-	ConsistentScopeManager.prototype.nodes = function() {
-		return _domNodes;
 	};
 
 	ConsistentScopeManager.prototype.watch = function(key, callback) {
@@ -1957,7 +2161,6 @@
 
 	ConsistentScopeManager.prototype.replaceScope = function(newScope) {
 		newScope.$ = this._scope.$;
-		newScope.$._scope = newScope;
 		this._scope = newScope;
 		return newScope;
 	};
@@ -1965,14 +2168,19 @@
 
 	/* Exceptions */
 
+	function exception(message) {
+		return new ConsistentException(message);
+	}
+
 	ConsistentException.prototype = new Object();
 
 	function ConsistentException(message) {
-		this._message = message;
+		this.name = "ConsistentException";
+		this.message = message;
 	}
 
 	ConsistentException.prototype.toString = function() {
-		return "Consistent.js exception: " + this._message;
+		return "Consistent.js exception: " + this.message;
 	};
 
 })(window);

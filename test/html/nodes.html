@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+	<h1 ct="title"></h1>
+	<section>
+		<article ct-repeat="articles" ct-attr-class="type">
+			<h2 ct="name"></h2>
+			<content ct="body"></content>
+		</article>
+	</section>
+	<nav>
+		<ul>
+			<li ct-repeat="pages">
+				<a ct-attr-href="url" ct="name"></a>
+			</li>
+		</ul>
+	</nav>
+</body>
+</html>

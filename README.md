@@ -144,6 +144,17 @@ The value function gets called with `this` set to the scope, and no arguments. A
 
 When the scope is populated from the DOM using the `scope.$.update` function, or when a scope property is set manually using the `scope.$.set` function, and the scope contains a value function for the affected property; the value function is called with one argument - the incoming value. Your value function can ignore this if it doesn’t support updates.
 
+```javascript
+var numberOfPeople = 5;
+scope.numberOfPeople = function(newValue) {
+	if (typeof newValue !== "undefined") {
+		numberOfPeople = parseInt(newValue);
+	} else {
+		return numberOfPeople;
+	}
+}
+```
+
 ### Form elements
 
 Form elements are automatically associated with the scope property with the same name as the element, and Consistent updates the form field’s value from the scope.
@@ -230,7 +241,7 @@ You can of course bind the selected option as well, e.g. `scope.product = "bucke
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You don’t have to include the `$` prefix when specifying the function in the DOM.
+Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You must not include the `$` prefix when specifying the function in the DOM.
 
 ```html
 <a href="#" ct-on-click="handleClick">Click me</a>
@@ -340,35 +351,71 @@ It is also possible to repeat a collection of elements. See Repeating multiple e
 You can set DOM element attributes from the scope.
 
 ```html
-<h1 ct-attr-class="titleClass">Title</h1>
+<h1 ct-attr-title="headingTitle">Consistent.js</h1>
 ```
 
-Now create a scope and set the heading’s class.
+Now create a scope and set the heading’s `title` attribute.
 
 ```javascript
 var scope = $("h1").consistent();
-scope.titleClass = "large";
+scope.headingTitle = "Welcome";
 scope.$.apply();
 ```
 
-The `h1` element will now have a class of "large" applied.
+If you want to set DOM element properties, see the [Properties](#properties) section below.
 
-You can also set DOM element properties, see the Properties section below.
+#### Class attributes
+
+Class attributes can be bound by declaring a `ct-attr-class` attribute, as above, however there is a shortcut for classes: `ct-class`.
+
+```html
+<h1 ct-class="headingClass">Consistent.js</h1>
+```
+
+```javascript
+scope.headingClass = "heading";
+scope.headingClass = "heading another-class";
+scope.headingClass = [ "heading", "another-class" ];
+```
+
+Note that as well as being a shortcut, the `ct-class` supports array values, which are automatically converted to a space-separated string. If the scope contains an array value, `update` will convert the classes into an array when setting the scope.
+
+The alternative `ct-add-class` attribute preserves existing classes. When the scope is applied the scope property determines the set of classes to add to the element in addition to its existing classes. The following example code is applied in order and shows how the class attribute changes.
+
+```html
+<h1 class="heading" ct-add-class="headingClass">Consistent.js</h1>
+```
+
+```javascript
+scope.headingClass = "another-class";
+scope.$.apply(); // class attribute is now "heading another-class"
+
+scope.headingClass = "one two";
+scope.$.apply(); // "heading one two"
+
+scope.headingClass = null;
+scope.$.apply(); // "heading"
+
+scope.headingClass = "heading";
+scope.$.apply(); // "heading"
+```
+
+If you add classes to an element independent of Consistent, it will treat those classes as if they were existing and will not remove them when the scope is next applied, so everyone can play nicely together.
 
 #### Templating
 
 You can also use templates to update attributes.
 
 ```html
-<h1 ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
+<h1 ct-tmpl-attr-title="This is a story about {{subject}}">Title</h1>
 
-<h1 ct-tmpl-id-attr-class="h1-class-template">Title</h1>
-<script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
+<h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
+<script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
 ```
 
-### Binding to DOM nodes
+### Binding the scope to the DOM
 
-In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well. So typically you bind a container element.
+In the examples above we’ve specifically bound the example nodes by their element name, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well, so you typically bind a container element:
 
 ```html
 <div id="container">
@@ -443,7 +490,7 @@ scope.$.watch(function(changedKeys, snapshot, oldSnapshot) {
 });
 ```
 
-The snapshots passed to the watch handler function for the whole scope are created using the `scope.$.snapshot` function, and therefore do not have the `$` object, event handlers, and value functions have been replaced with their value.
+The snapshots passed to the watch handler function for the whole scope are created using the `scope.$.snapshot` function, and therefore do not have the `$` object, and value functions have been replaced with their value.
 
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
@@ -466,23 +513,80 @@ $.ajax({
 
 Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
-### Snapshotting the scope to a Javascript object
+### Exporting the scope to a Javascript object
 
-The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data. Finally, it contains value functions that are evaluated to determine their current value.
+The scope contains some extra properties required for Consistent. Particularly the `$` property, where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), and value functions.
 
-In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will return a new object excluding the `$` object and any keys starting with a `$` symbol (usually just event handlers). It will also evaluate all value functions and include their current value.
+#### Snapshot
 
-Note that if there are properties in your scope that you don’t want included in your snapshot, start them with a `$` character even if they’re not event handlers.
+Use the `snapshot` function to obtain a Javascript object without the `$` property, with properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) renamed to exclude the prefix, and with value functions evaluated and replaced with their value. This provides a snapshot of the state of the scope, and can be used to inspect values without being concerned with value functions, and without being concerned with the `$` prefix.
+
+```javascript
+scope.title = "My title";
+scope.subtitle = function() { return "My subtitle" };
+scope.$doNext = function(ev) { ... };
+scope.$anotherProperty = "see below";
+
+console.log(scope.$.snapshot());
+```
+
+```javascript
+{
+	title: "My title",
+	subtitle: "My subtitle",
+	doNext: function(ev) { ... },
+	anotherProperty: "see below"
+}
+```
+
+A snapshot is used when applying the scope to the DOM. This is how the declarations in the DOM can refer to `$` prefixed scope properties without the prefix.
+
+The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass `false` for the optional `includeParents` parameter, e.g. `snapshot(false)`.
+
+#### Model
+
+The snapshot includes properties that are not relevant if you want to submit data back to a server using Ajax, or give the data to other code. For this, use the `model` function. The `model` function behaves like `snapshot`, except rather than renaming any properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) they are removed.
+
+Following on from the snapshot example above:
+
+```javascript
+console.log(scope.$.model());
+```
+
+```javascript
+{
+	title: "My title",
+	subtitle: "My subtitle"
+}
+```
+
+So for use with Ajax, as an example:
 
 ```javascript
 var scope = $("#item").consistent();
 scope.$.update();
 $.ajax({
-	data: scope.$.snapshot()
+	data: scope.$.model()
 });
 ```
 
-The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes use `snapshotLocal` instead.
+The `model` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `model(false)`.
+
+#### Private properties
+
+What follows from the implementation of the `model` function, is that if you want to include properties in your scope that you don’t want to export out of the scope for Ajax or other purposes, you can prefix those properties with a `$` (or whatever the `eventHandlerPrefix` option is set to). You still refer to them without the `$` prefix in the binding declarations, so it is quite transparent.
+
+```html
+<h1 ct="title"></h1>
+```
+
+```javascript
+scope.$title = "My title";
+
+// The following are both true
+scope.$.snapshot().title === "My title";
+scope.$.model().title === undefined;
+```
 
 License
 -------
@@ -531,7 +635,7 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope use `getLocal` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass true for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
 
 ### Parent scopes
 
@@ -581,7 +685,13 @@ rootScope.$handleClick = function(ev, scope) {
 
 ### Getting the nodes bound to a scope
 
-If you need to get the DOM nodes that have been bound to a scope, you can either use `nodes`, which returns all of the DOM nodes that are bound, or `roots`, which only returns the DOM nodes explicitly bound – as opposed to those that were bound as they are children of the explicitly bound nodes.
+To get an array of DOM nodes that have been bound to a scope, and that have declared bindings (e.g. have `ct...` attributes), you can use the `nodes()` function. Even if a node has been passed to a Consistent scope’s `bind` function, if a node doesn’t declare bindings then it will not be included in the result from `nodes()`.
+
+`nodes()` includes any bound nodes in child scopes as well. If you don’t want to include child scopes, pass true for the optional `includeParents` parameter, e.g. `nodes(false)`.
+
+Note that DOM nodes that define a repeating section (i.e. have a `ct-repeat` declaration) are not included in the result from `nodes()`, as those nodes no longer exist in the DOM. However, as nodes from child scopes are included the result may include the repeated nodes if they declare bindings.
+
+To get an array of the DOM nodes that have been passed to a scope’s bind function use the `roots()` function. Note that the root nodes do not need to have declared Consistent bindings.
 
 ```javascript
 $(scope.$.nodes()).addClass("found");
@@ -693,13 +803,13 @@ If you’re adding existing objects to your scopes that use naming conventions t
 
 To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions.
 
-By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You may still omit the prefix when declaring the event handler to bind to in the DOM.
+By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You must still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this camel-casing do not use a prefix that ends with a letter.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`.
 
-By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
+By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` (or whatever the `eventHandlerPrefix` option is set to) is treated as a value function. You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.
 
-When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM. The value function prefix is removed when the snapshot is created. Also note that when Consistent updates the scope from the DOM if there is a value function that matches then the value function will be invoked with the new value as an argument.
+When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM (same as for event handlers). The value function prefix is removed when the snapshot is created.
 
 ```html
 <div id="container">
@@ -721,6 +831,38 @@ scope.doClick = function(ev) {
 	alert("Click!");
 };
 ```
+
+See [Merging only specified keys](#merging-only-specified-keys) below for an alternative to this approach.
+
+### Merging only specified keys
+
+The `merge` function provides an easy way to merge properties from existing objects into the scope. It also has an optional argument, `keys`, which is an array of strings. This enables you to pick and choose which properties from your existing objects you merge into the scope.
+
+The keys array supports nested properties using `.` separators, e.g. `person.name`.
+
+```javascript
+var object = {
+	title: "Consistent.js",
+	subtitle: "A JavaScript framework",
+	person: {
+		name: "Arthur",
+		age: 4,
+		gender: "m"
+	},
+	location: {
+		city: "Auckland",
+		country: "New Zealand"
+	},
+	friends: [
+		"Bob",
+		"Carl"
+	]
+};
+
+scope.merge(object, [ "title", "person.name", "person.age", "location", friends" ]);
+```
+
+The above results in the title, the person’s name and age, and the location and friends arrays all being copied into the scope. The subtitle and the person’s gender are not copied.
 
 Reference
 ---------
@@ -755,6 +897,9 @@ The `NAME` segment in the following list represents the name of the attribute or
 * `ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
 * `ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
 
+* `ct-class` the name of a property in the scope to use to set the value of the `class` attribute on this element. Supports string and array values.
+* `ct-add-class` the name of a property in the scope to use to add classes to the existing `class` attribute on this element. Supports string and array values.
+
 #### Visibility
 
 * `ct-show` show this element when the named property in the scope is true, otherwise hide it.
@@ -783,23 +928,20 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
 * `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
-* `nodes()` returns an array of DOM nodes that are bound to this scope.
+* `nodes([includeParents])` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes unless the optional `includeParents` parameter is false.
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
 #### Scope
-* `snapshot()` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values.
-* `snapshotLocal()` as for `snapshot` but doesn’t include parent scopes.
+* `snapshot([includeParents])` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional `includeParents` parameter is false.
 * `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.
 * `merge(object, keys)` merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 
-* `get(key)` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes. The value may be a scalar value or a function in the case of a value function or event handler.
-* `getLocal(key)` as for `get` but doesn’t fall back to parent scopes.
+* `get(key [, includeParents])` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. The value may be a scalar value or a function (in the case of a value function or event handler) if the scope contains a property with the given key, otherwise it returns undefined.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.
 
-* `getEventHandler(key)` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes. Adds the `$` prefix to the last component of the key, as event handlers are stored with a `$` prefix, e.g. `people.$handleClick`.
-* `getLocalEventHandler(key)` as for `getEventHandler` but doesn’t fall back to parent scopes.
+* `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
 * `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
 
 #### Watch
@@ -808,6 +950,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.
+* `children()` returns an array containing the immediate child scopes of this scope.
 * `options([node])` returns the options object for the given node, or for the scope as a whole. Note that you can modify the returned options object, but changes to the scope’s options will not affect node options.
 
 ### Scope properties
@@ -835,11 +978,11 @@ What Consistent doesn’t do
 
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
-Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily snapshoted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
+Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.model()` functions, respectively.
 
 Troubleshooting
 ---------------
 
-### JSON.stringify cannot serialize cyclic structures
+### Functions in objects in the scope are called unexpectedly
 
-The Consistent scope contains some cycles. When you want to use the scope for output, such as Ajax or simply turning it into a JSON string, first call `scope.$.snapshot()` to get a plain JavaScript object without cycles. See the documentation for `snapshot`.
+See the section [Change prefix for event handler and value functions](#change-prefix-for-event-handler-and-value-functions) above for an explanation and a solution to this problem.

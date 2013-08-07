@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+	<div id="container">
+		<h1 ct-on="handleTitleClick">Default title</h1>
+		<button ct-on="handleButtonClick">Button</button>
+
+		<section ct-on="events.handleSectionClick"></section>
+
+		<nav ct-on-click="handleNavClick"></nav>
+		<content ct-on-focus="handleContentFocus"></content>
+
+		<abbr ct-on="handleAbbrClick" ct-on-focus="handleAbbrFocus"></abbr>
+	</div>
+
+	<div id="bad">
+		<button ct-on="$handleButtonClick">Button</button>
+	</div>
+
+	<form id="form">
+		<input type="text" name="name" value="Adam Bones">
+		<input type="checkbox" name="optin" checked="checked">
+		<input type="radio" name="gender" value="m" checked="checked">
+		<input type="radio" name="gender" value="f">
+		<select name="referrer">
+			<option></option>
+			<option>Website</option>
+			<option>Friend</option>
+			<option selected="selected">Other</option>
+		</select>
+		<textarea name="comments">No comment</textarea>
+	</form>
+</body>
+</html>

@@ -137,6 +137,8 @@ describe('Merge tests', function() {
 		expect(function() { scope.$.merge(object1, { a: 1 }); }).toThrow();
 	});
 
+	/* Cycles */
+
 	var cyclic1 = {
 		a: 9,
 		b: {
@@ -168,50 +170,6 @@ describe('Merge tests', function() {
 		/* Merge IS deep so the cycle is not touched */
 		expect(scope.cycle).toBe(scope);
 		expect(scope.cycle.b).toBe(scope.b);
-	});
-
-	it("Snapshot cyclic structure", function() {
-		var scope = Consistent();
-		/* It is critical that we do a deep merge, otherwise we just copy cyclic1.cycle
-		 * into the scope, rather than notice that it's a cycle back to the root.
-		 * See Snapshot cyclic structure with non-deep merge.
-		 */
-		scope.$.merge(true, cyclic1);
-
-		expect(scope.cycle).toBe(scope);
-
-		var snapshot = scope.$.snapshot();
-		expect(snapshot.a).toBe(cyclic1.a);
-		expect(snapshot.cycle.a).toBe(cyclic1.a);
-
-		/* b is a new object because snapshot makes new objects */
-		expect(snapshot.cycle.b).not.toBe(cyclic1.b);
-
-		/* b is in the cycle so the cycled version is the same object, in the snapshot */
-		expect(snapshot.cycle.b).toBe(snapshot.b);
-
-		/* The cycle should be the snapshot itself */
-		expect(snapshot.cycle.cycle).toBe(snapshot.cycle);
-		expect(snapshot.cycle).toBe(snapshot);
-	});
-
-	it("Snapshot cyclic structure with non-deep merge", function() {
-		var scope = Consistent();
-		scope.$.merge(cyclic1); /* Note this isn't deep */
-
-		/* The cycle isn't the scope */
-		expect(scope.cycle).not.toBe(scope);
-
-		/* ... it is the original cyclic1 */
-		expect(scope.cycle).toBe(cyclic1);
-
-		var snapshot = scope.$.snapshot();
-
-		/* So the cycle is also not the snapshot itself */
-		expect(snapshot.cycle).not.toBe(snapshot);
-
-		/* But the cycle is still handled correctly so the deep cycle is itself */
-		expect(snapshot.cycle.cycle).toBe(snapshot.cycle);
 	});
 
 	it ("Raw cyclic merge test", function() {

@@ -37,7 +37,9 @@ describe('Scope options tests', function() {
 		};
 
 		var snapshot = scope.$.snapshot();
-		expect(snapshot.value).toBe(undefined);
+
+		/* Functions that aren't a value function and not an eventHandlerPrefix are not removed */
+		expect(snapshot.value).toBe(scope.value);
 	});
 
 	it("Set value function with no value function prefix", function() {
@@ -97,7 +99,10 @@ describe('Scope options tests', function() {
 			}
 		};
 
-		expect(scope.$.snapshot().value).toBe(undefined);
+		/* Functions that don't match an eventHandlerPrefix or valueFunctionPrefix are not removed
+		 * from the snapshot.
+		 */
+		expect(scope.$.snapshot().value).not.toBe(undefined);
 
 		/* As the value function is invalid, this will actually replace it */
 		scope.$.set("value", "better");
