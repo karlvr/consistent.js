@@ -11,8 +11,6 @@ describe('Events tests', function() {
 		loadFixture("events.html");
 	});
 
-	Consistent.defaultOptions.templateEngine = Hogan;
-
 	it("Default click events", function() {
 		var scope = $("#container").consistent();
 		var titleClicks = 0, buttonClicks = 0;
