@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.6.4
+ * Consistent.js 0.7.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -1113,7 +1113,7 @@
 	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
 	 * objects in the scope.
 	 */
-	function processSnapshot(snapshot, scope, seen) {
+	function processSnapshot(snapshot, dontRemoveEventHandlers, scope, seen) {
 		if (seen === undefined) {
 			seen = [];
 		}
@@ -1125,23 +1125,28 @@
 		var options = scope.$.options();
 		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
+		var propertyName;
 
 		for (var name in snapshot) {
 			if (name.indexOf(eventHandlerPrefix) === 0) {
-				/* Remove handler functions */
-				delete snapshot[name];
+				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
+				if (dontRemoveEventHandlers) {
+					propertyName = propertyNameFromPrefixed(name, eventHandlerPrefix);
+					if (propertyName === name || snapshot[propertyName] === undefined) {
+						snapshot[propertyName] = snapshot[name];
+					}
+					if (propertyName !== name) {
+						delete snapshot[name];
+					}
+				} else {
+					delete snapshot[name];
+				}
 			} else if (typeof snapshot[name] === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(scope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
-					var propertyName;
-					if (prefixRequiresNextInitialCap(valueFunctionPrefix)) {
-						propertyName = name.substring(valueFunctionPrefix.length);
-						propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
-					} else {
-						propertyName = name.substring(valueFunctionPrefix.length);
-					}
+					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
 					snapshot[propertyName] = snapshot[name].call(scope);
 
 					/* Delete the original value function */
@@ -1149,7 +1154,19 @@
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], scope, seen);
+				processSnapshot(snapshot[name], dontRemoveEventHandlers, scope, seen);
+			}
+		}
+
+		function propertyNameFromPrefixed(name, prefix) {
+			if (prefix === undefined) {
+				return name;
+			}
+			if (prefixRequiresNextInitialCap(prefix)) {
+				var propertyName = name.substring(prefix.length);
+				return propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+			} else {
+				return name.substring(prefix.length);
 			}
 		}
 	}
@@ -1248,9 +1265,31 @@
 			},
 
 			/**
+			 * Return a plain object with a snapshot of the model values from the scope, excluding the $ object
+			 * that contains Consistent functionality, any properties beginning with the event handler prefix,
+			 * and replacing any value functions with their current value.
+			 * If there is a parent scope, the values from that scope are merged in.
+			 * @param includeParents If false, only include the local scope properties
+			 * @param childScope internal use
+			 */
+			model: function(includeParents, childScope) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var scope = this._scope();
+				var temp = merge(true, {}, scope);
+				processSnapshot(temp, false, childScope !== undefined ? childScope : scope);
+
+				if (includeParents !== false && this.parent()) {
+					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
+				}
+				return temp;
+			},
+
+			/**
 			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
-			 * that contains Consistent functionality, any properties with a $ prefix (event handlers) and
-			 * replacing any value functions with their current value.
+			 * that contains Consistent functionality, and replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 * @param includeParents If false, only include the local scope in the snapshot
 			 * @param childScope internal use
@@ -1262,10 +1301,10 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, childScope !== undefined ? childScope : scope);
+				processSnapshot(temp, true, childScope !== undefined ? childScope : scope);
 
 				if (includeParents !== false && this.parent()) {
-					temp = merge(this.parent().$.snapshot(true, childScope !== undefined ? childScope : scope), temp);
+					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
 				return temp;
 			},

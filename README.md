@@ -479,7 +479,7 @@ scope.$.watch(function(changedKeys, snapshot, oldSnapshot) {
 });
 ```
 
-The snapshots passed to the watch handler function for the whole scope are created using the `scope.$.snapshot` function, and therefore do not have the `$` object, event handlers, and value functions have been replaced with their value.
+The snapshots passed to the watch handler function for the whole scope are created using the `scope.$.snapshot` function, and therefore do not have the `$` object, and value functions have been replaced with their value.
 
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
@@ -502,23 +502,64 @@ $.ajax({
 
 Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
-### Snapshotting the scope to a Javascript object
+### Exporting the scope to a Javascript object
 
-The scope contains some extra properties required for Consistent. Particularly the `$` object where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), which aren’t part of your model data. Finally, it contains value functions that are evaluated to determine their current value.
+The scope contains some extra properties required for Consistent. Particularly the `$` property, where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), and value functions.
 
-In order to obtain a Javascript object with just the model properties use the `snapshot` function. It will return a new object excluding the `$` object and any keys starting with a `$` symbol (usually just event handlers). It will also evaluate all value functions and include their current value.
+#### Snapshot
 
-Note that if there are properties in your scope that you don’t want included in your snapshot, start them with a `$` character even if they’re not event handlers.
+Use the `snapshot` function to obtain a Javascript object without the `$` property, with properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) renamed to exclude the prefix, and with value functions evaluated and replaced with their value. This provides a snapshot of the state of the scope, and can be used to inspect values without being concerned with value functions, and without being concerned with the `$` prefix.
+
+```javascript
+scope.title = "My title";
+scope.subtitle = function() { return "My subtitle" };
+scope.$doNext = function(ev) { ... };
+scope.$anotherProperty = "see below";
+
+console.log(scope.$.snapshot());
+```
+
+```javascript
+{
+	title: "My title",
+	subtitle: "My subtitle",
+	doNext: function(ev) { ... },
+	anotherProperty: "see below"
+}
+```
+
+A snapshot is used when applying the scope to the DOM. This is how the declarations in the DOM can refer to `$` prefixed scope properties without the prefix.
+
+The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass `false` for the optional `includeParents` parameter, e.g. `snapshot(false)`.
+
+#### Model
+
+The snapshot includes properties that are not relevant if you want to submit data back to a server using Ajax, or give the data to other code. For this, use the `model` function. The `model` function behaves like `snapshot`, except rather than renaming any properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) they are removed.
+
+Following on from the snapshot example above:
+
+```javascript
+console.log(scope.$.model());
+```
+
+```javascript
+{
+	title: "My title",
+	subtitle: "My subtitle"
+}
+```
+
+So for use with Ajax, as an example:
 
 ```javascript
 var scope = $("#item").consistent();
 scope.$.update();
 $.ajax({
-	data: scope.$.snapshot()
+	data: scope.$.model()
 });
 ```
 
-The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `snapshot(false)`.
+The `model` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `model(false)`.
 
 License
 -------
@@ -910,7 +951,7 @@ What Consistent doesn’t do
 
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
 
-Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily snapshoted for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
+Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.model()` functions, respectively.
 
 Troubleshooting
 ---------------
