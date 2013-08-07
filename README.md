@@ -340,30 +340,66 @@ It is also possible to repeat a collection of elements. See Repeating multiple e
 You can set DOM element attributes from the scope.
 
 ```html
-<h1 ct-attr-class="titleClass">Title</h1>
+<h1 ct-attr-title="headingTitle">Consistent.js</h1>
 ```
 
-Now create a scope and set the heading’s class.
+Now create a scope and set the heading’s `title` attribute.
 
 ```javascript
 var scope = $("h1").consistent();
-scope.titleClass = "large";
+scope.headingTitle = "Welcome";
 scope.$.apply();
 ```
 
-The `h1` element will now have a class of "large" applied.
+If you want to set DOM element properties, see the [Properties](#properties) section below.
 
-You can also set DOM element properties, see the Properties section below.
+#### Class attributes
+
+Class attributes can be bound by declaring a `ct-attr-class` attribute, as above, however there is a shortcut for classes: `ct-class`.
+
+```html
+<h1 ct-class="headingClass">Consistent.js</h1>
+```
+
+```javascript
+scope.headingClass = "heading";
+scope.headingClass = "heading another-class";
+scope.headingClass = [ "heading", "another-class" ];
+```
+
+Note that as well as being a shortcut, the `ct-class` supports array values, which are automatically converted to a space-separated string. If the scope contains an array value, `update` will convert the classes into an array when setting the scope.
+
+The alternative `ct-add-class` attribute preserves existing classes. When the scope is applied the scope property determines the set of classes to add to the element in addition to its existing classes. The following example code is applied in order and shows how the class attribute changes.
+
+```html
+<h1 class="heading" ct-add-class="headingClass">Consistent.js</h1>
+```
+
+```javascript
+scope.headingClass = "another-class";
+scope.$.apply(); // class attribute is now "heading another-class"
+
+scope.headingClass = "one two";
+scope.$.apply(); // "heading one two"
+
+scope.headingClass = null;
+scope.$.apply(); // "heading"
+
+scope.headingClass = "heading";
+scope.$.apply(); // "heading"
+```
+
+If you add classes to an element independent of Consistent, it will treat those classes as if they were existing and will not remove them when the scope is next applied, so everyone can play nicely together.
 
 #### Templating
 
 You can also use templates to update attributes.
 
 ```html
-<h1 ct-tmpl-attr-class="heading {{titleClass}}">Title</h1>
+<h1 ct-tmpl-attr-title="This is a story about {{subject}}">Title</h1>
 
-<h1 ct-tmpl-id-attr-class="h1-class-template">Title</h1>
-<script id="h1-class-template" type="text/x-hogan-template">heading {{titleClass}}</script>
+<h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
+<script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
 ```
 
 ### Binding to DOM nodes
@@ -792,6 +828,9 @@ The `NAME` segment in the following list represents the name of the attribute or
 
 * `ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
 * `ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
+
+* `ct-class` the name of a property in the scope to use to set the value of the `class` attribute on this element. Supports string and array values.
+* `ct-add-class` the name of a property in the scope to use to add classes to the existing `class` attribute on this element. Supports string and array values.
 
 #### Visibility
 

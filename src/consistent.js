@@ -99,6 +99,8 @@
 				propertyPrefix: [ "data-ct-prop-", "ct-prop-" ],
 				templateAttributePrefix: [ "data-ct-tmpl-attr-", "ct-tmpl-attr-" ],
 				templateIdAttributePrefix: [ "data-ct-tmpl-id-attr-", "ct-tmpl-id-attr-" ],
+				classAttribute: [ "data-ct-class", "ct-class" ],
+				classAddAttribute: [ "data-ct-add-class", "ct-add-class" ],
 
 				on: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
 				onPrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
@@ -112,6 +114,7 @@
 			scopeIdKey: "__ConsistentScopeID",
 			functionIdKey: "__ConsistentFunctionID",
 			oldDisplayKey: "__ConsistentOldDisplay",
+			addedClassesKey: "__ConsistentAddedClasses",
 
 			maxWatcherLoops: 100
 		},
@@ -426,6 +429,21 @@
 						}
 					}
 				}
+				if (bindings.classAttribute) {
+					value = getNestedProperty(snapshot, bindings.classAttribute);
+					if (value !== undefined) {
+						if (isArray(value)) {
+							value = value.join(" ");
+						}
+						this.setAttributeValue(dom, "class", value);
+					}
+				}
+				if (bindings.classAddAttribute) {
+					value = getNestedProperty(snapshot, bindings.classAddAttribute);
+					if (value !== undefined)  {
+						this.addRemoveClasses(dom, value);
+					}
+				}
 
 				/* Properties */
 				if (bindings.properties) {
@@ -633,6 +651,14 @@
 						}
 					}
 				}
+				if (bindings.classAttribute) {
+					value = this.getAttributeValue(dom, "class");
+					if (isArray(scope.$.get(bindings.classAttribute))) {
+						/* Convert to array */
+						value = value.split(" ");
+					} 
+					scope.$.set(bindings.classAttribute, value);
+				}
 
 				/* Properties */
 				if (bindings.properties) {
@@ -722,6 +748,62 @@
 
 			getPropertyValue: function(dom, name) {
 				return getNestedProperty(dom, name);
+			},
+
+			addRemoveClasses: function(dom, classesStringOrArray) {
+				var newClasses = classesStringOrArrayToArray(classesStringOrArray);
+				var existingClasses = classesStringOrArrayToArray(this.getAttributeValue(dom, "class"));
+				var addedClasses = dom[Consistent.settings.addedClassesKey];
+				if (!addedClasses) {
+					addedClasses = [];
+					dom[Consistent.settings.addedClassesKey] = addedClasses;
+				}
+
+				var i;
+				/* Find classes we've added previously that are not in the new array of classes,
+				 * and remove them.
+				 */
+				for (i = 0; i < addedClasses.length; i++) {
+					var j = arrayIndexOf(newClasses, addedClasses[i]);
+					if (j === -1) {
+						/* No longer in list of classes, so remove */
+						var k = arrayIndexOf(existingClasses, addedClasses[i]);
+						if (k !== -1) {
+							existingClasses.splice(k, 1);
+						}
+						addedClasses.splice(i, 1);
+						i--;
+					}
+				}
+
+				/* Find new classes to add */
+				for (i = 0; i < newClasses.length; i++) {
+					var newClass = newClasses[i];
+					var j = arrayIndexOf(addedClasses, newClass);
+					if (j === -1) {
+						/* New class to add */
+						var k = arrayIndexOf(existingClasses, newClass);
+						if (k === -1) {
+							/* Not existing */
+							existingClasses.push(newClass);
+							addedClasses.push(newClass);
+						}
+					}
+				}
+
+				this.setAttributeValue(dom, "class", existingClasses.join(" "));
+
+				function classesStringOrArrayToArray(ob) {
+					if (ob === null) {
+						return [];
+					} else if (typeof ob === "string") {
+						return ob.split(" ");
+					} else if (isArray(ob)) {
+						return ob;
+					} else {
+						throw exception("Unsupported value for add class: " + typeof ob);
+					}
+				}
 			},
 
 			show: function(dom) {
@@ -892,6 +974,14 @@
 					case "options": {
 						/* Select options */
 						bindings.selectOptions = value;
+						break;
+					}
+					case "classAttribute": {
+						bindings.classAttribute = value;
+						break;
+					}
+					case "classAddAttribute": {
+						bindings.classAddAttribute = value;
 						break;
 					}
 					case "warningPrefix": {
