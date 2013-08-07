@@ -988,7 +988,7 @@
 						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 						 * weren't recognized. Log these out to help developers catch errors.
 						 */
-						if (console.log !== undefined) {
+						if (console && console.log !== undefined) {
 							console.log("Warning: Unrecognised Consistent attribute \"" + name + "\" on " + dom.nodeName + " element.");
 						}
 						break;
