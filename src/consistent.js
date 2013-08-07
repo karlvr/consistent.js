@@ -2011,9 +2011,14 @@
 									var key = keys[i];
 									var func = self._scope.$.getEventHandler(key);
 									if (func !== undefined) {
-										var result = func.call(dom, ev, self._scope);
-										if (result === false)
-											break;
+										/* If the func is defined but "falsey" then we simply don't invoke the function,
+										 * but this is not an error.
+										 */
+										if (func) {
+											var result = func.call(dom, ev, self._scope);
+											if (result === false)
+												break;
+										}
 									} else {
 										/* An error has occured, so prevent the event from doing anything and throw an error.
 										 * If we don't prevent default and this is an <a> tag then the browser will navigate away
