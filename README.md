@@ -144,6 +144,17 @@ The value function gets called with `this` set to the scope, and no arguments. A
 
 When the scope is populated from the DOM using the `scope.$.update` function, or when a scope property is set manually using the `scope.$.set` function, and the scope contains a value function for the affected property; the value function is called with one argument - the incoming value. Your value function can ignore this if it doesn’t support updates.
 
+```javascript
+var numberOfPeople = 5;
+scope.numberOfPeople = function(newValue) {
+	if (typeof newValue !== "undefined") {
+		numberOfPeople = parseInt(newValue);
+	} else {
+		return numberOfPeople;
+	}
+}
+```
+
 ### Form elements
 
 Form elements are automatically associated with the scope property with the same name as the element, and Consistent updates the form field’s value from the scope.
@@ -776,13 +787,13 @@ If you’re adding existing objects to your scopes that use naming conventions t
 
 To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions.
 
-By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You may still omit the prefix when declaring the event handler to bind to in the DOM.
+By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You must still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`. If you do not want this camel-casing do not use a prefix that ends with a letter.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`.
 
-By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` is treated as a value function (or whatever event handler prefix is set in the options). You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix and will remove all other functions from snapshots.
+By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` (or whatever the `eventHandlerPrefix` option is set to) is treated as a value function. You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.
 
-When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM. The value function prefix is removed when the snapshot is created. Also note that when Consistent updates the scope from the DOM if there is a value function that matches then the value function will be invoked with the new value as an argument.
+When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM (same as for event handlers). The value function prefix is removed when the snapshot is created.
 
 ```html
 <div id="container">
