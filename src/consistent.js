@@ -1146,11 +1146,6 @@
 
 					/* Delete the original value function */
 					delete snapshot[name];
-				} else {
-					/* Delete other functions as they are presumed to be foreign and not intended to
-					 * be used in the scope.
-					 */
-					delete snapshot[name];
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
