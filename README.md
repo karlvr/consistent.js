@@ -413,9 +413,9 @@ You can also use templates to update attributes.
 <script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
 ```
 
-### Binding to DOM nodes
+### Binding the scope to the DOM
 
-In the examples above we’ve specifically targeted the example nodes, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well. You typically bind a container element:
+In the examples above we’ve specifically bound the example nodes by their element name, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well, so you typically bind a container element:
 
 ```html
 <div id="container">
@@ -571,6 +571,22 @@ $.ajax({
 ```
 
 The `model` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `model(false)`.
+
+#### Private properties
+
+What follows from the implementation of the `model` function, is that if you want to include properties in your scope that you don’t want to export out of the scope for Ajax or other purposes, you can prefix those properties with a `$` (or whatever the `eventHandlerPrefix` option is set to). You still refer to them without the `$` prefix in the binding declarations, so it is quite transparent.
+
+```html
+<h1 ct="title"></h1>
+```
+
+```javascript
+scope.$title = "My title";
+
+// The following are both true
+scope.$.snapshot().title === "My title";
+scope.$.model().title === undefined;
+```
 
 License
 -------
