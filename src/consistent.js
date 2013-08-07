@@ -759,15 +759,15 @@
 					dom[Consistent.settings.addedClassesKey] = addedClasses;
 				}
 
-				var i;
+				var i, j, k;
 				/* Find classes we've added previously that are not in the new array of classes,
 				 * and remove them.
 				 */
 				for (i = 0; i < addedClasses.length; i++) {
-					var j = arrayIndexOf(newClasses, addedClasses[i]);
+					j = arrayIndexOf(newClasses, addedClasses[i]);
 					if (j === -1) {
 						/* No longer in list of classes, so remove */
-						var k = arrayIndexOf(existingClasses, addedClasses[i]);
+						k = arrayIndexOf(existingClasses, addedClasses[i]);
 						if (k !== -1) {
 							existingClasses.splice(k, 1);
 						}
@@ -779,10 +779,10 @@
 				/* Find new classes to add */
 				for (i = 0; i < newClasses.length; i++) {
 					var newClass = newClasses[i];
-					var j = arrayIndexOf(addedClasses, newClass);
+					j = arrayIndexOf(addedClasses, newClass);
 					if (j === -1) {
 						/* New class to add */
-						var k = arrayIndexOf(existingClasses, newClass);
+						k = arrayIndexOf(existingClasses, newClass);
 						if (k === -1) {
 							/* Not existing */
 							existingClasses.push(newClass);
