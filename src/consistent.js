@@ -1270,7 +1270,7 @@
 				processSnapshot(temp, childScope !== undefined ? childScope : scope);
 
 				if (includeParents !== false && this.parent()) {
-					temp = merge(this.parent().$.snapshot(false, childScope !== undefined ? childScope : scope), temp);
+					temp = merge(this.parent().$.snapshot(true, childScope !== undefined ? childScope : scope), temp);
 				}
 				return temp;
 			},
