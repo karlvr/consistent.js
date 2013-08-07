@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Example of basic Consistent.js usage
+-->
+<html>
+<head>
+<title>Basic Consistent.js example</title>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+	<div>
+		<h1 ct="title">Default title</h1>
+		<p ct-show="author"><small ct-tmpl="By {{author}}"></small></p>
+
+		<content ct="body"></content>
+
+		<p ct-show="doNext"><button ct-on="doNext">Next</button>
+	</div>
+
+<script>
+$(function() {
+	/* Configure a template engine for Consistent to use, to support the ct-tmpl attribute. */
+	Consistent.defaultOptions.templateEngine = Hogan;
+
+	var scope = $("body").consistent();
+	scope.title = "First page";
+	scope.author = "Nathanial Hornblower";
+	scope.body = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><p>Integer scelerisque vestibulum turpis nec ultrices.</p>";
+
+	scope.$doNext = function() {
+		scope.title = "Second page";
+		scope.author = "Till Eulenspiegel";
+		scope.body = "<p>Phasellus pulvinar sollicitudin felis, vel tincidunt mauris elementum ac.</p><p>Curabitur sit amet vulputate justo, eu iaculis neque.</p>";
+		scope.$doNext = function() {
+			scope.title = "Last page";
+			scope.body = "<p>Nullam velit lacus, condimentum sit amet turpis fermentum, vehicula congue est.</p>";
+			scope.$doNext = null;
+			scope.$.apply();
+		}
+		scope.$.apply();
+	};
+	scope.$.apply();
+});
+</script>
+</body>
+</html>
