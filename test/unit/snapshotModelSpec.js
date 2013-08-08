@@ -53,10 +53,22 @@ describe('Merge tests', function() {
 	it("Snapshot event handler function", function() {
 		var scope = Consistent();
 
-		scope.$a = function(ec) {}
+		scope.$a = function(ev) {
+			return true;
+		};
 
 		var snapshot = scope.$.snapshot();
 		expect(snapshot.$a).not.toBeDefined();
+	});
+
+	it("Snapshot event handler function 2", function() {
+		var scope = Consistent();
+
+		scope.$a = function(ev) {
+			return true;
+		};
+
+		var snapshot = scope.$.snapshot();
 
 		/* Event handler function is returned in the snapshot as a */
 		expect(snapshot.a).toBe(scope.$a);
