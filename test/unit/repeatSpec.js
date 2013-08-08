@@ -20,11 +20,11 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(3);
-		expect(nodes["A"][0].textContent).toBe("a");
+		expect(nodeText(nodes["A"][0])).toBe("a");
 		expect(nodes["A"][0].href).toMatch(/x$/);
-		expect(nodes["A"][1].textContent).toBe("b");
+		expect(nodeText(nodes["A"][1])).toBe("b");
 		expect(nodes["A"][1].href).toMatch(/y$/);
-		expect(nodes["A"][2].textContent).toBe("c");
+		expect(nodeText(nodes["A"][2])).toBe("c");
 		expect(nodes["A"][2].href).toMatch(/z$/);
 	});
 
@@ -41,9 +41,9 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(2);
-		expect(nodes["A"][0].textContent).toBe("b");
+		expect(nodeText(nodes["A"][0])).toBe("b");
 		expect(nodes["A"][0].href).toMatch(/y$/);
-		expect(nodes["A"][1].textContent).toBe("c");
+		expect(nodeText(nodes["A"][1])).toBe("c");
 		expect(nodes["A"][1].href).toMatch(/z$/);
 	});
 
@@ -60,9 +60,9 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(2);
-		expect(nodes["A"][0].textContent).toBe("a");
+		expect(nodeText(nodes["A"][0])).toBe("a");
 		expect(nodes["A"][0].href).toMatch(/x$/);
-		expect(nodes["A"][1].textContent).toBe("c");
+		expect(nodeText(nodes["A"][1])).toBe("c");
 		expect(nodes["A"][1].href).toMatch(/z$/);
 	});
 
@@ -79,9 +79,9 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(2);
-		expect(nodes["A"][0].textContent).toBe("a");
+		expect(nodeText(nodes["A"][0])).toBe("a");
 		expect(nodes["A"][0].href).toMatch(/x$/);
-		expect(nodes["A"][1].textContent).toBe("b");
+		expect(nodeText(nodes["A"][1])).toBe("b");
 		expect(nodes["A"][1].href).toMatch(/y$/);
 	});
 
@@ -96,9 +96,9 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(4);
-		expect(nodes["A"][0].textContent).toBe("q");
+		expect(nodeText(nodes["A"][0])).toBe("q");
 		expect(nodes["A"][0].href).toMatch(/r$/);
-		expect(nodes["A"][1].textContent).toBe("a");
+		expect(nodeText(nodes["A"][1])).toBe("a");
 		expect(nodes["A"][1].href).toMatch(/x$/);
 	});
 
@@ -113,11 +113,11 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(4);
-		expect(nodes["A"][0].textContent).toBe("a");
+		expect(nodeText(nodes["A"][0])).toBe("a");
 		expect(nodes["A"][0].href).toMatch(/x$/);
-		expect(nodes["A"][2].textContent).toBe("c");
+		expect(nodeText(nodes["A"][2])).toBe("c");
 		expect(nodes["A"][2].href).toMatch(/z$/);
-		expect(nodes["A"][3].textContent).toBe("q");
+		expect(nodeText(nodes["A"][3])).toBe("q");
 		expect(nodes["A"][3].href).toMatch(/r$/);
 	});
 
@@ -132,11 +132,11 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(4);
-		expect(nodes["A"][0].textContent).toBe("a");
+		expect(nodeText(nodes["A"][0])).toBe("a");
 		expect(nodes["A"][0].href).toMatch(/x$/);
-		expect(nodes["A"][1].textContent).toBe("q");
+		expect(nodeText(nodes["A"][1])).toBe("q");
 		expect(nodes["A"][1].href).toMatch(/r$/);
-		expect(nodes["A"][3].textContent).toBe("c");
+		expect(nodeText(nodes["A"][3])).toBe("c");
 		expect(nodes["A"][3].href).toMatch(/z$/);
 	});
 
@@ -153,11 +153,11 @@ describe('Repeat tests', function() {
 		var nodes = nodesByName($("#fixture ul li a"));
 
 		expect(nodes["A"].length).toBe(3);
-		expect(nodes["A"][2].textContent).toBe("a");
+		expect(nodeText(nodes["A"][2])).toBe("a");
 		expect(nodes["A"][2].href).toMatch(/x$/);
-		expect(nodes["A"][1].textContent).toBe("b");
+		expect(nodeText(nodes["A"][1])).toBe("b");
 		expect(nodes["A"][1].href).toMatch(/y$/);
-		expect(nodes["A"][0].textContent).toBe("c");
+		expect(nodeText(nodes["A"][0])).toBe("c");
 		expect(nodes["A"][0].href).toMatch(/z$/);
 	});
 

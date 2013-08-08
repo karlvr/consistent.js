@@ -50,3 +50,12 @@ function nodesByName(nodes) {
 	}
 	return result;
 }
+
+function nodeText(node) {
+	if (node.textContent) {
+		return node.textContent;
+	}
+
+	/* IE */
+	return node.innerText;
+}
