@@ -1142,7 +1142,6 @@
 				continue;
 			}
 
-			console.log("CONSIDER: \"" + name + "\" against \"" + eventHandlerPrefix + "\"");
 			if (name.indexOf(eventHandlerPrefix) === 0) {
 				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
 				if (dontRemoveEventHandlers) {
@@ -1162,7 +1161,6 @@
 				}
 			} else if (typeof snapshot[name] === "function") {
 				/* Evaluate value functions */
-				console.log("TREATING " + name + " AS A VALUE FUNCTION");
 				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(scope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
