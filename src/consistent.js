@@ -542,6 +542,12 @@
 					} else if (dom.type === "radio") {
 						dom.checked = dom.defaultChecked = (value == dom.value);
 					} else {
+						if (value === null) {
+							/* These elements change null into empty string on modern browsers 
+							 * and leave it as null on IE. Standardise on setting "".
+							 */
+							value = "";
+						}
 						dom.value = value;
 					}
 				} else if (nodeName === "SELECT") {
