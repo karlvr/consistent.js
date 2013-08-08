@@ -26,6 +26,19 @@ function dispatchHTMLEvent(domNodes, name) {
 	}
 }
 
+function dispatchClickEvent(domNodes) {
+	for (var i = 0; i < domNodes.length; i++) {
+		if (domNodes[i].click) {
+			domNodes[i].click();
+		} else {
+			var evt = document.createEvent("MouseEvents"); 
+			evt.initMouseEvent("click", true, true, window, 
+          		0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			domNodes[i].dispatchEvent(evt);
+		}
+	}
+}
+
 function nodesByName(nodes) {
 	var result = {};
 	for (var i = 0; i < nodes.length; i++) {
