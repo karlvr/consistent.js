@@ -800,7 +800,10 @@
 				this.setAttributeValue(dom, "class", existingClasses.join(" "));
 
 				function classesStringOrArrayToArray(ob) {
-					if (ob === null) {
+					if (ob === null || !ob) {
+						/* Nulls and empty strings mean no classes, as splitting an
+						 * empty string returns one element in the array, an empty string.
+						 */
 						return [];
 					} else if (typeof ob === "string") {
 						return ob.split(" ");
