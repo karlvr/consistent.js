@@ -1136,7 +1136,12 @@
 		var valueFunctionPrefix = options.valueFunctionPrefix;
 		var propertyName;
 
+		var skip = [];
 		for (var name in snapshot) {
+			if (arrayIndexOf(skip, name) !== -1) {
+				continue;
+			}
+
 			console.log("CONSIDER: \"" + name + "\" against \"" + eventHandlerPrefix + "\"");
 			if (name.indexOf(eventHandlerPrefix) === 0) {
 				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
@@ -1147,6 +1152,10 @@
 					}
 					if (propertyName !== name) {
 						delete snapshot[name];
+						/* Skip the new property if we encounter it in this loop, which
+						 * can happen in IE6, maybe other browsers.
+						 */
+						skip.push(propertyName);
 					}
 				} else {
 					delete snapshot[name];
@@ -1162,6 +1171,13 @@
 
 					/* Delete the original value function */
 					delete snapshot[name];
+
+					if (propertyName !== name) {
+						/* Skip the new property if we encounter it in this loop, which
+						 * can happen in IE6, maybe other browsers.
+						 */
+						skip.push(propertyName);
+					}
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
