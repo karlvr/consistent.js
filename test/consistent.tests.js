@@ -72,8 +72,10 @@ function nodeText(node) {
 }
 
 /* Create elements for IE6 compatibility */
-document.createElement("content");
-document.createElement("article");
-document.createElement("abbr");
-document.createElement("nav");
-document.createElement("section");
+document.createElement("CONTENT");
+document.createElement("ARTICLE");
+document.createElement("ABBR");
+document.createElement("NAV");
+document.createElement("SECTION");
+document.createElement("HEADER");
+document.createElement("FOOTER");

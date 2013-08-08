@@ -57,15 +57,14 @@ describe('Nodes tests', function() {
 
 		var nodes = nodesByName(scope.$.nodes());
 
-		for (var j in nodes) {
-			console.log("FOUND " + j);
-		}
-
 		/* li tags just have repeat binding */
 		expect(nodes["LI"]).not.toBeDefined();
 
 		/* article tags have another binding */
-		expect(nodes["ARTICLE"].length).toBe(pages.length);
+		expect(nodes["ARTICLE"]).toBeDefined();
+		if (nodes["ARTICLE"] !== undefined) {
+			expect(nodes["ARTICLE"].length).toBe(pages.length);
+		}
 	});
 
 	it("nodes(false) does not include child scope nodes", function() {
