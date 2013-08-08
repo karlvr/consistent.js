@@ -29,6 +29,7 @@
       "bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js",
       "src/jquery.consistent.js",
       "test/consistent.tests.js",
+      "test/lib/json2.js",
       "test/**/*Spec.js",
       "test/testling/runner.js"
     ],
