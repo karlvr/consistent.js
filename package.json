@@ -37,7 +37,7 @@
       "ie": [ 6, 7, 8, 9, 10 ],
       "ff": [ 3.0, 3.5, 10, 19, "nightly" ],
       "chrome": [ 4, 15, 23, 25, "canary" ],
-      "opera": [ 10, 11, 12, "next" ],
+      "opera": [ 11, 12, "next" ],
       "safari": [ 4, 5.1, 6 ],
       "iphone": [ 6 ],
       "ipad": [ 6 ],
