@@ -1,6 +1,12 @@
-fixtureBase = "test/html/";
+console.log("Runner init");
+if (typeof runnerHasRun === "undefined") {
+	runnerHasRun = true;
 
-var env = jasmine.getEnv();
-var reporter = new jasmine.TapReporter();
-env.addReporter(reporter);
-env.execute();
+	fixtureBase = "test/html/";
+
+	console.log("Runner start")
+	var env = jasmine.getEnv();
+	var reporter = new jasmine.TapReporter();
+	env.addReporter(reporter);
+	env.execute();
+}
