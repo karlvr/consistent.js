@@ -22,12 +22,12 @@ describe('Events tests', function() {
 		};
 		
 		/* No need to apply as events are attached in bind */
-		$("#container h1").click();
+		dispatchHTMLEvent($("#container h1"), "click");
 
 		expect(titleClicks).toBe(1);
 		expect(buttonClicks).toBe(0);
 		
-		$("#container button").click();
+		dispatchHTMLEvent($("#container button"), "click");
 
 		expect(titleClicks).toBe(1);
 		expect(buttonClicks).toBe(1);
