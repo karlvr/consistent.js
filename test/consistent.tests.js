@@ -53,7 +53,10 @@ function dispatchClickEvent(domNodes) {
 function nodesByName(nodes) {
 	var result = {};
 	for (var i = 0; i < nodes.length; i++) {
-		var nodeName = nodes[i].nodeName;
+		var nodeName = nodes[i].nodeName.toUpperCase();
+		/* NB. standardise nodeName as upper-case, as IE6 gives its new elements (eg. article)
+		 * lowercase names while the others are upper-case
+		 */
 		if (result[nodeName] === undefined) {
 			result[nodeName] = [];
 		}
@@ -72,10 +75,10 @@ function nodeText(node) {
 }
 
 /* Create elements for IE6 compatibility */
-document.createElement("CONTENT");
-document.createElement("ARTICLE");
-document.createElement("ABBR");
-document.createElement("NAV");
-document.createElement("SECTION");
-document.createElement("HEADER");
-document.createElement("FOOTER");
+document.createElement("content");
+document.createElement("article");
+document.createElement("abbr");
+document.createElement("nav");
+document.createElement("section");
+document.createElement("header");
+document.createElement("footer");
