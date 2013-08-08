@@ -63,12 +63,22 @@ describe('Form tests', function() {
 	it("Update form", function() {
 		var scope = $("#form").consistent();
 		scope.$.update();
+	});
+
+	it("Update form check values", function() {
+		var scope = $("#form").consistent();
+		scope.$.update();
 
 		expect(scope.name).toBe("Adam Bones");
 		expect(scope.optin).toBe(true);
 		expect(scope.gender).toBe("m");
 		expect(scope.referrer).toBe("Other");
 		expect(scope.comments).toBe("No comment");
+	});
+
+	it("Update form on change", function() {
+		var scope = $("#form").consistent();
+		scope.$.update();
 
 		dispatchHTMLEvent($("#form input[name=name]").val("Bob Carl"), "change");
 
