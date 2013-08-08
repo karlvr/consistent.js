@@ -30,7 +30,7 @@
       "src/jquery.consistent.js",
       "test/consistent.tests.js",
       "test/lib/json2.js",
-      "test/**/*Spec.js",
+      "test/**/snapshotModelSpec.js",
       "test/testling/runner.js"
     ],
     "browsers": {
