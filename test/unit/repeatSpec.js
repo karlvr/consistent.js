@@ -21,11 +21,11 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(3);
 		expect(nodes["A"][0].textContent).toBe("a");
-		expect(nodes["A"][0].pathname).toBe("/x");
+		expect(nodes["A"][0].pathname).toMatch(/x$/);
 		expect(nodes["A"][1].textContent).toBe("b");
-		expect(nodes["A"][1].pathname).toBe("/y");
+		expect(nodes["A"][1].pathname).toMatch(/y$/);
 		expect(nodes["A"][2].textContent).toBe("c");
-		expect(nodes["A"][2].pathname).toBe("/z");
+		expect(nodes["A"][2].pathname).toMatch(/z$/);
 	});
 
 	it("repeat with deletion of first", function() {
@@ -42,9 +42,9 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(2);
 		expect(nodes["A"][0].textContent).toBe("b");
-		expect(nodes["A"][0].pathname).toBe("/y");
+		expect(nodes["A"][0].pathname).toMatch(/y$/);
 		expect(nodes["A"][1].textContent).toBe("c");
-		expect(nodes["A"][1].pathname).toBe("/z");
+		expect(nodes["A"][1].pathname).toMatch(/z$/);
 	});
 
 	it("repeat with deletion of middle", function() {
@@ -61,9 +61,9 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(2);
 		expect(nodes["A"][0].textContent).toBe("a");
-		expect(nodes["A"][0].pathname).toBe("/x");
+		expect(nodes["A"][0].pathname).toMatch(/x$/);
 		expect(nodes["A"][1].textContent).toBe("c");
-		expect(nodes["A"][1].pathname).toBe("/z");
+		expect(nodes["A"][1].pathname).toMatch(/z$/);
 	});
 
 	it("repeat with deletion of last", function() {
@@ -80,9 +80,9 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(2);
 		expect(nodes["A"][0].textContent).toBe("a");
-		expect(nodes["A"][0].pathname).toBe("/x");
+		expect(nodes["A"][0].pathname).toMatch(/x$/);
 		expect(nodes["A"][1].textContent).toBe("b");
-		expect(nodes["A"][1].pathname).toBe("/y");
+		expect(nodes["A"][1].pathname).toMatch(/y$/);
 	});
 
 	it("repeat with addition at the start", function() {
@@ -97,9 +97,9 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(4);
 		expect(nodes["A"][0].textContent).toBe("q");
-		expect(nodes["A"][0].pathname).toBe("/r");
+		expect(nodes["A"][0].pathname).toMatch(/r$/);
 		expect(nodes["A"][1].textContent).toBe("a");
-		expect(nodes["A"][1].pathname).toBe("/x");
+		expect(nodes["A"][1].pathname).toMatch(/x$/);
 	});
 
 	it("repeat with addition at the end", function() {
@@ -114,11 +114,11 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(4);
 		expect(nodes["A"][0].textContent).toBe("a");
-		expect(nodes["A"][0].pathname).toBe("/x");
+		expect(nodes["A"][0].pathname).toMatch(/x$/);
 		expect(nodes["A"][2].textContent).toBe("c");
-		expect(nodes["A"][2].pathname).toBe("/z");
+		expect(nodes["A"][2].pathname).toMatch(/z$/);
 		expect(nodes["A"][3].textContent).toBe("q");
-		expect(nodes["A"][3].pathname).toBe("/r");
+		expect(nodes["A"][3].pathname).toMatch(/r$/);
 	});
 
 	it("repeat with addition in the middle", function() {
@@ -133,11 +133,11 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(4);
 		expect(nodes["A"][0].textContent).toBe("a");
-		expect(nodes["A"][0].pathname).toBe("/x");
+		expect(nodes["A"][0].pathname).toMatch(/x$/);
 		expect(nodes["A"][1].textContent).toBe("q");
-		expect(nodes["A"][1].pathname).toBe("/r");
+		expect(nodes["A"][1].pathname).toMatch(/r$/);
 		expect(nodes["A"][3].textContent).toBe("c");
-		expect(nodes["A"][3].pathname).toBe("/z");
+		expect(nodes["A"][3].pathname).toMatch(/z$/);
 	});
 
 	it("repeat with rearrangement", function() {
@@ -154,11 +154,11 @@ describe('Repeat tests', function() {
 
 		expect(nodes["A"].length).toBe(3);
 		expect(nodes["A"][2].textContent).toBe("a");
-		expect(nodes["A"][2].pathname).toBe("/x");
+		expect(nodes["A"][2].pathname).toMatch(/x$/);
 		expect(nodes["A"][1].textContent).toBe("b");
-		expect(nodes["A"][1].pathname).toBe("/y");
+		expect(nodes["A"][1].pathname).toMatch(/y$/);
 		expect(nodes["A"][0].textContent).toBe("c");
-		expect(nodes["A"][0].pathname).toBe("/z");
+		expect(nodes["A"][0].pathname).toMatch(/z$/);
 	});
 
 	it("repeat reuses nodes", function() {
