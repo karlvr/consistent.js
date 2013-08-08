@@ -74,6 +74,26 @@ describe('Merge tests', function() {
 		expect(snapshot.a).toBe(scope.$a);
 	});
 
+	it("Snapshot event handler function 3", function() {
+		var scope = Consistent();
+
+		scope.$a = function(ev) {
+			return true;
+		};
+
+		expect(scope.$a).toBe(scope.$a);
+	});
+
+	it("Snapshot event handler function 4", function() {
+		var scope = Consistent();
+
+		scope.$a = function(ev) {
+			return true;
+		};
+
+		expect(typeof scope.$a).toBe("function");
+	});
+
 	it("Model event handler function", function() {
 		var scope = Consistent();
 
