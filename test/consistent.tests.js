@@ -59,3 +59,10 @@ function nodeText(node) {
 	/* IE */
 	return node.innerText;
 }
+
+/* Create elements for IE6 compatibility */
+document.createElement("content");
+document.createElement("article");
+document.createElement("abbr");
+document.createElement("nav");
+document.createElement("section");

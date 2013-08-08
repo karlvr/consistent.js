@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Scope nodes function tests', function() {
+describe('Nodes tests', function() {
 
 	beforeEach(function () {
 		loadFixture("nodes.html");
