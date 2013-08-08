@@ -57,6 +57,10 @@ describe('Nodes tests', function() {
 
 		var nodes = nodesByName(scope.$.nodes());
 
+		for (var j in nodes) {
+			console.log("FOUND " + j);
+		}
+
 		/* li tags just have repeat binding */
 		expect(nodes["LI"]).not.toBeDefined();
 
