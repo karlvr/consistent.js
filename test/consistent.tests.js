@@ -18,11 +18,22 @@ function loadFixture(name) {
 	});
 }
 
+function dispatchSimpleEvent(dom, name) {
+	var ev;
+	if (document.createEvent) {
+		ev = document.createEvent("HTMLEvents");
+		ev.initEvent(name, true, true);
+		dom.dispatchEvent(ev);
+	} else if (document.createEventObject) {
+		/* IE support */
+		dom.fireEvent("on" + name);
+	}
+	return ev;
+}
+
 function dispatchHTMLEvent(domNodes, name) {
 	for (var i = 0; i < domNodes.length; i++) {
-		var ev = document.createEvent("HTMLEvents");
-		ev.initEvent(name, true, true);
-		domNodes[i].dispatchEvent(ev);
+		dispatchSimpleEvent(domNodes[i], name);
 	}
 }
 
