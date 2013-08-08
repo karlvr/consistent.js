@@ -41,7 +41,7 @@ describe('Events tests', function() {
 			sectionClicks++;
 		};
 
-		$("#container section").click();
+		dispatchClickEvent($("#container section"));
 
 		expect(sectionClicks).toBe(1);
 	});
@@ -53,7 +53,7 @@ describe('Events tests', function() {
 			buttonClicks++;
 		};
 
-		$("#bad button").click();
+		dispatchClickEvent($("#bad button"));
 
 		expect(buttonClicks).toBe(1);
 	});
@@ -65,7 +65,7 @@ describe('Events tests', function() {
 			navClicks++;
 		};
 
-		$("#container nav").click();
+		dispatchClickEvent($("#container nav"));
 
 		expect(navClicks).toBe(1);
 	});
