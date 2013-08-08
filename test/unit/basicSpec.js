@@ -37,7 +37,8 @@ describe('Basic tests', function() {
 		scope.second = "ipsum";
 		scope.$.apply();
 
-		expect($.trim($("#container #content").html())).toBe("<p>Lorem ipsum.</p>");
+		/* Lower-case the HTML as IE 6 uppercases the tags */
+		expect($.trim($("#container #content").html().toLowerCase())).toBe("<p>lorem ipsum.</p>");
 	});
 
 	it("Scope does not contain a cycle", function() {
