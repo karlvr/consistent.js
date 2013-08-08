@@ -22,10 +22,10 @@
   },
   "testling" : {
     "scripts": [
-      "tests/lib/jasmine/jasmine.js",
-      "tests/lib/jasmine-reporters/jasmine.tap_reporter.js",
-      "tests/**/*Spec.js",
-      "tests/testling/runner.js"
+      "test/lib/jasmine/jasmine.js",
+      "test/lib/jasmine-reporters/jasmine.tap_reporter.js",
+      "test/**/*Spec.js",
+      "test/testling/runner.js"
     ],
     "browsers": {
       "ie": [ 6, 7, 8, 9, 10 ],
