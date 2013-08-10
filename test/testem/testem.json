@@ -16,9 +16,19 @@
 
     "test/**/*Spec.js"
   ],
+  "launchers_not_active": {
+    "bs_ie_6": {
+      "command": "browserstack launch --attach ie:6.0 <url>",
+      "protocol": "browser" 
+    }
+  },
   "launchers": {
+    "bs_safari_50": {
+      "command": "browserstack launch --attach safari:5.0 <url> -os 'os x'",
+      "protocol": "browser" 
+    },
   	"bs_safari_51": {
-  		"command": "browserstack launch --attach safari:5.1 <url>",
+  		"command": "browserstack launch --attach safari:5.1 <url> -os 'os x'",
   		"protocol": "browser" 
   	},
   	"bs_ie_7": {
@@ -38,7 +48,7 @@
   		"protocol": "browser" 
   	}
   },
-  "on_start_ci": {
+  "on_start": {
   	"command": "browserstack tunnel localhost:<port> -t 60",
   	"wait_for_text": "Tunnel is running",
   	"wait_for_text_timeout": 60000
