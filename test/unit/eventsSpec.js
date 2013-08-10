@@ -22,12 +22,12 @@ describe('Events tests', function() {
 		};
 		
 		/* No need to apply as events are attached in bind */
-		dispatchClickEvent($("#container h1"));
+		dispatchMouseEvent($("#container h1"));
 
 		expect(titleClicks).toBe(1);
 		expect(buttonClicks).toBe(0);
 		
-		dispatchClickEvent($("#container button"));
+		dispatchMouseEvent($("#container button"));
 
 		expect(titleClicks).toBe(1);
 		expect(buttonClicks).toBe(1);
@@ -41,7 +41,7 @@ describe('Events tests', function() {
 			sectionClicks++;
 		};
 
-		dispatchClickEvent($("#container section"));
+		dispatchMouseEvent($("#container section"));
 
 		expect(sectionClicks).toBe(1);
 	});
@@ -53,7 +53,7 @@ describe('Events tests', function() {
 			buttonClicks++;
 		};
 
-		dispatchClickEvent($("#bad button"));
+		dispatchMouseEvent($("#bad button"));
 
 		expect(buttonClicks).toBe(1);
 	});
@@ -65,7 +65,7 @@ describe('Events tests', function() {
 			navClicks++;
 		};
 
-		dispatchClickEvent($("#container nav"));
+		dispatchMouseEvent($("#container nav"));
 
 		expect(navClicks).toBe(1);
 	});
