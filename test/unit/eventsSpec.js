@@ -77,7 +77,7 @@ describe('Events tests', function() {
 			contentFocuses++;
 		};
 
-		dispatchHTMLEvent($("#container content"), "focus");
+		dispatchHTMLEvent($("#container input"), "focus");
 
 		expect(contentFocuses).toBe(1);
 	});

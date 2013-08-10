@@ -46,28 +46,28 @@ describe('Class tests', function() {
 	it("Class attribute replaces existing", function() {
 		var scope = $("#container").consistent();
 
-		expect($("#container content").attr("class")).toBe("existingClass");
+		expect($("#container h1").attr("class")).toBe("existingClass");
 
 		scope.contentClass = "addedClass";
 		scope.$.apply();
 
-		expect($("#container content").attr("class")).toBe("addedClass");
+		expect($("#container h1").attr("class")).toBe("addedClass");
 
 		scope.contentClass = "changedClass";
 		scope.$.apply();
 
-		expect($("#container content").attr("class")).toBe("changedClass");
+		expect($("#container h1").attr("class")).toBe("changedClass");
 
 		/* Setting to the empty string also removes all classes */
 		scope.contentClass = "";
 		scope.$.apply();
 
-		expect($("#container content").attr("class")).not.toBeDefined();
+		expect($("#container h1").attr("class")).not.toBeDefined();
 
 		scope.contentClass = null;
 		scope.$.apply();
 
-		expect($("#container content").attr("class")).not.toBeDefined();
+		expect($("#container h1").attr("class")).not.toBeDefined();
 	});
 
 	it("Add class attribute", function() {
