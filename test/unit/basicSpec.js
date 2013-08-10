@@ -3,7 +3,7 @@
 describe('Basic tests', function() {
 
 	beforeEach(function () {
-		loadFixture("basic.html");
+		loadFixtures("basic.html");
 	});
 
 	Consistent.defaultOptions.templateEngine = Hogan;

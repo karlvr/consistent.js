@@ -3,7 +3,7 @@
 describe('Nodes tests', function() {
 
 	beforeEach(function () {
-		loadFixture("nodes.html");
+		loadFixtures("nodes.html");
 	});
 
 	var pages = [

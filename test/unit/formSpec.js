@@ -3,7 +3,7 @@
 describe('Form tests', function() {
 
 	beforeEach(function () {
-		loadFixture("form.html");
+		loadFixtures("form.html");
 	});
 
 	it("Form", function() {

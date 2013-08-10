@@ -8,7 +8,7 @@ describe('Events tests', function() {
 	}
 
 	beforeEach(function () {
-		loadFixture("events.html");
+		loadFixtures("events.html");
 	});
 
 	it("Default click events", function() {

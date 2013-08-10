@@ -3,7 +3,7 @@
 describe('Class tests', function() {
 
 	beforeEach(function () {
-		loadFixture("class.html");
+		loadFixtures("class.html");
 	});
 
 	it("Class attribute", function() {

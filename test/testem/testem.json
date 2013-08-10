@@ -1,0 +1,46 @@
+{
+  "framework": "jasmine",
+  "src_files": [
+    "src/consistent.js",
+    
+    "bower_components/jquery/jquery.min.js",
+    "bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js",
+    
+    "src/jquery.consistent.js",
+
+    "test/lib/json2.js",
+
+    "test/lib/jasmine-jquery/jasmine-jquery.js",
+    "test/testem/config.js",
+    "test/consistent.tests.js",
+
+    "test/**/*Spec.js"
+  ],
+  "launchers": {
+  	"bs_safari_51": {
+  		"command": "browserstack launch --attach safari:5.1 <url>",
+  		"protocol": "browser" 
+  	},
+  	"bs_ie_7": {
+  		"command": "browserstack launch --attach ie:7.0 <url>",
+  		"protocol": "browser" 
+  	},
+  	"bs_ie_8": {
+  		"command": "browserstack launch --attach ie:8.0 <url>",
+  		"protocol": "browser" 
+  	},
+  	"bs_ie_9": {
+  		"command": "browserstack launch --attach ie:9.0 <url>",
+  		"protocol": "browser" 
+  	},
+  	"bs_ie_10": {
+  		"command": "browserstack launch --attach ie:10.0 <url>",
+  		"protocol": "browser" 
+  	}
+  },
+  "on_start_ci": {
+  	"command": "browserstack tunnel localhost:<port> -t 60",
+  	"wait_for_text": "Tunnel is running",
+  	"wait_for_text_timeout": 60000
+  }
+}

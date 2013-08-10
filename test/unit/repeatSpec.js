@@ -3,7 +3,7 @@
 describe('Repeat tests', function() {
 
 	beforeEach(function () {
-		loadFixture("nodes.html");
+		loadFixtures("nodes.html");
 	});
 
 	var pages = [

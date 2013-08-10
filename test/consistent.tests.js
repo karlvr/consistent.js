@@ -1,22 +1,10 @@
 if (typeof fixtureBase === "undefined") {
+	/* Karma */
 	fixtureBase = '/base/test/html/';
 }
 
-function loadFixture(name) {
-	$('#fixture').remove();
-	$.ajax({
-  		async: false, // must be synchronous to guarantee that no tests are run before fixture is loaded
-  		dataType: 'html',
-  		url: fixtureBase + name,
-		success: function(data) {
-			$('body').append($("<div id='fixture'></div>"));
-			$('#fixture').append($(data));
-		},
-		error: function(jqXHR, textStatus, error) {
-			console.log("Fixture load failed: " + name + ": " + textStatus);
-		}
-	});
-}
+jasmine.getFixtures().containerId = "fixture";
+jasmine.getFixtures().fixturesPath = fixtureBase;
 
 function dispatchSimpleEvent(dom, name) {
 	var ev;
