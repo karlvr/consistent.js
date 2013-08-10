@@ -1,8 +1,3 @@
-if (typeof fixtureBase === "undefined") {
-	/* Karma */
-	fixtureBase = '/base/test/html/';
-}
-
 jasmine.getFixtures().containerId = "fixture";
 jasmine.getFixtures().fixturesPath = fixtureBase;
 

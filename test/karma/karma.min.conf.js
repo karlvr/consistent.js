@@ -3,7 +3,7 @@
 
 
 // base path, that will be used to resolve files and exclude
-basePath = '../';
+basePath = '../../';
 
 
 // list of files / patterns to load in the browser
@@ -13,6 +13,8 @@ files = [
   'bower_components/jquery/jquery.js',
   'bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js',
   'lib/consistent-for-jquery.min.js',
+  'test/lib/jasmine-jquery/jasmine-jquery.js',
+  'test/karma/config.js',
   'test/consistent.tests.js',
   'test/**/*Spec.js',
   { pattern: 'test/html/*.html', included:false }
