@@ -25,6 +25,30 @@
   		"command": "browserstack launch --attach safari:5.1 <url> --os 'os x'",
   		"protocol": "browser" 
   	},
+    "bs_ios_40": {
+      "command": "browserstack launch --attach 'Mobile Safari' <url> --os 'ios:4.0'",
+      "protocol": "browser" 
+    },
+    "bs_ios_50": {
+      "command": "browserstack launch --attach 'Mobile Safari' <url> --os 'ios:5.0'",
+      "protocol": "browser" 
+    },
+    "bs_ios_51": {
+      "command": "browserstack launch --attach 'Mobile Safari' <url> --os 'ios:5.1'",
+      "protocol": "browser" 
+    },
+    "bs_ios_60": {
+      "command": "browserstack launch --attach 'Mobile Safari' <url> --os 'ios:6.0'",
+      "protocol": "browser" 
+    },
+    "bs_android_40": {
+      "command": "browserstack launch --attach 'Android Browser' <url> --os 'android:4.0'",
+      "protocol": "browser" 
+    },
+    "bs_android_41": {
+      "command": "browserstack launch --attach 'Android Browser' <url> --os 'android:4.1'",
+      "protocol": "browser" 
+    },
     "bs_ie_6": {
       "command": "browserstack launch --attach ie:6.0 <url>",
       "protocol": "browser" 
