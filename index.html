@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Consistent.js by karlvr</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Consistent.js</h1>
+        <h2>Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM.</h2>
+        <a href="https://github.com/karlvr/consistent.js" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="consistentjs" class="anchor" href="#consistentjs"><span class="octicon octicon-link"></span></a>Consistent.js</h1>
+
+<p>Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM. Consistent is designed to be easy to use and understand for developers already using jQuery, and it doesn’t prevent you from using jQuery at the same time.</p>
+
+<p><a href="https://travis-ci.org/karlvr/consistent.js"><img src="https://travis-ci.org/karlvr/consistent.js.png" alt="Build Status"></a></p>
+
+<h2>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h2>
+
+<p>Use Consistent to create a <em>scope</em>, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.</p>
+
+<p>The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add <code>ct...</code> attributes to declare to Consistent how to use the scope’s properties. You can also use <code>data-ct...</code> instead of <code>ct...</code> if you prefer.</p>
+
+<p>The scope contains a <code>$</code> property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call <code>scope.$.apply()</code>. This <code>$</code> property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this <code>$</code> is nothing to do with jQuery and doesn’t interfere with it as it is contained in the scope.</p>
+
+<p>The scope contains scalar values, such as booleans, strings and numbers, and value functions, that return a calculated value. The scope also contains any event handler functions you create. To separate these event handlers from your values they are stored in properties beginning with a <code>$</code>, e.g. <code>$handleClick</code>.</p>
+
+<p>Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"src/consistent.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"src/jquery.consistent.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+</pre></div>
+
+<p>Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is just over 7KB.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"lib/consistent-for-jquery.min.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+</pre></div>
+
+<h3>
+<a name="substitution" class="anchor" href="#substitution"><span class="octicon octicon-link"></span></a>Substitution</h3>
+
+<p>Set the contents of an <code>h1</code> element with the <code>title</code> property in the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct=</span><span class="s">"title"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+</pre></div>
+
+<p>Now create a scope using the jQuery plugin, and assign a value to it.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">"Consistent.js"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>The <code>h1</code> element will now have its body changed to "Consistent.js".</p>
+
+<p>Notice that after changing properties in the scope you need to call <em>apply</em> to instruct Consistent to update the DOM. You can also apply changes to the scope like this, which is equivalent:</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">"Consistent.js"</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>Or even the following, as most things in Consistent are chainable:</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">().</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">"Consistent.js"</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>Note that if a scope property is undefined, Consistent does not change the DOM.</p>
+
+<p>How Consistent applies the scope value to the DOM depends upon the element. For most elements the <code>innerHTML</code> is set to the scope value. There are the following exceptions:</p>
+
+<ul>
+<li>
+<code>&lt;input&gt;</code>, <code>select</code> and <code>textarea</code> elements have their value set, or are checked, as appropriate. See Forms below.</li>
+<li>
+<code>&lt;img&gt;</code> has its <code>src</code> attribute set</li>
+</ul><h3>
+<a name="templating" class="anchor" href="#templating"><span class="octicon octicon-link"></span></a>Templating</h3>
+
+<p>Consistent supports pluggable templating engines. The examples use <a href="http://twitter.github.io/hogan.js/">Hogan</a>. Any templating engine that provides <code>compile(string)</code> and <code>render(object)</code> methods will work.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-tmpl=</span><span class="s">"Welcome to {{name}}"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+</pre></div>
+
+<p>Now configure Consistent to use Hogan as its templating engine, and populate the scope.</p>
+
+<div class="highlight"><pre><span class="nx">Consistent</span><span class="p">.</span><span class="nx">defaultOptions</span><span class="p">.</span><span class="nx">templateEngine</span> <span class="o">=</span> <span class="nx">Hogan</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s2">"Consistent.js"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>You can also reference templates by an id, rather than writing them inline:</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-tmpl-id=</span><span class="s">"h1-template"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">"h1-template"</span> <span class="na">type=</span><span class="s">"text/x-hogan-template"</span><span class="nt">&gt;</span>
+    <span class="nx">Welcome</span> <span class="nx">to</span> <span class="p">{{</span><span class="nx">name</span><span class="p">}}</span>
+<span class="nt">&lt;/script&gt;</span>
+</pre></div>
+
+<p>Note that Consistent will re-render the templates and thus recreate the DOM nodes each time the scope is applied.</p>
+
+<p>If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.</p>
+
+<h3>
+<a name="visibility" class="anchor" href="#visibility"><span class="octicon octicon-link"></span></a>Visibility</h3>
+
+<p>Consistent can show and hide nodes based on the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-show=</span><span class="s">"showTitle"</span><span class="nt">&gt;</span>My title<span class="nt">&lt;/h1&gt;</span>
+</pre></div>
+
+<p>You can also use <code>ct-hide</code> to hide the element when the scope property is true.</p>
+
+<p>Now create a scope and set the showTitle property. Consistent will show or hide the element using a <code>display:none</code> style. Consistent also restores the old value of <code>display</code> when re-showing, in case it was set to something specifically.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">showTitle</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.</p>
+
+<h3>
+<a name="value-functions" class="anchor" href="#value-functions"><span class="octicon octicon-link"></span></a>Value functions</h3>
+
+<p>As well as adding scalar values to the scope, you can also add value functions. In this case the function is executed each time the scope is applied and its return value is used. Value functions allow a scope property to be calculated dynamically.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;p&gt;</span>The number of people is <span class="nt">&lt;span</span> <span class="na">ct=</span><span class="s">"numberOfPeople"</span><span class="nt">&gt;</span><span class="ni">&amp;nbsp;</span><span class="nt">&lt;/span&gt;</span>.<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<p>The <code>&amp;nbsp;</code> above is sometimes necessary for IE 6 (is anyone still?) which will otherwise collapse the whitespace around the <code>&lt;span&gt;</code> and you may get strange spacing.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#container"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">people</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"Albert"</span><span class="p">,</span> <span class="s2">"Bob"</span><span class="p">,</span> <span class="s2">"Carl"</span><span class="p">,</span> <span class="s2">"Donald"</span> <span class="p">];</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">numberOfPeople</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">people</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>The value function gets called with <code>this</code> set to the scope, and no arguments. As for other scope properties, if the value function returns <code>undefined</code> then no changes will be made to the DOM.</p>
+
+<p>When the scope is populated from the DOM using the <code>scope.$.update</code> function, or when a scope property is set manually using the <code>scope.$.set</code> function, and the scope contains a value function for the affected property; the value function is called with one argument - the incoming value. Your value function can ignore this if it doesn’t support updates.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">numberOfPeople</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">numberOfPeople</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">newValue</span> <span class="o">!==</span> <span class="s2">"undefined"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">numberOfPeople</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">newValue</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">numberOfPeople</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="form-elements" class="anchor" href="#form-elements"><span class="octicon octicon-link"></span></a>Form elements</h3>
+
+<p>Form elements are automatically associated with the scope property with the same name as the element, and Consistent updates the form field’s value from the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"email"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"checkbox"</span> <span class="na">name=</span><span class="s">"optin"</span><span class="nt">&gt;</span>
+</pre></div>
+
+<p>Note that we don’t explicitly specify the scope property, it defaults to the name. You can explicitly specify the scope property using the <code>ct</code> attribute.</p>
+
+<p>Now create a scope and set the elements’ values.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"input"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">email</span> <span class="o">=</span> <span class="s2">"example@example.com"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">optin</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>All form elements are supported, including:</p>
+
+<ul>
+<li>text fields</li>
+<li>checkboxes</li>
+<li>radio buttons</li>
+<li>select (single and multiple selection)</li>
+<li>textareas</li>
+</ul><p>Checkboxes are usually represented by a boolean value in the scope. For groups of checkboxes with the same name they can be thought of as an array of values (the value attribute from the checkbox). If you have a boolean value in the scope, Consistent will not change it, but you may get some strange results if you have multiple checkboxes bound to the same property (with the same name with the default property binding). If the scope contains an array or no value for a checkbox’s bound property then Consistent will create an array. Consistent can also cope with scalar values for a checkbox, in which case they are matched to the checkbox’s value. Note that in this case Consistent may convert the property to an array if there are multiple checkboxes bound to the same property.</p>
+
+<p>For <code>&lt;select&gt;</code> elements that can have multiple options selected, the scope property can be an array.</p>
+
+<p>Consistent automatically listens to the <code>change</code> event on form elements. When the <code>change</code> event fires, Consistent updates the scope with that element and then applies the scope. Note that the update is just for the element that fired the <code>change</code> event, it is not for all of the scope’s DOM nodes as it is if you call <code>scope.$.update()</code>. You can turn off this behaviour by setting <code>autoListenToChange</code> to false in the <code>options</code> object, either when the scope is created or when you bind the form elements.</p>
+
+<h4>
+<a name="disabled-and-read-only" class="anchor" href="#disabled-and-read-only"><span class="octicon octicon-link"></span></a>Disabled and Read only</h4>
+
+<p>You can control the <code>disabled</code> and <code>readOnly</code> properties of form elements.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"email"</span> <span class="na">ct-disabled=</span><span class="s">"locked"</span><span class="nt">&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">locked</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+</pre></div>
+
+<p>It is often useful to use a value function in this case, so that the disabled state of the form element is calculated dynamically each time the scope is applied.</p>
+
+<p>The above shows how to control the <code>disabled</code> property, the full list is:</p>
+
+<ul>
+<li><code>ct-disabled</code></li>
+<li><code>ct-enabled</code></li>
+<li><code>ct-readonly</code></li>
+<li><code>ct-readwrite</code></li>
+</ul><p>Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.</p>
+
+<h4>
+<a name="select-options" class="anchor" href="#select-options"><span class="octicon octicon-link"></span></a>Select options</h4>
+
+<p>You can set the options array for a <code>&lt;select&gt;</code> element from the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;select</span> <span class="na">name=</span><span class="s">"product"</span> <span class="na">ct-options=</span><span class="s">"products"</span><span class="nt">&gt;&lt;/select&gt;</span>
+</pre></div>
+
+<p>Now set the options array either as an array of scalar values, such as strings:</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">products</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"Lamp"</span><span class="p">,</span> <span class="s2">"Bucket"</span><span class="p">,</span> <span class="s2">"Axe"</span> <span class="p">];</span>
+</pre></div>
+
+<p>Or as an array of objects that separate the text and value:</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">products</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{},</span>
+    <span class="p">{</span> <span class="nx">text</span><span class="o">:</span> <span class="s2">"Lamp"</span><span class="p">,</span> <span class="nx">value</span><span class="o">:</span> <span class="s2">"lamp"</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nx">text</span><span class="o">:</span> <span class="s2">"Bucket"</span><span class="p">,</span> <span class="nx">value</span><span class="o">:</span> <span class="s2">"bucket"</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nx">text</span><span class="o">:</span> <span class="s2">"Axe"</span><span class="p">,</span> <span class="nx">value</span><span class="o">:</span> <span class="s2">"axe"</span> <span class="p">}</span>
+<span class="p">];</span>
+</pre></div>
+
+<p>You can also include <code>label</code> and <code>disabled</code> properties in the objects to set those properties in the created options.</p>
+
+<p>You can of course bind the selected option as well, e.g. <code>scope.product = "bucket";</code>.</p>
+
+<h3>
+<a name="events" class="anchor" href="#events"><span class="octicon octicon-link"></span></a>Events</h3>
+
+<p>Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a <code>$</code> in order to distinguish it from model values and functions. You must not include the <code>$</code> prefix when specifying the function in the DOM.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span> <span class="na">ct-on-click=</span><span class="s">"handleClick"</span><span class="nt">&gt;</span>Click me<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+
+<p>Now create a scope and provide the click handler. Note that in the DOM the handler is <code>handleClick</code> but to define it in the scope it is <code>$handleClick</code>. You must follow this pattern otherwise Consistent will not find your event handler function.</p>
+
+<p>If you are using nested objects, the <code>$</code> prefix must be on the last part, e.g. <code>person.$handleClick</code>.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"a"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$handleClick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">ev</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+    <span class="nx">alert</span><span class="p">(</span><span class="s2">"Click!"</span><span class="p">);</span>
+<span class="p">};</span>
+</pre></div>
+
+<p>The handler function is called with <code>this</code> as the element that received the event, as in jQuery. There is also a second argument to the function which is the scope, in case you need it.</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">$handleClick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">,</span> <span class="nx">scope</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">clickCount</span><span class="o">++</span><span class="p">;</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+<span class="p">};</span>
+</pre></div>
+
+<p>Note that we don’t need to call <code>apply</code> after defining the event handler in the scope, as we don’t need to change the DOM. The event listeners are added when the DOM nodes are bound to the scope, you just have to make sure the handler functions are defined by the time they are invoked.</p>
+
+<h4>
+<a name="shortcut" class="anchor" href="#shortcut"><span class="octicon octicon-link"></span></a>Shortcut</h4>
+
+<p>There is a shortcut for binding events, which is to omit the event name. This chooses the <code>click</code> event for most elements:</p>
+
+<div class="highlight"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span> <span class="na">ct-on=</span><span class="s">"handleClick"</span><span class="nt">&gt;</span>Click me<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+
+<p>The following special cases apply:</p>
+
+<ul>
+<li>
+<code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code> and <code>&lt;select&gt;</code> elements bind the <code>change</code> event</li>
+<li>
+<code>&lt;form&gt;</code> elements bind the <code>submit</code> event</li>
+</ul><h3>
+<a name="repeating-blocks" class="anchor" href="#repeating-blocks"><span class="octicon octicon-link"></span></a>Repeating blocks</h3>
+
+<p>If your scope contains array values, you can repeat blocks of DOM nodes to represent them.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;ul&gt;</span>
+    <span class="nt">&lt;li</span> <span class="na">ct-repeat=</span><span class="s">"people"</span> <span class="na">ct=</span><span class="s">"name"</span><span class="nt">&gt;&lt;/li&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"ul"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">people</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nx">name</span><span class="o">:</span> <span class="s2">"Alfred"</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nx">name</span><span class="o">:</span> <span class="s2">"Bob"</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nx">name</span><span class="o">:</span> <span class="s2">"Carl"</span> <span class="p">}</span>
+<span class="p">];</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>This will result in a list containing three <code>&lt;li&gt;</code> elements, one for each of the people in the <code>scope.people</code> array. If you change the array, the DOM will be updated.</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">people</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span> <span class="nx">name</span><span class="o">:</span> <span class="s2">"Donald"</span> <span class="p">});</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>Or remove an item:</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">people</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>Consistent only creates new nodes when new items are added to the array. So any changes you make to the DOM outside of Consistent will be preserved, such as applying classes.</p>
+
+<p>Consistent creates a child scope for each repeated block, and the object in the array becomes its scope. Therefore each object in the array will have a <code>$</code> property added containing Consistent’s scope functionality. As the objects in the array are the child scopes, you can access the child scopes if you need to via the original array in the original scope.</p>
+
+<p>See the Parent scopes section for essential information about parent and child scopes.</p>
+
+<p>Repeating clones the repeated element, including all of its children:</p>
+
+<div class="highlight"><pre><span class="nt">&lt;table&gt;</span>
+    <span class="nt">&lt;tr</span> <span class="na">ct-repeat=</span><span class="s">"people"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;td&gt;</span>Person #<span class="nt">&lt;span</span> <span class="na">ct=</span><span class="s">"index"</span><span class="nt">&gt;&lt;/span&gt;&lt;/td&gt;</span>
+        <span class="nt">&lt;td</span> <span class="na">ct=</span><span class="s">"name"</span><span class="nt">&gt;&lt;/td&gt;</span>
+        <span class="nt">&lt;td</span> <span class="na">ct=</span><span class="s">"address"</span><span class="nt">&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+
+<p>Note above that the scope contains a property <code>scope.$.index</code> that contains the 0-based index of the current repeated block. You can’t access this property directly from the DOM as it is inside the <code>$</code> object, but you can use a value function to access it (and to add 1 to it if you want the index to be 1-based!).</p>
+
+<p>Another interesting thing is happening here, which will be clearer after reading the Parent scopes section. The <code>scope.index</code> value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the <code>index</code> property falls back to the parent scope. When a value function is called in a parent scope, <code>this</code> is set to the child scope. So <code>return this.$.index</code> returns the index of the child scope.</p>
+
+<p>It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.</p>
+
+<h3>
+<a name="attributes" class="anchor" href="#attributes"><span class="octicon octicon-link"></span></a>Attributes</h3>
+
+<p>You can set DOM element attributes from the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-attr-title=</span><span class="s">"headingTitle"</span><span class="nt">&gt;</span>Consistent.js<span class="nt">&lt;/h1&gt;</span>
+</pre></div>
+
+<p>Now create a scope and set the heading’s <code>title</code> attribute.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingTitle</span> <span class="o">=</span> <span class="s2">"Welcome"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>If you want to set DOM element properties, see the <a href="#properties">Properties</a> section below.</p>
+
+<h4>
+<a name="class-attributes" class="anchor" href="#class-attributes"><span class="octicon octicon-link"></span></a>Class attributes</h4>
+
+<p>Class attributes can be bound by declaring a <code>ct-attr-class</code> attribute, as above, however there is a shortcut for classes: <code>ct-class</code>.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-class=</span><span class="s">"headingClass"</span><span class="nt">&gt;</span>Consistent.js<span class="nt">&lt;/h1&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="s2">"heading"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="s2">"heading another-class"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"heading"</span><span class="p">,</span> <span class="s2">"another-class"</span> <span class="p">];</span>
+</pre></div>
+
+<p>Note that as well as being a shortcut, the <code>ct-class</code> supports array values, which are automatically converted to a space-separated string. If the scope contains an array value, <code>update</code> will convert the classes into an array when setting the scope.</p>
+
+<p>The alternative <code>ct-add-class</code> attribute preserves existing classes. When the scope is applied the scope property determines the set of classes to add to the element in addition to its existing classes. The following example code is applied in order and shows how the class attribute changes.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">class=</span><span class="s">"heading"</span> <span class="na">ct-add-class=</span><span class="s">"headingClass"</span><span class="nt">&gt;</span>Consistent.js<span class="nt">&lt;/h1&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="s2">"another-class"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span> <span class="c1">// class attribute is now "heading another-class"</span>
+
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="s2">"one two"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span> <span class="c1">// "heading one two"</span>
+
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span> <span class="c1">// "heading"</span>
+
+<span class="nx">scope</span><span class="p">.</span><span class="nx">headingClass</span> <span class="o">=</span> <span class="s2">"heading"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span> <span class="c1">// "heading"</span>
+</pre></div>
+
+<p>If you add classes to an element independent of Consistent, it will treat those classes as if they were existing and will not remove them when the scope is next applied, so everyone can play nicely together.</p>
+
+<h4>
+<a name="templating-1" class="anchor" href="#templating-1"><span class="octicon octicon-link"></span></a>Templating</h4>
+
+<p>You can also use templates to update attributes.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct-tmpl-attr-title=</span><span class="s">"This is a story about {{subject}}"</span><span class="nt">&gt;</span>Title<span class="nt">&lt;/h1&gt;</span>
+
+<span class="nt">&lt;h1</span> <span class="na">ct-tmpl-id-attr-title=</span><span class="s">"h1-title-template"</span><span class="nt">&gt;</span>Title<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;script </span><span class="na">id=</span><span class="s">"h1-title-template"</span> <span class="na">type=</span><span class="s">"text/x-hogan-template"</span><span class="nt">&gt;</span><span class="nx">This</span> <span class="nx">is</span> <span class="nx">a</span> <span class="nx">story</span> <span class="nx">about</span> <span class="p">{{</span><span class="nx">subject</span><span class="p">}}</span><span class="nt">&lt;/script&gt;</span>
+</pre></div>
+
+<h3>
+<a name="binding-the-scope-to-the-dom" class="anchor" href="#binding-the-scope-to-the-dom"><span class="octicon octicon-link"></span></a>Binding the scope to the DOM</h3>
+
+<p>In the examples above we’ve specifically bound the example nodes by their element name, this isn’t very realistic in practice. When you bind a DOM node to Consistent, all of its child nodes are bound as well, so you typically bind a container element:</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h3</span> <span class="na">ct=</span><span class="s">"name"</span><span class="nt">&gt;&lt;/h3&gt;</span>
+    <span class="nt">&lt;p</span> <span class="na">ct=</span><span class="s">"body"</span><span class="nt">&gt;&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<p>Now bind the scope.</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="s2">"#container"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+</pre></div>
+
+<p>Often you will have multiple blocks on the page and you’ll need to have an individual scope for each of them.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;p</span> <span class="na">ct=</span><span class="s">"body"</span><span class="nt">&gt;&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;p</span> <span class="na">ct=</span><span class="s">"body"</span><span class="nt">&gt;&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<p>Now bind each to a new scope.</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="s2">".container"</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="s2">"Lorem ipsum"</span><span class="p">;</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="getting-the-scope-for-a-dom-node" class="anchor" href="#getting-the-scope-for-a-dom-node"><span class="octicon octicon-link"></span></a>Getting the scope for a DOM node</h3>
+
+<p>If you need to get the existing scope for a node, you can follow the exact same pattern. Calling <code>.consistent()</code> again will return the existing scope.</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="s2">".container"</span><span class="p">).</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="s2">"Change the body"</span><span class="p">;</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>You can also call the <code>Consistent.findScopeForNode(node)</code> function, if you just want to check if there’s a scope rather than create one.</p>
+
+<h3>
+<a name="updating-the-scope-from-the-dom" class="anchor" href="#updating-the-scope-from-the-dom"><span class="octicon octicon-link"></span></a>Updating the scope from the DOM</h3>
+
+<p>Consistent can inspect the DOM to populate the scope.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#container"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">update</span><span class="p">();</span>
+</pre></div>
+
+<p>Note this doesn’t work for any properties that are using templates.</p>
+
+<h3>
+<a name="watching-for-changes-in-the-scope" class="anchor" href="#watching-for-changes-in-the-scope"><span class="octicon octicon-link"></span></a>Watching for changes in the scope</h3>
+
+<p>Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler functions are called when <code>apply</code> is called on the scope, <strong>before</strong> the DOM has been updated.</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">watch</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="nx">newValue</span><span class="p">,</span> <span class="nx">oldValue</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">shortTitle</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">title</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">watch</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">changedKeys</span><span class="p">,</span> <span class="nx">snapshot</span><span class="p">,</span> <span class="nx">oldSnapshot</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">changeSummary</span> <span class="o">=</span> <span class="s2">"The following keys were changed: "</span> <span class="o">+</span> <span class="nx">changedKeys</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>The snapshots passed to the watch handler function for the whole scope are created using the <code>scope.$.snapshot</code> function, and therefore do not have the <code>$</code> object, and value functions have been replaced with their value.</p>
+
+<p>Notice that you do not need to call <code>apply</code> if you change the scope inside a watch handler. A watch handler may be called multiple times in a single <code>apply</code> if the scope is changed by <em>other</em> watch handlers.</p>
+
+<p>Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.</p>
+
+<p>It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in <code>Consistent.settings.maxWatcherLoops</code>; the default should be good enough.</p>
+
+<h3>
+<a name="populating-the-scope-from-another-object" class="anchor" href="#populating-the-scope-from-another-object"><span class="octicon octicon-link"></span></a>Populating the scope from another object</h3>
+
+<p>Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope using the <code>merge</code> function.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#item"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+    <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">merge</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</pre></div>
+
+<p>Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.</p>
+
+<h3>
+<a name="exporting-the-scope-to-a-javascript-object" class="anchor" href="#exporting-the-scope-to-a-javascript-object"><span class="octicon octicon-link"></span></a>Exporting the scope to a Javascript object</h3>
+
+<p>The scope contains some extra properties required for Consistent. Particularly the <code>$</code> property, where all of Consistent’s functionality lives (e.g. <code>scope.$.apply()</code>). It also contains event handler functions (property names prefixed with a <code>$</code>), and value functions.</p>
+
+<h4>
+<a name="snapshot" class="anchor" href="#snapshot"><span class="octicon octicon-link"></span></a>Snapshot</h4>
+
+<p>Use the <code>snapshot</code> function to obtain a Javascript object without the <code>$</code> property, with properties prefixed with the <code>$</code> character (or whatever the <code>eventHandlerPrefix</code> option is set to) renamed to exclude the prefix, and with value functions evaluated and replaced with their value. This provides a snapshot of the state of the scope, and can be used to inspect values without being concerned with value functions, and without being concerned with the <code>$</code> prefix.</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">"My title"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">subtitle</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="s2">"My subtitle"</span> <span class="p">};</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$doNext</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">};</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$anotherProperty</span> <span class="o">=</span> <span class="s2">"see below"</span><span class="p">;</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">snapshot</span><span class="p">());</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">title</span><span class="o">:</span> <span class="s2">"My title"</span><span class="p">,</span>
+    <span class="nx">subtitle</span><span class="o">:</span> <span class="s2">"My subtitle"</span><span class="p">,</span>
+    <span class="nx">doNext</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">},</span>
+    <span class="nx">anotherProperty</span><span class="o">:</span> <span class="s2">"see below"</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>A snapshot is used when applying the scope to the DOM. This is how the declarations in the DOM can refer to <code>$</code> prefixed scope properties without the prefix.</p>
+
+<p>The <code>snapshot</code> function includes properties from parent scopes. If you don’t want to include parent scopes, pass <code>false</code> for the optional <code>includeParents</code> parameter, e.g. <code>snapshot(false)</code>.</p>
+
+<h4>
+<a name="model" class="anchor" href="#model"><span class="octicon octicon-link"></span></a>Model</h4>
+
+<p>The snapshot includes properties that are not relevant if you want to submit data back to a server using Ajax, or give the data to other code. For this, use the <code>model</code> function. The <code>model</code> function behaves like <code>snapshot</code>, except rather than renaming any properties prefixed with the <code>$</code> character (or whatever the <code>eventHandlerPrefix</code> option is set to) they are removed.</p>
+
+<p>Following on from the snapshot example above:</p>
+
+<div class="highlight"><pre><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">model</span><span class="p">());</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="p">{</span>
+    <span class="nx">title</span><span class="o">:</span> <span class="s2">"My title"</span><span class="p">,</span>
+    <span class="nx">subtitle</span><span class="o">:</span> <span class="s2">"My subtitle"</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>So for use with Ajax, as an example:</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#item"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">update</span><span class="p">();</span>
+<span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+    <span class="nx">data</span><span class="o">:</span> <span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">model</span><span class="p">()</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>The <code>model</code> function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional <code>includeParents</code> parameter, e.g. <code>model(false)</code>.</p>
+
+<h4>
+<a name="private-properties" class="anchor" href="#private-properties"><span class="octicon octicon-link"></span></a>Private properties</h4>
+
+<p>What follows from the implementation of the <code>model</code> function, is that if you want to include properties in your scope that you don’t want to export out of the scope for Ajax or other purposes, you can prefix those properties with a <code>$</code> (or whatever the <code>eventHandlerPrefix</code> option is set to). You still refer to them without the <code>$</code> prefix in the binding declarations, so it is quite transparent.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct=</span><span class="s">"title"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">$title</span> <span class="o">=</span> <span class="s2">"My title"</span><span class="p">;</span>
+
+<span class="c1">// The following are both true</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">snapshot</span><span class="p">().</span><span class="nx">title</span> <span class="o">===</span> <span class="s2">"My title"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">model</span><span class="p">().</span><span class="nx">title</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">;</span>
+</pre></div>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>Consistent is released under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+
+<h2>
+<a name="compatibility" class="anchor" href="#compatibility"><span class="octicon octicon-link"></span></a>Compatibility</h2>
+
+<p>Consistent works in all modern browsers. It has also been tested, and works in its entirety, in IE 6, 7 and 8.</p>
+
+<h2>
+<a name="principles" class="anchor" href="#principles"><span class="octicon octicon-link"></span></a>Principles</h2>
+
+<h3>
+<a name="undefined" class="anchor" href="#undefined"><span class="octicon octicon-link"></span></a>Undefined</h3>
+
+<p>If a scope property is not defined then Consistent will not change the DOM.</p>
+
+<h2>
+<a name="advanced" class="anchor" href="#advanced"><span class="octicon octicon-link"></span></a>Advanced</h2>
+
+<h3>
+<a name="nested-properties" class="anchor" href="#nested-properties"><span class="octicon octicon-link"></span></a>Nested properties</h3>
+
+<p>You can use nested properties in the scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;h1</span> <span class="na">ct=</span><span class="s">"person.fullName"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">person</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">fullName</span><span class="o">:</span> <span class="s2">"Nathanial Hornblower"</span>
+<span class="p">};</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>Watch handler functions will be called with the <code>key</code> as the nested property name, eg. <code>person.fullName</code>. For convenience the scope declares two functions for working with nested property names.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">nestedPropertyName</span> <span class="o">=</span> <span class="s2">"person.fullName"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">nestedPropertyName</span><span class="p">);</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">nestedPropertyName</span><span class="p">,</span> <span class="nx">value</span><span class="p">);</span>
+</pre></div>
+
+<p>If the appropriate intermediate objects don’t exist, when calling <code>set</code>, they are created and added to the scope for you.</p>
+
+<p>Note that <code>get</code> will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass true for the optional <code>includeParents</code> parameter, e.g. <code>get(key, false)</code> instead.</p>
+
+<h3>
+<a name="parent-scopes" class="anchor" href="#parent-scopes"><span class="octicon octicon-link"></span></a>Parent scopes</h3>
+
+<p>You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function. This includes value functions. Note that <code>this</code> inside the value function will be the child scope, rather than the scope in which it is defined.</p>
+
+<p>When <code>apply()</code> is called on a child scope, it automatically calls <code>apply()</code> on its parent scope.</p>
+
+<p>Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that <code>this</code> inside the watch function will be the child scope, rather than the scope in which it is defined.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">rootScope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">consistent</span><span class="p">();</span> <span class="cm">/* Create the root scope */</span>
+<span class="kd">var</span> <span class="nx">childScope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">consistent</span><span class="p">(</span><span class="nx">rootScope</span><span class="p">);</span> <span class="cm">/* Create a child scope */</span>
+<span class="nx">$</span><span class="p">(</span><span class="s2">"#item"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">(</span><span class="nx">childScope</span><span class="p">);</span> <span class="cm">/* Bind a DOM node to the child scope */</span>
+</pre></div>
+
+<p>Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it treats that as the scope to bind to. You have to call the <code>$.consistent</code> function in order to create a new scope with a parent. Note that <code>$.consistent</code> and <code>Consistent</code> are the same function.</p>
+
+<p>Now the following will work.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"item"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h2</span> <span class="na">ct=</span><span class="s">"title"</span><span class="nt">&gt;&lt;/h2&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">rootScope</span><span class="p">.</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">"Default title"</span><span class="p">;</span>
+<span class="nx">childScope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>Then if you add a title to the childScope and apply it again, it will override the title property in the parent.</p>
+
+<p>Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is particularly important when using parent scopes, as that argument will contain the originating scope, even if the event handler is declared in a parent scope.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"item"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h2</span> <span class="na">ct=</span><span class="s">"title"</span> <span class="na">ct-on-click=</span><span class="s">"handleClick"</span><span class="nt">&gt;&lt;/h2&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="nx">rootScope</span><span class="p">.</span><span class="nx">$handleClick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">,</span> <span class="nx">scope</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// scope === childScope</span>
+    <span class="nx">scope</span><span class="p">.</span><span class="nx">title</span> <span class="o">+=</span> <span class="s2">"."</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+
+<h3>
+<a name="getting-the-nodes-bound-to-a-scope" class="anchor" href="#getting-the-nodes-bound-to-a-scope"><span class="octicon octicon-link"></span></a>Getting the nodes bound to a scope</h3>
+
+<p>To get an array of DOM nodes that have been bound to a scope, and that have declared bindings (e.g. have <code>ct...</code> attributes), you can use the <code>nodes()</code> function. Even if a node has been passed to a Consistent scope’s <code>bind</code> function, if a node doesn’t declare bindings then it will not be included in the result from <code>nodes()</code>.</p>
+
+<p><code>nodes()</code> includes any bound nodes in child scopes as well. If you don’t want to include child scopes, pass true for the optional <code>includeParents</code> parameter, e.g. <code>nodes(false)</code>.</p>
+
+<p>Note that DOM nodes that define a repeating section (i.e. have a <code>ct-repeat</code> declaration) are not included in the result from <code>nodes()</code>, as those nodes no longer exist in the DOM. However, as nodes from child scopes are included the result may include the repeated nodes if they declare bindings.</p>
+
+<p>To get an array of the DOM nodes that have been passed to a scope’s bind function use the <code>roots()</code> function. Note that the root nodes do not need to have declared Consistent bindings.</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">nodes</span><span class="p">()).</span><span class="nx">addClass</span><span class="p">(</span><span class="s2">"found"</span><span class="p">);</span>
+<span class="nx">$</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">roots</span><span class="p">()).</span><span class="nx">addClass</span><span class="p">(</span><span class="s2">"found"</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="repeating-multiple-root-elements" class="anchor" href="#repeating-multiple-root-elements"><span class="octicon octicon-link"></span></a>Repeating multiple root elements</h3>
+
+<p>The Repeating blocks section above introduces repeating. In that example you can only repeat a single root element, such as an <code>&lt;li&gt;</code> or a <code>&lt;tr&gt;</code>. Consistent also supports repeating a block of multiple root elements, which is useful if you want to add multiple table rows to a table for each block.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;table&gt;</span>
+    <span class="nt">&lt;tr</span> <span class="na">ct-repeat=</span><span class="s">"people"</span> <span class="na">ct-repeat-container-id=</span><span class="s">"rows"</span><span class="nt">&gt;&lt;/tr&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+
+<span class="nt">&lt;table</span> <span class="na">style=</span><span class="s">"display:none"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;tbody</span> <span class="na">id=</span><span class="s">"rows"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;tr&gt;</span>
+            <span class="nt">&lt;td&gt;</span>Name<span class="nt">&lt;/td&gt;</span>
+            <span class="nt">&lt;td</span> <span class="na">ct=</span><span class="s">"name"</span><span class="nt">&gt;&lt;/td&gt;</span>
+        <span class="nt">&lt;/tr&gt;</span>
+        <span class="nt">&lt;tr&gt;</span>
+            <span class="nt">&lt;td&gt;</span>Address<span class="nt">&lt;/td&gt;</span>
+            <span class="nt">&lt;td</span> <span class="na">ct=</span><span class="s">"address"</span><span class="nt">&gt;&lt;/td&gt;</span>
+        <span class="nt">&lt;/tr&gt;</span>
+    <span class="nt">&lt;/tbody&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+</pre></div>
+
+<p>Using the <code>ct-repeat-container-id</code> attribute you can identify nodes elsewhere in the DOM that should be cloned and used in the repeating block. Note that tables automatically get a <code>&lt;tbody&gt;</code> element created, even if it isn’t in the markup, therefore you should attach the id to an explicit <code>&lt;tbody&gt;</code> otherwise if the id is on the <code>&lt;table&gt;</code>, the repeating block will include the automatically created <code>&lt;tbody&gt;</code>.</p>
+
+<h3>
+<a name="properties" class="anchor" href="#properties"><span class="octicon octicon-link"></span></a>Properties</h3>
+
+<p>You can set DOM element properties from the scope. Properties are DOM node Javascript properties, as opposed to attributes which are declared in the markup. The most common property to use is the <code>style</code> property, which exposes an object containing the DOM element’s style.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;p</span> <span class="na">ct-prop-style-display=</span><span class="s">"showHide"</span><span class="nt">&gt;</span>Lorem ipsum<span class="nt">&lt;/p&gt;</span>
+</pre></div>
+
+<p>Note that properties may be nested, as in the case of <code>style.display</code> above, and we can specify this by <code>-</code> separating the property name when we declare the <code>ct-prop-</code> attribute.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"p"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">();</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">showHide</span> <span class="o">=</span> <span class="s2">"none"</span><span class="p">;</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">();</span>
+</pre></div>
+
+<p>This sets the <code>style.display</code> property of the <code>&lt;p&gt;</code> element to "none", causing it not to be displayed.</p>
+
+<p>See the Visibility section above for a better way to show and hide elements.</p>
+
+<h2>
+<a name="options" class="anchor" href="#options"><span class="octicon octicon-link"></span></a>Options</h2>
+
+<h3>
+<a name="visibility-animation" class="anchor" href="#visibility-animation"><span class="octicon octicon-link"></span></a>Visibility animation</h3>
+
+<p>Often you want to use animation to show or hide elements. You can override the behaviour of showing and hiding by specifying options when you create a scope, or bind a node.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"h1"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">({</span>
+    <span class="nx">$</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">show</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dom</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// jQuery fade</span>
+            <span class="nx">$</span><span class="p">(</span><span class="nx">dom</span><span class="p">).</span><span class="nx">fadeIn</span><span class="p">();</span>
+        <span class="p">},</span>
+        <span class="nx">hide</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dom</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// jQuery fade</span>
+            <span class="nx">$</span><span class="p">(</span><span class="nx">dom</span><span class="p">).</span><span class="nx">fadeOut</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>You could also specify the show / hide implementation for a specific <code>apply</code>:</p>
+
+<div class="highlight"><pre><span class="nx">scope</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">apply</span><span class="p">({</span>
+    <span class="nx">$</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">show</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dom</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// jQuery fade</span>
+            <span class="nx">$</span><span class="p">(</span><span class="nx">dom</span><span class="p">).</span><span class="nx">fadeIn</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="repeating-blocks-animation" class="anchor" href="#repeating-blocks-animation"><span class="octicon octicon-link"></span></a>Repeating blocks animation</h3>
+
+<p>If you want to animate the appearance and disappearance of blocks in a repeating section, you can override the behaviour after adding nodes, and for removing nodes.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">$</span><span class="o">:</span> <span class="p">{}</span> <span class="p">};</span>
+<span class="nx">options</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">added</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dom</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// jQuery hide and fadeIn</span>
+    <span class="nx">$</span><span class="p">(</span><span class="nx">dom</span><span class="p">).</span><span class="nx">hide</span><span class="p">().</span><span class="nx">fadeIn</span><span class="p">();</span>
+<span class="p">};</span>
+<span class="nx">options</span><span class="p">.</span><span class="nx">$</span><span class="p">.</span><span class="nx">remove</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">dom</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// jQuery fade then remove</span>
+    <span class="nx">$</span><span class="p">(</span><span class="nx">dom</span><span class="p">).</span><span class="nx">fadeOut</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">remove</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">};</span>
+<span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#container"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">(</span><span class="nx">options</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="change-prefix-for-event-handler-and-value-functions" class="anchor" href="#change-prefix-for-event-handler-and-value-functions"><span class="octicon octicon-link"></span></a>Change prefix for event handler and value functions</h3>
+
+<p>If you’re adding existing objects to your scopes that use naming conventions that don’t fit with Consistent; when Consistent makes a snapshot of the scope (which occurs whenever you apply the scope), you may get unexpected results such as functions in your scope being called unexpectedly. This is because Consistent has interpreted those functions as value functions.</p>
+
+<p>To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions.</p>
+
+<p>By default, keys containing event handlers are prefixed with a <code>$</code>, e.g. <code>$handleClick</code>. You can change this to any string by setting the option <code>eventHandlerPrefix</code>. You must still omit the prefix when declaring the event handler to bind to in the DOM.</p>
+
+<p>When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as <code>ct-on="click"</code> in the key <code>doClick</code>.</p>
+
+<p>By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a <code>$</code> (or whatever the <code>eventHandlerPrefix</code> option is set to) is treated as a value function. You can change the value function prefix by setting the option <code>valueFunctionPrefix</code>. When there is a <code>valueFunctionPrefix</code> set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.</p>
+
+<p>When you use a value function prefix you must <strong>not</strong> include the prefix when declaring the binding in the DOM (same as for event handlers). The value function prefix is removed when the snapshot is created.</p>
+
+<div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h1</span> <span class="na">ct=</span><span class="s">"title"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+    <span class="nt">&lt;button</span> <span class="na">ct-on=</span><span class="s">"click"</span><span class="nt">&gt;</span>Button<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">eventHandlerPrefix</span><span class="o">:</span> <span class="s2">"do"</span><span class="p">,</span>
+    <span class="nx">valueFunctionPrefix</span><span class="o">:</span> <span class="s2">"get"</span>
+<span class="p">};</span>
+<span class="kd">var</span> <span class="nx">scope</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"#container"</span><span class="p">).</span><span class="nx">consistent</span><span class="p">(</span><span class="nx">options</span><span class="p">);</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">getTitle</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s2">"Consistent.js"</span>
+<span class="p">};</span>
+<span class="nx">scope</span><span class="p">.</span><span class="nx">doClick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ev</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">alert</span><span class="p">(</span><span class="s2">"Click!"</span><span class="p">);</span>
+<span class="p">};</span>
+</pre></div>
+
+<p>See <a href="#merging-only-specified-keys">Merging only specified keys</a> below for an alternative to this approach.</p>
+
+<h3>
+<a name="merging-only-specified-keys" class="anchor" href="#merging-only-specified-keys"><span class="octicon octicon-link"></span></a>Merging only specified keys</h3>
+
+<p>The <code>merge</code> function provides an easy way to merge properties from existing objects into the scope. It also has an optional argument, <code>keys</code>, which is an array of strings. This enables you to pick and choose which properties from your existing objects you merge into the scope.</p>
+
+<p>The keys array supports nested properties using <code>.</code> separators, e.g. <code>person.name</code>.</p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">object</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">title</span><span class="o">:</span> <span class="s2">"Consistent.js"</span><span class="p">,</span>
+    <span class="nx">subtitle</span><span class="o">:</span> <span class="s2">"A JavaScript framework"</span><span class="p">,</span>
+    <span class="nx">person</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">name</span><span class="o">:</span> <span class="s2">"Arthur"</span><span class="p">,</span>
+        <span class="nx">age</span><span class="o">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="nx">gender</span><span class="o">:</span> <span class="s2">"m"</span>
+    <span class="p">},</span>
+    <span class="nx">location</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">city</span><span class="o">:</span> <span class="s2">"Auckland"</span><span class="p">,</span>
+        <span class="nx">country</span><span class="o">:</span> <span class="s2">"New Zealand"</span>
+    <span class="p">},</span>
+    <span class="nx">friends</span><span class="o">:</span> <span class="p">[</span>
+        <span class="s2">"Bob"</span><span class="p">,</span>
+        <span class="s2">"Carl"</span>
+    <span class="p">]</span>
+<span class="p">};</span>
+
+<span class="nx">scope</span><span class="p">.</span><span class="nx">merge</span><span class="p">(</span><span class="nx">object</span><span class="p">,</span> <span class="p">[</span> <span class="s2">"title"</span><span class="p">,</span> <span class="s2">"person.name"</span><span class="p">,</span> <span class="s2">"person.age"</span><span class="p">,</span> <span class="s2">"location"</span><span class="p">,</span> <span class="nx">friends</span><span class="err">"</span> <span class="p">]);</span>
+</pre></div>
+
+<p>The above results in the title, the person’s name and age, and the location and friends arrays all being copied into the scope. The subtitle and the person’s gender are not copied.</p>
+
+<h2>
+<a name="reference" class="anchor" href="#reference"><span class="octicon octicon-link"></span></a>Reference</h2>
+
+<h3>
+<a name="dom-attributes" class="anchor" href="#dom-attributes"><span class="octicon octicon-link"></span></a>DOM attributes</h3>
+
+<p>By default, DOM attributes are used to declare the binding between DOM nodes and the scope. The preferred attributes style starts with <code>ct</code>. You can also use <code>data-ct</code> instead of <code>ct</code>.</p>
+
+<h4>
+<a name="binding-values" class="anchor" href="#binding-values"><span class="octicon octicon-link"></span></a>Binding values</h4>
+
+<ul>
+<li>
+<code>ct</code> the name of a property in the scope to use to set the value of this element. Where setting the value means setting the <code>innerHTML</code>, or other properties as appropriate to the element type.</li>
+<li>
+<code>ct-tmpl</code> a template that will be rendered with the scope as its context, and then used to set the value of this element.</li>
+<li>
+<code>ct-tmpl-id</code> the id of a DOM element that contains template text, e.g. a <code>&lt;script type="text/x-hogan-template"&gt;</code> element.</li>
+</ul><h4>
+<a name="form-properties" class="anchor" href="#form-properties"><span class="octicon octicon-link"></span></a>Form properties</h4>
+
+<ul>
+<li>
+<code>ct-disabled</code> make this element disabled when the named property in the scope is true.</li>
+<li>
+<code>ct-enabled</code> make this element enabled when the named property in the scope is true.</li>
+<li>
+<code>ct-readonly</code> make this element read-only when the named property in the scope is true.</li>
+<li>
+<code>ct-readwrite</code> make this element not read-only when the named property in the scope is true.</li>
+<li>
+<code>ct-options</code> set the <code>&lt;select&gt;</code> options array based on the array in the named property in the scope. The array should contain either scalar values, or objects each with <code>text</code> and <code>value</code> properties. Each object may also contain a <code>disabled</code> or <code>label</code> property to set those properties on the options.</li>
+</ul><h4>
+<a name="attributes-and-properties" class="anchor" href="#attributes-and-properties"><span class="octicon octicon-link"></span></a>Attributes and properties</h4>
+
+<p>The <code>NAME</code> segment in the following list represents the name of the attribute or property. In the case of properties, the name will have -s changed to .s to enable access to nested properties, e.g. <code>ct-prop-style-display</code> affects the <code>style.display</code> property.</p>
+
+<ul>
+<li>
+<code>ct-attr-NAME</code> the name of a property in the scope to use to set the value of the given attribute on this element.</li>
+<li>
+<code>ct-prop-NAME</code> the name of a property in the scope to use to set the value of the given property on this element.</li>
+<li>
+<code>ct-tmpl-attr-NAME</code> a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.</li>
+<li><p><code>ct-tmpl-id-attr-NAME</code> the id of a DOM element that contains template text.</p></li>
+<li><p><code>ct-attrs</code> the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute <code>class</code> you should instead use <code>className</code> as <code>class</code> is sometimes a reserved word.</p></li>
+<li><p><code>ct-properties</code> the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.</p></li>
+<li><p><code>ct-class</code> the name of a property in the scope to use to set the value of the <code>class</code> attribute on this element. Supports string and array values.</p></li>
+<li><p><code>ct-add-class</code> the name of a property in the scope to use to add classes to the existing <code>class</code> attribute on this element. Supports string and array values.</p></li>
+</ul><h4>
+<a name="visibility-1" class="anchor" href="#visibility-1"><span class="octicon octicon-link"></span></a>Visibility</h4>
+
+<ul>
+<li>
+<code>ct-show</code> show this element when the named property in the scope is true, otherwise hide it.</li>
+<li>
+<code>ct-hide</code> the opposite of show.</li>
+</ul><h4>
+<a name="event-handlers" class="anchor" href="#event-handlers"><span class="octicon octicon-link"></span></a>Event handlers</h4>
+
+<ul>
+<li>
+<code>ct-on</code> binds the default event for this element to the named event handler function in the scope.</li>
+<li>
+<code>ct-on-EVENT</code> binds the event named EVENT for this element to the named event handler function in the scope.</li>
+</ul><h4>
+<a name="repeating-blocks-1" class="anchor" href="#repeating-blocks-1"><span class="octicon octicon-link"></span></a>Repeating blocks</h4>
+
+<ul>
+<li>
+<code>ct-repeat</code> repeats this element, and all of its children, for each item in the array in the named property in the scope.</li>
+<li>
+<code>ct-repeat-container-id</code> the id of a DOM element that contains DOM nodes to be repeated in place of this element.</li>
+</ul><h3>
+<a name="scope-functions" class="anchor" href="#scope-functions"><span class="octicon octicon-link"></span></a>Scope functions</h3>
+
+<p>All scope functions are nested inside the <code>$</code> object, and therefore you call them, e.g. <code>scope.$.apply()</code>. All functions without an explicitly documented return value will return the scope to enable chaining, e.g. <code>scope.$.update().$.apply()</code>.</p>
+
+<h4>
+<a name="dom" class="anchor" href="#dom"><span class="octicon octicon-link"></span></a>DOM</h4>
+
+<ul>
+<li>
+<code>apply([options, ] [function])</code> applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with <code>this</code> set to the scope before the scope is applied.</li>
+<li>
+<code>applyLater([options, ] [function])</code> as for <code>apply</code> but rather than applying immediately it creates a <code>setTimeout</code> with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.</li>
+<li>
+<code>needsApply()</code> returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.</li>
+<li>
+<code>update()</code> updates the scope by reading keys and values from the DOM.</li>
+<li>
+<code>bind(dom [, options])</code> binds the given DOM node to the scope. See the options section for the optional options argument. The <code>dom</code> parameter may also be an array of nodes.</li>
+<li>
+<code>unbind(dom)</code> unbinds the given DOM node from the scope. The <code>dom</code> parameter may also be an array of nodes.</li>
+<li>
+<code>nodes([includeParents])</code> returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes unless the optional <code>includeParents</code> parameter is false.</li>
+<li>
+<code>roots()</code> returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the <code>bind</code> function.</li>
+</ul><h4>
+<a name="scope" class="anchor" href="#scope"><span class="octicon octicon-link"></span></a>Scope</h4>
+
+<ul>
+<li>
+<code>snapshot([includeParents])</code> returns a Javascript object containing the scope’s model properties, excluding the Consistent <code>$</code> object, any properties prefixed with a <code>$</code> (usually event handlers) and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional <code>includeParents</code> parameter is false.</li>
+<li>
+<code>merge([deep, ] object)</code> merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.</li>
+<li>
+<code>merge(object, keys)</code> merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. <code>[ "name", "address.street" ]</code>.</li>
+<li>
+<code>replace(object)</code> replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s <code>$</code> object is added into this new object. The return value is the object given.</li>
+<li><p><code>clear()</code> removes all properties from the scope. This only leaves Consistent’s <code>$</code> object.</p></li>
+<li><p><code>get(key [, includeParents])</code> returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional <code>includeParents</code> parameter is false. The value may be a scalar value or a function (in the case of a value function or event handler) if the scope contains a property with the given key, otherwise it returns undefined.</p></li>
+<li><p><code>set(key, value)</code> sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.</p></li>
+<li><p><code>getEventHandler(key [, includeParents])</code> returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional <code>includeParents</code> parameter is false. The event handler prefix (by default <code>$</code>) is added to the last component of the key and must not be included in the <code>key</code> parameter, e.g. <code>getEventHandler("people.handleClick")</code> to access <code>people.$handleClick</code>.</p></li>
+<li><p><code>setEventHandler(key, function)</code> sets the event handler in the scope for the given key. Supports nested keys. Adds the <code>$</code> prefix to the last component of the key.</p></li>
+</ul><h4>
+<a name="watch" class="anchor" href="#watch"><span class="octicon octicon-link"></span></a>Watch</h4>
+
+<ul>
+<li>
+<code>watch([key,] function)</code> adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.</li>
+<li>
+<code>unwatch([key,] function)</code> unbinds the watch function.</li>
+</ul><h4>
+<a name="general" class="anchor" href="#general"><span class="octicon octicon-link"></span></a>General</h4>
+
+<ul>
+<li>
+<code>parent()</code> returns the parent scope, or null if there is no parent scope.</li>
+<li>
+<code>children()</code> returns an array containing the immediate child scopes of this scope.</li>
+<li>
+<code>options([node])</code> returns the options object for the given node, or for the scope as a whole. Note that you can modify the returned options object, but changes to the scope’s options will not affect node options.</li>
+</ul><h3>
+<a name="scope-properties" class="anchor" href="#scope-properties"><span class="octicon octicon-link"></span></a>Scope properties</h3>
+
+<p>The scope exposes some properties inside the <code>$</code> object, e.g. <code>scope.$.index</code>.</p>
+
+<ul>
+<li>
+<code>index</code> the 0-based index of the given scope within a repeating section, or undefined if not in a repeating section.</li>
+</ul><h3>
+<a name="consistent-functions" class="anchor" href="#consistent-functions"><span class="octicon octicon-link"></span></a>Consistent functions</h3>
+
+<ul>
+<li>
+<code>Consistent([options])</code> returns a new scope. If the options are provided the scope is initialised with them.</li>
+<li>
+<code>Consistent(parentScope [, options])</code> returns a new scope and sets its parent scope. If the options are provided the scope is initialised with them.</li>
+<li>
+<code>Consistent(node)</code> returns the scope the DOM node is bound to, or null.</li>
+<li>
+<code>Consistent.isScope(object)</code> returns true if the given object is a Consistent scope.</li>
+</ul><h3>
+<a name="jquery-plugin" class="anchor" href="#jquery-plugin"><span class="octicon octicon-link"></span></a>jQuery plugin</h3>
+
+<ul>
+<li>
+<code>$.consistent</code> is synonymous with the <code>Consistent</code> function above and can be used in the same way.</li>
+<li>
+<code>$(selector).consistent()</code> checks the selected elements to see if they have been bound to a scope. If they’ve all been bound to the same scope, it returns that scope. If they’ve been bound to different scopes (or some have been bound and some haven’t) this throws an exception. If they haven’t been bound to a scope a new scope is created, the elements are bound and the scope is returned.</li>
+<li>
+<code>$(selector).consistent(options)</code> creates a new scope with the given options, binds the selected elements to it and returns the scope.</li>
+<li>
+<code>$(selector).consistent(scope [, options])</code> binds the selected nodes to the given scope, with the options if provided and returns the scope.</li>
+</ul><h2>
+<a name="what-consistent-doesnt-do" class="anchor" href="#what-consistent-doesnt-do"><span class="octicon octicon-link"></span></a>What Consistent doesn’t do</h2>
+
+<p>Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the <a href="#templating">templating section</a> for advice about that.</p>
+
+<p>Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the <code>scope.$.merge(object)</code> and <code>scope.$.model()</code> functions, respectively.</p>
+
+<h2>
+<a name="troubleshooting" class="anchor" href="#troubleshooting"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
+
+<h3>
+<a name="functions-in-objects-in-the-scope-are-called-unexpectedly" class="anchor" href="#functions-in-objects-in-the-scope-are-called-unexpectedly"><span class="octicon octicon-link"></span></a>Functions in objects in the scope are called unexpectedly</h3>
+
+<p>See the section <a href="#change-prefix-for-event-handler-and-value-functions">Change prefix for event handler and value functions</a> above for an explanation and a solution to this problem.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/karlvr/consistent.js/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/karlvr/consistent.js/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/karlvr/consistent.js"></a> is maintained by <a href="https://github.com/karlvr">karlvr</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
