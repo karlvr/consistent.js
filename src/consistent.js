@@ -1165,6 +1165,10 @@
 					snapshot[name] = snapshot[name].call(scope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
 					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
+					
+					/* Delete the cached result in the scope */
+					delete scope[propertyName]
+					
 					snapshot[propertyName] = snapshot[name].call(scope);
 
 					/* Delete the original value function */
