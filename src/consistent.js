@@ -1122,7 +1122,7 @@
 	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
 	 * objects in the scope.
 	 */
-	function processSnapshot(snapshot, dontRemoveEventHandlers, scope, seen) {
+	function processSnapshot(snapshot, dontRemoveEventHandlers, baseScope, scope, seen) {
 		if (seen === undefined) {
 			seen = [];
 		}
@@ -1162,10 +1162,10 @@
 			} else if (typeof snapshot[name] === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
-					snapshot[name] = snapshot[name].call(scope);
+					snapshot[name] = snapshot[name].call(baseScope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
 					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
-					snapshot[propertyName] = snapshot[name].call(scope);
+					snapshot[propertyName] = snapshot[name].call(baseScope);
 
 					/* Delete the original value function */
 					delete snapshot[name];
@@ -1179,7 +1179,7 @@
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], dontRemoveEventHandlers, scope, seen);
+				processSnapshot(snapshot[name], dontRemoveEventHandlers, baseScope, scope, seen);
 			}
 		}
 
@@ -1304,7 +1304,7 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, false, childScope !== undefined ? childScope : scope);
+				processSnapshot(temp, false, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
@@ -1326,7 +1326,7 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, true, childScope !== undefined ? childScope : scope);
+				processSnapshot(temp, true, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
