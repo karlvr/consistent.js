@@ -67,4 +67,52 @@ describe('Bugs', function() {
 		expect(childScope.$.snapshot().active).toBe(false);
 	});
 
+	/* This test actually reproduces the issue reported by @snikch and tests
+	 * the fix. The issue was that because an input element is toggled, the 
+	 * scope's update method is called, which calls the scope's $.set method,
+	 * which set a local property in the scope called "active" which shadowed
+	 * the value function in the parent. The scope's $.set method now looks for
+	 * value functions in the parent and invokes those to set a new value.
+	 */
+	it("Child contexts with value functions and update", function() {
+		loadFixtures("bug-snikch-valueFunctionPrefix.html");
+
+		var template = $('#template');
+		var scope = template.consistent({valueFunctionPrefix: "get"});
+
+		scope.getActive = function() {
+		  // console.log("getActive", this.state == 'active', this.state);
+		  return this.state == 'active';
+		};
+
+		scope.$toggleState = function(ev, dom) {
+		  // console.log("Toggling state from", this.state);
+		  if (this.state == 'active') {
+		    this.state = 'inactive';
+		  } else {
+		    this.state = 'active';
+		  }
+		  this.$.apply();
+		};
+
+		scope.subscriptions = [{ name: "One", state: "active"}];
+
+		scope.$.apply();
+
+		var checkbox = template.find("input")[0];
+		var childScope = Consistent.findScopeForNode(checkbox);
+
+		expect(childScope.state).toBe('active');
+		expect(checkbox.checked).toBe(true);
+
+		dispatchMouseEvent([checkbox]);
+		expect(childScope.state).toBe('inactive');
+		expect(checkbox.checked).toBe(false);
+
+		dispatchMouseEvent([checkbox]);
+		expect(childScope.state).toBe('active');
+		expect(childScope.$.snapshot().active).toBe(true);
+		expect(checkbox.checked).toBe(true);
+	});
+
 });
