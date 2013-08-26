@@ -466,9 +466,17 @@
 					}
 				}
 
+				function getPropertyOrEvaluateExpression(propertyOrExpression) {
+					if (typeof propertyOrExpression === "function") {
+						return propertyOrExpression(snapshot);
+					} else {
+						return getNestedProperty(snapshot, propertyOrExpression);
+					}
+				}
+
 				/* Visibility */
 				if (bindings.show) {
-					value = getNestedProperty(snapshot, bindings.show);
+					value = getPropertyOrEvaluateExpression(bindings.show);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -478,7 +486,7 @@
 					}
 				}
 				if (bindings.hide) {
-					value = getNestedProperty(snapshot, bindings.hide);
+					value = getPropertyOrEvaluateExpression(bindings.hide);
 					if (value !== undefined) {
 						if (!value) {
 							this.show(dom);
@@ -490,13 +498,13 @@
 
 				/* Enabled / disabled */
 				if (bindings.enabled) {
-					value = getNestedProperty(snapshot, bindings.enabled);
+					value = getPropertyOrEvaluateExpression(bindings.enabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !value);
 					}
 				}
 				if (bindings.disabled) {
-					value = getNestedProperty(snapshot, bindings.disabled);
+					value = getPropertyOrEvaluateExpression(bindings.disabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !!value);
 					}
@@ -504,13 +512,13 @@
 
 				/* Read only */
 				if (bindings.readOnly) {
-					value = getNestedProperty(snapshot, bindings.readOnly);
+					value = getPropertyOrEvaluateExpression(bindings.readOnly);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !!value);
 					}
 				}
 				if (bindings.readWrite) {
-					value = getNestedProperty(snapshot, bindings.readWrite);
+					value = getPropertyOrEvaluateExpression(bindings.readWrite);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !value);
 					}
@@ -942,12 +950,12 @@
 					}
 					case "show": {
 						/* Show */
-						bindings.show = value;
+						bindings.show = propertyNameOrExpression(value);
 						break;
 					}
 					case "hide": {
 						/* Hide */
-						bindings.hide = value;
+						bindings.hide = propertyNameOrExpression(value);
 						break;
 					}
 					case "repeat": {
@@ -962,22 +970,22 @@
 					}
 					case "enabled": {
 						/* Enabled */
-						bindings.enabled = value;
+						bindings.enabled = propertyNameOrExpression(value);
 						break;
 					}
 					case "disabled": {
 						/* Disabled */
-						bindings.disabled = value;
+						bindings.disabled = propertyNameOrExpression(value);
 						break;
 					}
 					case "readOnly": {
 						/* Read Only */
-						bindings.readOnly = value;
+						bindings.readOnly = propertyNameOrExpression(value);
 						break;
 					}
 					case "readWrite": {
 						/* Read Write */
-						bindings.readWrite = value;
+						bindings.readWrite = propertyNameOrExpression(value);
 						break;
 					}
 					case "options": {
@@ -1109,6 +1117,29 @@
 				return "submit";
 			} else {
 				return "click";
+			}
+		}
+
+		function propertyNameOrExpression(value) {
+			/* Trim value */
+			value = value.replace(/^\s*(.*)\s*$/, "$1");
+
+			/* Determine whether this is a plain property name or an expression */
+			if (value.match(/[^a-zA-Z0-9_]/)) {
+				try {
+					/* Convert to a valid expression */
+					value = value.replace(/(\s|\))and(\s|\()/g, "$1&&$2"); /* and => && */
+					value = value.replace(/(\s|\))or(\s|\()/g, "$1||$2"); /* or => || */
+
+					return new Function("snapshot", "with (snapshot) { return " + value + "; }");
+				} catch (e) {
+					if (typeof console !== "undefined") {
+						console.log("Expression syntax error: " + value + " (" + e + ")");
+					}
+					return value;
+				}
+			} else {
+				return value;
 			}
 		}
 
