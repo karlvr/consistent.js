@@ -2,11 +2,6 @@
 
 describe('Events tests', function() {
 
-	if (window.navigator.userAgent.indexOf("PhantomJS") !== -1) {
-		console.log("PhantomJS cannot run the events tests as events do not appear to fire");
-		return;
-	}
-
 	beforeEach(function () {
 		loadFixtures("events.html");
 	});
