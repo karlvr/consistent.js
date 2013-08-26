@@ -11,21 +11,31 @@ Example of basic Consistent.js usage
 </head>
 <body>
 	<div>
-		<h1 ct-show="showTitle and !hideTitle" ct="title + (titleSuffix ? ': ' + titleSuffix : '')">Default title</h1>
+		<h1 ct-show="showAll and !hideTitle" ct="title + (titleSuffix ? ': ' + titleSuffix : '')">Default title</h1>
+		<div ct-show="showAll and visible" ct="message"></div>
 
-		<label><input type="checkbox" name="showTitle"> Show title</label>
-		<label><input type="checkbox" name="hideTitle"> Hide title</label>
-		<br>
-		<label>Suffix <input type="text" name="titleSuffix"></label>
+		<p>
+			<label><input type="checkbox" name="showAll"> Show all</label>
+			<label><input type="checkbox" name="hideTitle"> Hide title</label>
+			<br>
+			<label>Suffix <input type="text" name="titleSuffix"></label>
+			<br>
+			<label>Message <input type="text" name="message"></label>
+		</p>
 	</div>
 
 <script>
 $(function() {
 	var scope = $("body").consistent();
-	scope.showTitle = true;
+	scope.showAll = true;
 	scope.hideTitle = false;
 	scope.title = "Consistent.js";
 	scope.titleSuffix = "expressions example";
+	scope.message = "Value functions also work in expressions";
+	scope.visible = function() {
+		/* The message is visible unless it contains the word "hide" */
+		return this.message.indexOf("hide") === -1;
+	};
 	scope.$.apply();
 });
 </script>
