@@ -938,11 +938,14 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 
-* `get(key [, includeParents])` returns the value in the scope for the given key. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. The value may be a scalar value or a function (in the case of a value function or event handler) if the scope contains a property with the given key, otherwise it returns undefined.
-* `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument.
+* `get(key [, includeParents])` returns the value in the scope for the given key. If the scope contains a value function for the given key, the value function is evaluated and its result returned. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. If no property with the given key is found it returns undefined.
+* `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument. If no property exists in the scope for the given key, parent scopes are searched for a value function to call. If no value functions are found, a new property is created in the scope with the given value.
 
 * `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
-* `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the `$` prefix to the last component of the key.
+* `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the event handler prefix to the last component of the key.
+
+* `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The value function prefix (by default empty) is added to the last component of the key and must not be included in the `key` parameter.
+* `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys. Adds the value function prefix to the last component of the key.
 
 #### Watch
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
