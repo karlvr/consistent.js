@@ -12,13 +12,13 @@ describe('Bugs', function() {
 		scope.getActive = function() {
 			return this.state == 'active';
 		};
-		scope.$toggleState = function(ev, scope) {
-			if (scope.state == 'active') {
-				scope.state = 'inactive';
+		scope.$toggleState = function(ev, dom) {
+			if (this.state == 'active') {
+				this.state = 'inactive';
 			} else {
-				scope.state = 'active';
+				this.state = 'active';
 			}
-			scope.$.apply();
+			this.$.apply();
 		}
 
 		expect(scope.state).not.toBeDefined();
@@ -42,13 +42,13 @@ describe('Bugs', function() {
 		scope.getActive = function() {
 			return this.state == 'active';
 		};
-		scope.$toggleState = function(ev, scope) {
-			if (scope.state == 'active') {
-				scope.state = 'inactive';
+		scope.$toggleState = function(ev, dom) {
+			if (this.state == 'active') {
+				this.state = 'inactive';
 			} else {
-				scope.state = 'active';
+				this.state = 'active';
 			}
-			scope.$.apply();
+			this.$.apply();
 		}
 
 		var childScope = Consistent(scope);
@@ -58,11 +58,11 @@ describe('Bugs', function() {
 		expect(childScope.state).not.toBeDefined();
 		expect(childScope.$.snapshot().active).toBe(false);
 
-		scope.$toggleState(null, childScope);
+		scope.$toggleState.call(childScope);
 		expect(childScope.state).toBe("active");
 		expect(childScope.$.snapshot().active).toBe(true);
 
-		scope.$toggleState(null, childScope);
+		scope.$toggleState.call(childScope);
 		expect(childScope.state).toBe("inactive");
 		expect(childScope.$.snapshot().active).toBe(false);
 	});

@@ -30,8 +30,8 @@ $(function() {
 		this.numberOfClicks = 0;
 		this.tooManyClicksDisplay = "none";
 
-		this.$registerClick = function(ev, scope) {
-			scope.$.apply(function() {
+		this.$registerClick = function(ev, dom) {
+			this.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
 					this.tooManyClicksDisplay = "";
@@ -40,8 +40,8 @@ $(function() {
 			});
 		};
 
-		this.$resetClicks = function(ev, scope) {
-			scope.$.apply(function() {
+		this.$resetClicks = function(ev, dom) {
+			this.$.apply(function() {
 				this.numberOfClicks = 0;
 				this.tooManyClicksDisplay = "none";
 				this.clickMeDisabled = null;

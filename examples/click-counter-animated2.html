@@ -29,8 +29,8 @@ $(function() {
 		this.numberOfClicks = 0;
 		$(this.$.roots()).find(".tooManyClicks").hide();
 
-		this.$registerClick = function(ev, scope) {
-			scope.$.apply(function() {
+		this.$registerClick = function(ev, dom) {
+			this.$.apply(function() {
 				this.numberOfClicks++;
 				if (this.numberOfClicks >= 3) {
 					$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
@@ -39,8 +39,8 @@ $(function() {
 			});
 		};
 
-		this.$resetClicks = function(ev, scope) {
-			scope.$.apply(function() {
+		this.$resetClicks = function(ev, dom) {
+			this.$.apply(function() {
 				this.numberOfClicks = 0;
 				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
 				this.clickMeDisabled = null;

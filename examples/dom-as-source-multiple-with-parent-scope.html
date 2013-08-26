@@ -98,9 +98,9 @@ $(function() {
 
 	var rootScope = $.consistent();
 	/* Click handler to toggle the status */
-	rootScope.$handleClick = function(ev, scope) {
+	rootScope.$handleClick = function(ev, dom) {
 		/* The scope argument is criticial, as this reflects the scope that the event occurred in */
-		scope.$.apply(function() {
+		this.$.apply(function() {
 			this.status = this.status == "on" ? "off" : "on";
 		});
 	};

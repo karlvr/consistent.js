@@ -677,9 +677,9 @@ Event handlers also work. Remember that event handlers receive a second argument
 ```
 
 ```javascript
-rootScope.$handleClick = function(ev, scope) {
-	// scope === childScope
-	scope.title += ".";
+rootScope.$handleClick = function(ev, dom) {
+	// this === childScope
+	this.title += ".";
 };
 ```
 
