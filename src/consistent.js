@@ -390,7 +390,7 @@
 				/* Value */
 				if (bindings.key) {
 					/* Key */
-					value = getNestedProperty(snapshot, bindings.key);
+					value = getPropertyOrEvaluateExpression(bindings.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
@@ -404,7 +404,7 @@
 					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
-							value = getNestedProperty(snapshot, attrs[i].key);
+							value = getPropertyOrEvaluateExpression(attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
 							value = attrs[i].template.render(snapshot);
 						} else {
@@ -430,7 +430,7 @@
 					}
 				}
 				if (bindings.classAttribute) {
-					value = getNestedProperty(snapshot, bindings.classAttribute);
+					value = getPropertyOrEvaluateExpression(bindings.classAttribute);
 					if (value !== undefined) {
 						if (isArray(value)) {
 							value = value.join(" ");
@@ -439,7 +439,7 @@
 					}
 				}
 				if (bindings.classAddAttribute) {
-					value = getNestedProperty(snapshot, bindings.classAddAttribute);
+					value = getPropertyOrEvaluateExpression(bindings.classAddAttribute);
 					if (value !== undefined)  {
 						this.addRemoveClasses(dom, value);
 					}
@@ -449,7 +449,7 @@
 				if (bindings.properties) {
 					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
-						value = getNestedProperty(snapshot, props[i].key);
+						value = getPropertyOrEvaluateExpression(props[i].key);
 						if (value !== undefined) {
 							this.setPropertyValue(dom, props[i].name, value);
 						}
@@ -463,14 +463,6 @@
 						if (propertyValue !== undefined) {
 							this.setPropertyValue(dom, names[i], propertyValue);
 						}
-					}
-				}
-
-				function getPropertyOrEvaluateExpression(propertyOrExpression) {
-					if (typeof propertyOrExpression === "function") {
-						return propertyOrExpression(snapshot);
-					} else {
-						return getNestedProperty(snapshot, propertyOrExpression);
 					}
 				}
 
@@ -521,6 +513,14 @@
 					value = getPropertyOrEvaluateExpression(bindings.readWrite);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !value);
+					}
+				}
+
+				function getPropertyOrEvaluateExpression(propertyOrExpression) {
+					if (typeof propertyOrExpression === "function") {
+						return propertyOrExpression(snapshot);
+					} else {
+						return getNestedProperty(snapshot, propertyOrExpression);
 					}
 				}
 			},
@@ -892,12 +892,12 @@
 				switch (matched.name) {
 					case "key": {
 						/* Body */
-						bindings.key = value;
+						bindings.key = propertyNameOrExpression(value);
 						break;
 					}
 					case "attributePrefix": {
 						/* Attribute */
-						addAttribute(matched.suffix, value);
+						addAttribute(matched.suffix, propertyNameOrExpression(value));
 						break;
 					}
 					case "attributes": {
@@ -931,7 +931,7 @@
 					}
 					case "propertyPrefix": {
 						/* Property */
-						addProperty(matched.suffix.replace(/-/g, "."), value);
+						addProperty(matched.suffix.replace(/-/g, "."), propertyNameOrExpression(value));
 						break;
 					}
 					case "properties": {
@@ -994,11 +994,11 @@
 						break;
 					}
 					case "classAttribute": {
-						bindings.classAttribute = value;
+						bindings.classAttribute = propertyNameOrExpression(value);
 						break;
 					}
 					case "classAddAttribute": {
-						bindings.classAddAttribute = value;
+						bindings.classAddAttribute = propertyNameOrExpression(value);
 						break;
 					}
 					case "warningPrefix": {
