@@ -117,6 +117,18 @@ scope.showTitle = true;
 scope.$.apply();
 ```
 
+#### Expressions
+
+You can use an expression instead of a scope property name.
+
+```html
+<h1 ct-show="showTitle and enabled">My title</h1>
+```
+
+Use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
+
+#### Animations
+
 You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
 ### Value functions
@@ -209,6 +221,16 @@ The above shows how to control the `disabled` property, the full list is:
 * `ct-readwrite`
 
 Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.
+
+##### Expressions
+
+You can use an expression instead of a scope property name.
+
+```html
+<input type="text" name="email" ct-disabled="locked or disableForm">
+```
+
+Use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
 
 #### Select options
 
