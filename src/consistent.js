@@ -60,7 +60,7 @@
 		}
 	};
 
-	var scopes = {};
+	var scopeManagers = {};
 	var SCOPE_TYPE = "ConsistentScope";
 
 	var support = (function() {
@@ -127,16 +127,16 @@
 			/* Create scope */
 			options = mergeOptions({}, Consistent.defaultOptions, options);
 
-			var scope = new ConsistentScopeManager(parentScope, options);
-			scopes[scope._id] = scope._scope;
-			return scope._scope;
+			var scopeManager = new ConsistentScopeManager(parentScope, options);
+			scopeManagers[scopeManager._id] = scopeManager;
+			return scopeManager._scope;
 		},
 
 		/** Returns the scope for the given DOM node, or null */
 		findScopeForNode: function(dom) {
 			var scopeId = dom[Consistent.settings.scopeIdKey];
-			if (scopeId && scopes[scopeId]) {
-				return scopes[scopeId];
+			if (scopeId && scopeManagers[scopeId]) {
+				return scopeManagers[scopeId]._scope;
 			} else {
 				return null;
 			}
