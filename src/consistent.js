@@ -655,6 +655,7 @@
 						for (i in value) {
 							value[i] = this.getAttributeValue(dom, i);
 						}
+						scope.$.set(bindings.allAttributes, value);
 					}
 				}
 				if (bindings.classAttribute) {
@@ -681,6 +682,7 @@
 						for (i = 0; i < names.length; i++) {
 							setNestedProperty(value, names[i], this.getPropertyValue(dom, names[i]));
 						}
+						scope.$.set(bindings.allProperties, value);
 					}
 				}
 
