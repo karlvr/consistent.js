@@ -117,17 +117,7 @@ scope.showTitle = true;
 scope.$.apply();
 ```
 
-#### Expressions
-
-You can use an expression instead of a scope property name.
-
-```html
-<h1 ct-show="showTitle and enabled">My title</h1>
-```
-
-Use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
-
-#### Animations
+#### Animation
 
 You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
@@ -221,16 +211,6 @@ The above shows how to control the `disabled` property, the full list is:
 * `ct-readwrite`
 
 Note that for each of disabled and readonly there is the opposite so that you can best fit the option to the model.
-
-##### Expressions
-
-You can use an expression instead of a scope property name.
-
-```html
-<input type="text" name="email" ct-disabled="locked or disableForm">
-```
-
-Use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
 
 #### Select options
 
@@ -434,6 +414,24 @@ You can also use templates to update attributes.
 <h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
 <script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
 ```
+
+### Expressions
+
+You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
+
+```html
+<h1 ct-show="showTitle and enabled">My title</h1>
+```
+
+You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
+
+Expressions can also be used to set the value or body of an element:
+
+```html
+<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
+```
+
+Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
 
 ### Binding the scope to the DOM
 
