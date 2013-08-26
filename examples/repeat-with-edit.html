@@ -53,15 +53,17 @@ $(function() {
 		{ name: "Carl" },
 		{ name: "Donald" }
 	];
-	scope.$delete = function(ev, localScope) {
-		var i = scope.people.indexOf(localScope);
+	scope.$delete = function(ev, dom) {
+		/* this is the local scope created for each repeated block */
+		var i = scope.people.indexOf(this);
 		scope.people.splice(i, 1);
-		localScope.$.apply();
+		this.$.apply();
 	};
 
 	scope.$.apply();
 	dontFade = false;
 
+	/* Standard jQuery event handlers for the controls */
 	$("#add").click(function() {
 		scope.$.apply(function() {
 			this.people.push({ name: $("#name").val() });
