@@ -2040,7 +2040,7 @@
 										 * but this is not an error.
 										 */
 										if (func) {
-											var result = func.call(dom, ev, self._scope);
+											var result = func.call(self._scope, ev, dom);
 											if (result === false)
 												break;
 										}
