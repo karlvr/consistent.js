@@ -259,12 +259,12 @@ scope.$handleClick = function(ev) {
 };
 ```
 
-The handler function is called with `this` as the element that received the event, as in jQuery. There is also a second argument to the function which is the scope, in case you need it.
+The handler function is called with `this` as the scope. There is also a second argument to the function which is the element that triggered the event, in case you need it.
 
 ```javascript
-scope.$handleClick = function(ev, scope) {
-	scope.clickCount++;
-	scope.$.apply();
+scope.$handleClick = function(ev, dom) {
+	this.clickCount++;
+	this.$.apply();
 };
 ```
 
