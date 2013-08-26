@@ -1180,18 +1180,6 @@
 				processSnapshot(snapshot[name], dontRemoveEventHandlers, baseScope, scope, seen);
 			}
 		}
-
-		function propertyNameFromPrefixed(name, prefix) {
-			if (prefix === undefined) {
-				return name;
-			}
-			if (prefixRequiresNextInitialCap(prefix)) {
-				var propertyName = name.substring(prefix.length);
-				return propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
-			} else {
-				return name.substring(prefix.length);
-			}
-		}
 	}
 
 	Consistent.defaultEmptyScope = {
@@ -1379,10 +1367,25 @@
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
-				var value = getNestedProperty(this._scope(), key);
+				var valueFunctionPrefix = this.options().valueFunctionPrefix;
+				var scope = this._scope();
+
+				var value = getNestedProperty(scope, key);
 				if (value !== undefined) {
-					return value;
-				} else if (includeParents !== false && this.parent()) {
+					if (!valueFunctionPrefix && typeof value === "function") {
+						return value.call(scope);
+					} else {
+						return value;
+					}
+				} else if (valueFunctionPrefix) {
+					var prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+					value = getNestedProperty(scope, prefixedPropertyName);
+					if (typeof value === "function") {
+						return value.call(scope);
+					}
+				}
+				
+				if (includeParents !== false && this.parent()) {
 					return this.parent().$.get(key);
 				} else {
 					return undefined;
@@ -1390,47 +1393,51 @@
 			},
 			set: function(key, value) {
 				var scope = this._scope();
+				var current = getNestedProperty(scope, key);
 
-				var parts = key.split(".");
-				var current = scope;
-				for (var i = 0; i < parts.length - 1; i++) {
-					var next = current[parts[i]];
-					if (next === undefined) {
-						current = current[parts[i]] = {};
-					} else {
-						current = next;
+				if (typeof current === "undefined") {
+					/* If nothing with this name is defined in this scope we look for 
+					 * a value function that we should call to set this value.
+					 * This also searches parent scopes looking for value functions
+					 * as that function is inherited by this scope, so when setting
+					 * we need to find it - otherwise we'll create a new value in the
+					 * local scope that will override it.
+					 */
+					var valueFunction = this.getValueFunction(key);
+					if (valueFunction !== undefined) {
+						valueFunction.call(scope, value);
+						return scope;
 					}
 				}
-				var lastPart = parts[parts.length - 1];
-				var valueFunctionPrefix = this.options().valueFunctionPrefix;
-				if (typeof current[lastPart] !== "function") {
-					if (valueFunctionPrefix) {
-						/* Check for possible value function */
-						var possibleValueFunction = mungePropertyName(lastPart, valueFunctionPrefix);
-						if (typeof current[possibleValueFunction] === "function") {
-							current[possibleValueFunction].call(scope, value);
-							return scope;
-						}
-					}
 
-					current[lastPart] = value;
-				} else if (!valueFunctionPrefix) {
+				/* Set value in the local scope */
+				if (typeof current !== "function") {
+					setNestedProperty(scope, key, value);
+				} else if (!this.options().valueFunctionPrefix) {
 					/* Value function */
-					current[lastPart].call(scope, value);
+					current.call(scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
 					 */
-					current[lastPart] = value;
+					setNestedProperty(scope, key, value);
 				}
 				return scope;
 			},
+
 			getEventHandler: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
-				var value = this.get(mungePropertyName(key, this.options().eventHandlerPrefix), false);
+				var scope = this._scope();
+				var eventHandlerPrefix = this.options().eventHandlerPrefix;
+				/* Note that we're not concerned about event handler functions being
+				 * shadowed by other properties, as we always access event handlers
+				 * specifically. The same is not true for value functions.
+				 */
+
+				var value = getNestedProperty(scope, addPrefixToPropertyName(key, eventHandlerPrefix));
 				if (value !== undefined) {
 					return value;
 				} else if (includeParents !== false && this.parent()) {
@@ -1440,8 +1447,39 @@
 				}
 			},
 			setEventHandler: function(key, value) {
-				key = mungePropertyName(key, this.options().eventHandlerPrefix);
-				return this.set(key, value);
+				key = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
+				var scope = this._scope();
+				setNestedProperty(scope, key, value);
+				return scope;
+			},
+			getValueFunction: function(key, includeParents) {
+				if (includeParents !== undefined && typeof includeParents !== "boolean") {
+					throw exception("Invalid type for includeParents: " + typeof includeParents);
+				}
+
+				var scope = this._scope();
+				var valueFunctionPrefix = this.options().valueFunctionPrefix;
+				if (valueFunctionPrefix && getNestedProperty(scope, key) !== undefined) {
+					/* If there is a property which shadows a prefixed value function
+					 * we cannot see the value function.
+					 */
+					return undefined;
+				}
+
+				var value = getNestedProperty(scope, addPrefixToPropertyName(key, valueFunctionPrefix));
+				if (value !== undefined) {
+					return value;
+				} else if (includeParents !== false && this.parent()) {
+					return this.parent().$.getValueFunction(key);
+				} else {
+					return undefined;
+				}
+			},
+			setValueFunction: function(key, value) {
+				key = addPrefixToPropertyName(key, this.options().valueFunctionPrefix);
+				var scope = this._scope();
+				setNestedProperty(scope, key, value);
+				return scope;
 			},
 			options: function(dom) {
 				return this._manager().getOptions(dom);
@@ -1454,7 +1492,7 @@
 	 * property name where the parts are separated by dots. If the prefix ends with a letter
 	 * then the name will be initial-capped to provide a camel-casing.
 	 */
-	function mungePropertyName(name, prefix) {
+	function addPrefixToPropertyName(name, prefix) {
 		if (!prefix) {
 			return name;
 		}
@@ -1471,6 +1509,18 @@
 			result += prefix + lastPart;
 		}
 		return result;
+	}
+
+	function propertyNameFromPrefixed(name, prefix) {
+		if (prefix === undefined) {
+			return name;
+		}
+		if (prefixRequiresNextInitialCap(prefix)) {
+			var propertyName = name.substring(prefix.length);
+			return propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+		} else {
+			return name.substring(prefix.length);
+		}
 	}
 
 	function prefixRequiresNextInitialCap(prefix) {
@@ -2049,18 +2099,10 @@
 										 */
 										ev.preventDefault();
 
-										func = self._scope.$.get(key);
 										var eventHandlerPrefix = self._options.eventHandlerPrefix;
-										if (typeof func === "function") {
-											throw exception("Bound \"" + eventName +
-												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
-												"\". There is a function in \"" + key + "\", which is missing the " + eventHandlerPrefix +
-												" prefix and is possibly a mistake?");
-										} else {
-											throw exception("Bound \"" + eventName +
-												"\" event cannot find an event handler function in \"" + mungePropertyName(key, eventHandlerPrefix) +
+										throw exception("Bound \"" + eventName +
+												"\" event cannot find an event handler function in \"" + addPrefixToPropertyName(key, eventHandlerPrefix) +
 												"\"");
-										}
 									}
 								}
 							};
