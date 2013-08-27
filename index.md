@@ -46,6 +46,7 @@ scope.$handleForm = function(ev) {
     this.$.update();
     var data = this.$.model();
     alert("Full name: " + data.fullname + "\nGender: " + data.gender);
+    ev.preventDefault();
 };
 </script>
 
@@ -65,5 +66,6 @@ scope.$handleForm = function(ev) {
     this.$.update();
     var data = this.$.model();
     alert("Full name: " + data.fullname + "\nGender: " + data.gender);
+    ev.preventDefault();
 };
 ```
