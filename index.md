@@ -36,7 +36,7 @@ Working with forms
 <form id="exampleForm" ct-on="handleForm">
     Full name: <input type="text" name="fullname"><br>
     Gender: <label><input type="radio" name="gender" value="M"> Male</label>
-            <label><input type="radio" name="gender" value="F"> Female</label>
+            <label><input type="radio" name="gender" value="F"> Female</label><br>
     <br>
     <input type="submit">
 </form>
@@ -54,8 +54,7 @@ scope.$handleForm = function(ev) {
 <form id="exampleForm" ct-on="handleForm">
     Full name: <input type="text" name="fullname"><br>
     Gender: <label><input type="radio" name="gender" value="M"> Male</label>
-            <label><input type="radio" name="gender" value="F"> Female</label>
-    <br>
+            <label><input type="radio" name="gender" value="F"> Female</label><br>
     <input type="submit">
 </form>
 ```
