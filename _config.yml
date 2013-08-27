@@ -1,4 +1,4 @@
-baseurl: /consistent.js
+#baseurl: /consistent.js
 
 safe: true
 lsi: false
