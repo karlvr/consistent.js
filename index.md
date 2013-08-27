@@ -35,25 +35,26 @@ Working with forms
 
 <form id="exampleForm" ct-on="handleForm">
     Full name: <input type="text" name="fullname"><br>
-    Gender: <input type="radio" name="gender" value="M"> Male 
-            <input type="radio" name="gender" value="F"> Female<br>
+    Gender: <label><input type="radio" name="gender" value="M"> Male</label>
+            <label><input type="radio" name="gender" value="F"> Female</label>
+    <br>
     <input type="submit">
 </form>
 <script>
 var scope = $("#exampleForm").consistent();
 scope.$handleForm = function(ev) {
-    scope.$.update();
-    $.ajax("submit", {
-        data: scope.$.model()
-    });
+    this.$.update();
+    var data = this.$.model();
+    alert("Full name: " + data.fullname + "\nGender: " + data.gender);
 };
 </script>
 
 ```html
 <form id="exampleForm" ct-on="handleForm">
     Full name: <input type="text" name="fullname"><br>
-    Gender: <input type="radio" name="gender" value="M"> Male 
-            <input type="radio" name="gender" value="F"> Female<br>
+    Gender: <label><input type="radio" name="gender" value="M"> Male</label>
+            <label><input type="radio" name="gender" value="F"> Female</label>
+    <br>
     <input type="submit">
 </form>
 ```
@@ -61,9 +62,8 @@ scope.$handleForm = function(ev) {
 ```javascript
 var scope = $("#exampleForm").consistent();
 scope.$handleForm = function(ev) {
-    scope.$.update();
-    $.ajax("submit", {
-        data: scope.$.model()
-    });
+    this.$.update();
+    var data = this.$.model();
+    alert("Full name: " + data.fullname + "\nGender: " + data.gender);
 };
 ```
