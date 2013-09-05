@@ -146,6 +146,10 @@
 			throw exception("Expression support requires consistent-expressions.js");
 		},
 
+		statementToFunction: function(value) {
+			throw exception("Expression support requires consistent-expressions.js");
+		},
+
 		merge: merge
 
 	});
@@ -967,12 +971,12 @@
 					}
 					case "on": {
 						/* Bind default event */
-						addEvent(defaultEventName(dom), value);
+						addEvent(defaultEventName(dom), handlerNameOrStatement(value));
 						break;
 					}
 					case "onPrefix": {
 						/* Bind events */
-						addEvent(matched.suffix.toLowerCase(), value);
+						addEvent(matched.suffix.toLowerCase(), handlerNameOrStatement(value));
 						break;
 					}
 					case "show": {
@@ -1152,8 +1156,20 @@
 			value = value.replace(/^\s*(.*)\s*$/, "$1");
 
 			/* Determine whether this is a plain property name or an expression */
-			if (value.match(/[^a-zA-Z0-9_]/)) {
+			if (value.match(/[^a-zA-Z0-9_\.]/)) {
 				return Consistent.expressionToFunction(value);
+			} else {
+				return value;
+			}
+		}
+
+		function handlerNameOrStatement(value) {
+			/* Trim value */
+			value = value.replace(/^\s*(.*)\s*$/, "$1");
+
+			/* Determine whether this is a plain property name or a statement */
+			if (value.match(/[^a-zA-Z0-9_\.]/)) {
+				return Consistent.statementToFunction(value);
 			} else {
 				return value;
 			}
@@ -2131,6 +2147,14 @@
 
 								for (i = 0; i < keys.length; i++) {
 									var key = keys[i];
+
+									if (typeof key === "function") {
+										/* Statements */
+										key(self._scope);
+										self._scope.$.apply();
+										continue;
+									}
+
 									var func = self._scope.$.getEventHandler(key);
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,

@@ -35,11 +35,23 @@
 		}
 	};
 
+	Consistent.statementToFunction = function(value) {
+		var tokens = parseTokens(value);
+		var safeStatements = tokensToSafeJavascriptStatements(tokens, value);
+
+		try {
+			return new Function("scope", safeStatements + ";");
+		} catch (e) {
+			throw "Error compiling statements: " + value + " => " + safeStatements + " (" + e + ")";
+		}
+	};
+
 	var TYPE_END_TOKEN = 0;
 	var TYPE_PROPERTY = 1;
 	var TYPE_OPERATOR = 2;
 	var TYPE_STRING = 3;
 	var TYPE_VALUE = 4;
+	var TYPE_SEPARATOR = 5;
 
 	function parseTokens(expression) {
 		var tokens = [];
@@ -60,6 +72,8 @@
 					mode = TYPE_OPERATOR;
 				} else if (isNumberStartChar(c)) {
 					mode = TYPE_VALUE;
+				} else if (isSeparatorChar(c)) {
+					mode = TYPE_SEPARATOR;
 				} else if (isEscapeChar(c)) {
 					throw "Illegal escape character at " + i + ": " + expression;
 				} else if (isWhiteChar(c)) {
@@ -98,6 +112,10 @@
 					appendCurrentToken();
 					continue;
 				}
+			} else if (mode === TYPE_SEPARATOR) {
+				/* Separator */
+				appendCurrentToken();
+				continue;
 			}
 			
 			cur += c;
@@ -133,9 +151,7 @@
 			if (token.type === TYPE_PROPERTY) {
 				head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
 			} else if (token.type === TYPE_OPERATOR) {
-				if (token.text === "=" || token.text === "+=" || token.text === "-=" || 
-					token.text === "*=" || token.text === "/=" || token.text === "++" ||
-					token.text === "--") {
+				if (isMutatingOperator(token.text)) {
 					/* It's not critical to catch these, as they will just result in an invalid
 					 * and harmless expression.
 					 */
@@ -145,10 +161,51 @@
 				}
 			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
 				head.push(token.text);
+			} else if (token.type === TYPE_SEPARATOR) {
+				throw "Expressions may not contain multiple statements in expression: " + expression;
 			}
 		}
 
 		return head.join(" ");
+	}
+
+	function tokensToSafeJavascriptStatements(tokens, statement) {
+		var head = [];
+		var tail = "";
+		var i, n = tokens.length;
+		for (i = 0; i < n; i++) {
+			var token = tokens[i];
+			if (token.type === TYPE_PROPERTY) {
+				var nextToken = i + 1 < n ? tokens[i + 1] : null;
+				if (nextToken !== null && nextToken.type === TYPE_OPERATOR && 
+					isMutatingOperator(nextToken.text)) {
+					head.push("scope.$.set(\"" + slashes(token.text) + "\", ");
+					tail = ")";
+					
+					var suboperator = mutationOperatorSuboperator(nextToken.text);
+					if (suboperator) {
+						head.push("scope.$.get(\"" + slashes(token.text) + "\")");
+						head.push(suboperator);
+					}
+
+					i++;
+				} else {
+					head.push("scope.$.get(\"" + slashes(token.text) + "\")");
+				}
+			} else if (token.type === TYPE_OPERATOR) {
+				head.push(token.text);
+			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
+				head.push(token.text);
+			} else if (token.type === TYPE_SEPARATOR) {
+				if (tail) {
+					head.push(tail);
+					tail = "";
+				}
+				head.push(";");
+			}
+		}
+
+		return head.join(" ") + tail;
 	}
 
 	function slashes(str) {
@@ -175,6 +232,33 @@
 		return c === '!' || c === '%' || c === '=' || c === '<' || c === '>' ||
 			c === "*" || c === "/" || c === "+" || c === "-" || c === "(" || c === ")" ||
 			c === "^" || c === "&" || c === "?" || c === ":";
+	}
+
+	function isAssignmentOperator(str) {
+		return str === "=" || str === "+=" || str === "-=" || 
+			str === "*=" || str === "/=";
+	}
+
+	function isMutatingOperator(str) {
+		return isAssignmentOperator(str) || str === "++" || str === "--";
+	}
+
+	function mutationOperatorSuboperator(str) {
+		if (str === "=") {
+			return null;
+		} else if (str.length == 2 && str.indexOf("=") === 1) {
+			return str.charAt(0);
+		} else if (str === "++") {
+			return "+1";
+		} else if (str === "--") {
+			return "-1";
+		} else {
+			throw "Unsupported mutation operator: " + str;
+		}
+	}
+
+	function isSeparatorChar(c) {
+		return c === ';';
 	}
 
 	function isNumberStartChar(c) {
