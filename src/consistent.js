@@ -894,6 +894,9 @@
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 			var value = attrs[i].value;
+			if (!value) {
+				continue;
+			}
 
 			var matched = findDeclarationAttribute(name);
 			if (matched) {
