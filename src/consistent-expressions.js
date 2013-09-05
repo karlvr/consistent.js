@@ -48,7 +48,6 @@
 
 		var mode = TYPE_END_TOKEN;
 		var cur = "";
-		var escaped = false;
 
 		while (i < n) {
 			var c = expression.charAt(i);
@@ -62,14 +61,12 @@
 				} else if (isNumberStartChar(c)) {
 					mode = TYPE_NUMBER;
 				} else if (isEscapeChar(c)) {
-					escaped = true;
-					i++;
-					continue;
+					throw "Illegal escape character at " + i + " in expression: " + expression;
 				} else if (isWhiteChar(c)) {
 					i++;
 					continue;
 				} else {
-					throw "Invalid character in expression: " + c;
+					throw "Invalid character '" + c + "' at " + i + " in expression: " + expression;
 				}
 			} else if (mode === TYPE_PROPERTY) {
 				/* Property */
@@ -86,14 +83,14 @@
 			} else if (mode === TYPE_STRING) {
 				/* String */
 				if (isStringDelimiterChar(c)) {
-					if (!escaped) {
-						cur += c;
-						i++;
-						appendCurrentToken();
-						continue;
-					} else {
-						cur += '\\';
-					}
+					cur += c;
+					i++;
+					appendCurrentToken();
+					continue;
+				} else if (isEscapeChar(c)) {
+					cur += c;
+					i++;
+					c = expression.charAt(i);
 				}
 			} else if (mode === TYPE_NUMBER) {
 				/* Number */
