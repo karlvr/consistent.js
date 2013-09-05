@@ -25,7 +25,10 @@ Example of basic Consistent.js usage
 		</p>
 	</div>
 	
-	<div ct="'string\' literal'"></div>
+	<div ct="'Setting the value using an expression containing escapin\' in a string literal'"></div>
+
+	<button ct-on="clicked=true; message='Message changed by button.'; times++">Click me</button>
+	<div ct-show="clicked">You clicked the button <span ct="times"></span> times.</div>
 
 <script>
 $(function() {
@@ -39,6 +42,8 @@ $(function() {
 		/* The message is visible unless it contains the word "hide" */
 		return this.message.indexOf("hide") === -1;
 	};
+	scope.clicked = false;
+	scope.times = 0;
 	scope.$.apply();
 });
 </script>
