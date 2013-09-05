@@ -2160,14 +2160,22 @@
 								for (i = 0; i < keys.length; i++) {
 									var key = keys[i];
 
+									var func;
 									if (typeof key === "function") {
 										/* Statements */
-										key(self._scope);
-										self._scope.$.apply();
-										continue;
+										var result = key.call(self._scope);
+										if (typeof result !== "function") {
+											self._scope.$.apply();
+											continue;
+										} else {
+											func = result;
+										}
 									}
 
-									var func = self._scope.$.getEventHandler(key);
+									if (func === undefined) {
+										/* Lookup event handler in the scope */
+										func = self._scope.$.getEventHandler(key);
+									}
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,
 										 * but this is not an error.

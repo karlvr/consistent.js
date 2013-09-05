@@ -170,7 +170,8 @@
 	}
 
 	function tokensToSafeJavascriptStatements(tokens, statement) {
-		var head = [];
+		var head = "";
+		var body = [];
 		var tail = "";
 		var i, n = tokens.length;
 		for (i = 0; i < n; i++) {
@@ -179,33 +180,31 @@
 				var nextToken = i + 1 < n ? tokens[i + 1] : null;
 				if (nextToken !== null && nextToken.type === TYPE_OPERATOR && 
 					isMutatingOperator(nextToken.text)) {
-					head.push("scope.$.set(\"" + slashes(token.text) + "\", ");
+					body.push("this.$.set(\"" + slashes(token.text) + "\", ");
 					tail = ")";
 					
 					var suboperator = mutationOperatorSuboperator(nextToken.text);
 					if (suboperator) {
-						head.push("scope.$.get(\"" + slashes(token.text) + "\")");
-						head.push(suboperator);
+						body.push("this.$.get(\"" + slashes(token.text) + "\")");
+						body.push(suboperator);
 					}
 
 					i++;
 				} else {
-					head.push("scope.$.get(\"" + slashes(token.text) + "\")");
+					body.push("this.$.get(\"" + slashes(token.text) + "\")");
 				}
 			} else if (token.type === TYPE_OPERATOR) {
-				head.push(token.text);
+				body.push(token.text);
 			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
-				head.push(token.text);
+				body.push(token.text);
 			} else if (token.type === TYPE_SEPARATOR) {
-				if (tail) {
-					head.push(tail);
-					tail = "";
-				}
-				head.push(";");
+				head += " " + body.join(" ") + " " + tail + ";";
+				body = [];
+				tail = "";
 			}
 		}
 
-		return head.join(" ") + tail;
+		return head + " return " + body.join(" ") + " " + tail;
 	}
 
 	function slashes(str) {
