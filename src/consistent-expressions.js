@@ -133,8 +133,13 @@
 			if (token.type === TYPE_PROPERTY) {
 				head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
 			} else if (token.type === TYPE_OPERATOR) {
-				if (token.text === "=") {
-					throw "Illegal assignment in expression: " + expression;
+				if (token.text === "=" || token.text === "+=" || token.text === "-=" || 
+					token.text === "*=" || token.text === "/=" || token.text === "++" ||
+					token.text === "--") {
+					/* It's not critical to catch these, as they will just result in an invalid
+					 * and harmless expression.
+					 */
+					throw "Assignment is invalid in expression: " + expression;
 				} else {
 					head.push(token.text);
 				}
