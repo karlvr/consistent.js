@@ -31,8 +31,8 @@ libdir:
 lib/%.min.js: src/%.js
 	uglifyjs $(UGLIFY_FLAGS) $< -o $@
 
-lib/consistent-for-%.min.js: src/%.consistent.js src/consistent.js
-	uglifyjs $(UGLIFY_FLAGS) -o $@ -- src/consistent.js $< 
+lib/consistent-for-%.min.js: src/%.consistent.js src/consistent.js src/consistent-expressions.js
+	uglifyjs $(UGLIFY_FLAGS) -o $@ -- src/consistent.js src/consistent-expressions.js $< 
 
 lib/%.min.js.gz: lib/%.min.js
 	gzip -c -n $< > $@

@@ -142,6 +142,10 @@
 			}
 		},
 
+		expressionToFunction: function(value) {
+			throw exception("Expression support requires consistent-expression.js");
+		},
+
 		merge: merge
 
 	});
@@ -1145,18 +1149,7 @@
 
 			/* Determine whether this is a plain property name or an expression */
 			if (value.match(/[^a-zA-Z0-9_]/)) {
-				try {
-					/* Convert to a valid expression */
-					value = value.replace(/(\s|\))and(\s|\()/g, "$1&&$2"); /* and => && */
-					value = value.replace(/(\s|\))or(\s|\()/g, "$1||$2"); /* or => || */
-
-					return new Function("snapshot", "with (snapshot) { return " + value + "; }");
-				} catch (e) {
-					if (typeof console !== "undefined") {
-						console.log("Expression syntax error: " + value + " (" + e + ")");
-					}
-					return value;
-				}
+				return Consistent.expressionToFunction(value);
 			} else {
 				return value;
 			}
