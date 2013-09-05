@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.8.1
+ * Consistent.js Expressions 0.8.1
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -25,17 +25,196 @@
 	}
 
 	Consistent.expressionToFunction = function(value) {
-		try {
-			/* Convert to a valid expression */
-			value = value.replace(/(\s|\))and(\s|\()/g, "$1&&$2"); /* and => && */
-			value = value.replace(/(\s|\))or(\s|\()/g, "$1||$2"); /* or => || */
+		var tokens = expressionTokens(value);
+		var safeExpression = expressionTokensToSafeJavascript(tokens, value);
 
-			return new Function("snapshot", "with (snapshot) { return " + value + "; }");
+		try {
+			return new Function("snapshot", "ctx", "return " + safeExpression + ";");
 		} catch (e) {
-			if (typeof console !== "undefined") {
-				console.log("Expression syntax error: " + value + " (" + e + ")");
+			throw "Expression syntax error in expression: " + value + " => " + safeExpression + " (" + e + ")";
+		}
+	};
+
+	var TYPE_END_TOKEN = 0;
+	var TYPE_PROPERTY = 1;
+	var TYPE_OPERATOR = 2;
+	var TYPE_STRING = 3;
+	var TYPE_NUMBER = 4;
+
+	function expressionTokens(expression) {
+		var tokens = [];
+		var i = 0;
+		var n = expression.length;
+
+		var mode = TYPE_END_TOKEN;
+		var cur = "";
+		var escaped = false;
+
+		while (i < n) {
+			var c = expression.charAt(i);
+			if (mode === 0) {
+				if (isPropertyStartChar(c)) {
+					mode = TYPE_PROPERTY;
+				} else if (isStringDelimiterChar(c)) {
+					mode = TYPE_STRING;
+				} else if (isOperatorChar(c)) {
+					mode = TYPE_OPERATOR;
+				} else if (isNumberStartChar(c)) {
+					mode = TYPE_NUMBER;
+				} else if (isEscapeChar(c)) {
+					escaped = true;
+					i++;
+					continue;
+				} else if (isWhiteChar(c)) {
+					i++;
+					continue;
+				} else {
+					throw "Invalid character in expression: " + c;
+				}
+			} else if (mode === TYPE_PROPERTY) {
+				/* Property */
+				if (!isPropertyChar(c)) {
+					appendCurrentToken();
+					continue;
+				}
+			} else if (mode === TYPE_OPERATOR) {
+				/* Operator */
+				if (!isOperatorChar(c)) {
+					appendCurrentToken();
+					continue;
+				}
+			} else if (mode === TYPE_STRING) {
+				/* String */
+				if (isStringDelimiterChar(c)) {
+					if (!escaped) {
+						cur += c;
+						i++;
+						appendCurrentToken();
+						continue;
+					} else {
+						cur += '\\';
+					}
+				}
+			} else if (mode === TYPE_NUMBER) {
+				/* Number */
+				if (!isNumberChar(c)) {
+					appendCurrentToken();
+					continue;
+				}
 			}
-			return value;
+			
+			cur += c;
+			i++;
+		}
+
+		function appendCurrentToken() {
+			if (cur.length > 0) {
+				if (mode === TYPE_PROPERTY && isReservedWord(cur)) {
+					var op = reservedWordToOperator(cur);
+					if (op !== null) {
+						tokens.push({ type: TYPE_OPERATOR, text: op });
+					} else {
+						tokens.push({ type: TYPE_NUMBER, text: cur });
+					}
+				} else {
+					tokens.push({ type: mode, text: cur });
+				}
+			}
+			cur = "";
+			mode = TYPE_END_TOKEN;
+		}
+
+		appendCurrentToken();
+		return tokens;
+	}
+
+	function expressionTokensToSafeJavascript(tokens, expression) {
+		var head = [];
+		var tail = "";
+		var i, n = tokens.length;
+		for (i = 0; i < n; i++) {
+			var token = tokens[i];
+			if (token.type === TYPE_PROPERTY) {
+				var nextToken = i + 1 < n ? tokens[i + 1] : null;
+				if (nextToken !== null && nextToken.type === TYPE_OPERATOR && nextToken.text === "=") {
+					if (head.length > 0) {
+						throw "Invalid assignment expression: " + expression;
+					}
+					head.push("ctx.setNestedProperty(snapshot, \"" + slashes(token.text) + "\",");
+					tail = ");";
+					i++; /* Skip the = */
+				} else {
+					head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
+				}
+			} else if (token.type === TYPE_OPERATOR || token.type === TYPE_STRING || 
+				token.type === TYPE_NUMBER) {
+				head.push(token.text);
+			}
+		}
+
+		return head.join(" ") + tail;
+	}
+
+	function slashes(str) {
+		return str.replace(/"/g, "\\\"");
+	}
+
+	function isPropertyStartChar(c) {
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === '_';
+	}
+
+	function isPropertyChar(c) {
+		return isPropertyStartChar(c) || c === '.' || (c >= '0' && c <= '9');
+	}
+
+	function isStringDelimiterChar(c) {
+		return c === "'" || c === '"';
+	}
+
+	function isEscapeChar(c) {
+		return c === '\\';
+	}
+
+	function isOperatorChar(c) {
+		return c === '!' || c === '%' || c === '=' || c === '<' || c === '>' ||
+			c === "*" || c === "/" || c === "+" || c === "-" || c === "(" || c === ")" ||
+			c === "^" || c === "&" || c === "?" || c === ":";
+	}
+
+	function isNumberStartChar(c) {
+		return (c >= '0' && c <= '9');
+	}
+
+	function isNumberChar(c) {
+		return isNumberStartChar(c) || c == '.';
+	}
+
+	function isWhiteChar(c) {
+		return c <= ' ';
+	}
+
+	function isReservedWord(str) {
+		return str === "true" || str === "false" || str === "and" || str === "or" ||
+			str === "lt" || str === "le" || str === "gt" || str === "ge" || str === "eq";
+	}
+
+	function reservedWordToOperator(str) {
+		if (str === "and") {
+			return "&&";
+		} else if (str === "or") {
+			return "||";
+		} else if (str === "lt") {
+			return "<";
+		} else if (str === "le") {
+			return "<=";
+		} else if (str === "gt") {
+			return ">";
+		} else if (str === "ge") {
+			return ">=";
+		} else if (str === "eq") {
+			return "==";
+		} else {
+			return null;
 		}
 	}
 })(window);

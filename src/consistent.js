@@ -143,7 +143,7 @@
 		},
 
 		expressionToFunction: function(value) {
-			throw exception("Expression support requires consistent-expression.js");
+			throw exception("Expression support requires consistent-expressions.js");
 		},
 
 		merge: merge
@@ -523,7 +523,10 @@
 
 				function getPropertyOrEvaluateExpression(propertyOrExpression) {
 					if (typeof propertyOrExpression === "function") {
-						return propertyOrExpression(snapshot);
+						return propertyOrExpression(snapshot, {
+							"getNestedProperty": getNestedProperty,
+							"setNestedProperty": setNestedProperty
+						});
 					} else {
 						return getNestedProperty(snapshot, propertyOrExpression);
 					}
