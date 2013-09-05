@@ -274,8 +274,8 @@
 	}
 
 	function isReservedWord(str) {
-		return str === "true" || str === "false" || str === "and" || str === "or" ||
-			str === "lt" || str === "le" || str === "gt" || str === "ge" || str === "eq";
+		return str === "true" || str === "false" || str === "and" || str === "or" || str === "not" ||
+			str === "lt" || str === "le" || str === "gt" || str === "ge" || str === "eq" || str === "ne";
 	}
 
 	function reservedWordToOperator(str) {
@@ -283,6 +283,8 @@
 			return "&&";
 		} else if (str === "or") {
 			return "||";
+		} else if (str === "not") {
+			return "!";
 		} else if (str === "lt") {
 			return "<";
 		} else if (str === "le") {
@@ -293,6 +295,8 @@
 			return ">=";
 		} else if (str === "eq") {
 			return "==";
+		} else if (str === "ne") {
+			return "!=";
 		} else {
 			return null;
 		}
