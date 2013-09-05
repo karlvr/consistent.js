@@ -41,6 +41,6 @@ lint:
 	find src -name "*.js" -exec jsl -process \{\} \;
 
 test:
-	karma start test/karma.conf.js --single-run
+	karma start test/karma/karma.conf.js --single-run
 
 .PHONY: all test clean
