@@ -914,7 +914,7 @@
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			var value = attrs[i].value;
+			var value = trim(attrs[i].value);
 			if (!value) {
 				continue;
 			}
@@ -1161,9 +1161,6 @@
 		}
 
 		function propertyNameOrExpression(value) {
-			/* Trim value */
-			value = trim(value);
-
 			/* Determine whether this is a plain property name or an expression */
 			if (isPropertyName(value)) {
 				return value;
@@ -1173,9 +1170,6 @@
 		}
 
 		function handlerNameOrStatement(value) {
-			/* Trim value */
-			value = trim(value);
-
 			/* Determine whether this is a plain property name or a statement */
 			if (isPropertyName(value)) {
 				return value;
