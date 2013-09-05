@@ -39,7 +39,7 @@
 	var TYPE_PROPERTY = 1;
 	var TYPE_OPERATOR = 2;
 	var TYPE_STRING = 3;
-	var TYPE_NUMBER = 4;
+	var TYPE_VALUE = 4;
 
 	function parseTokens(expression) {
 		var tokens = [];
@@ -51,7 +51,7 @@
 
 		while (i < n) {
 			var c = expression.charAt(i);
-			if (mode === 0) {
+			if (mode === TYPE_END_TOKEN) {
 				if (isPropertyStartChar(c)) {
 					mode = TYPE_PROPERTY;
 				} else if (isStringDelimiterChar(c)) {
@@ -59,7 +59,7 @@
 				} else if (isOperatorChar(c)) {
 					mode = TYPE_OPERATOR;
 				} else if (isNumberStartChar(c)) {
-					mode = TYPE_NUMBER;
+					mode = TYPE_VALUE;
 				} else if (isEscapeChar(c)) {
 					throw "Illegal escape character at " + i + ": " + expression;
 				} else if (isWhiteChar(c)) {
@@ -92,7 +92,7 @@
 					i++;
 					c = expression.charAt(i);
 				}
-			} else if (mode === TYPE_NUMBER) {
+			} else if (mode === TYPE_VALUE) {
 				/* Number */
 				if (!isNumberChar(c)) {
 					appendCurrentToken();
@@ -111,7 +111,7 @@
 					if (op !== null) {
 						tokens.push({ type: TYPE_OPERATOR, text: op });
 					} else {
-						tokens.push({ type: TYPE_NUMBER, text: cur });
+						tokens.push({ type: TYPE_VALUE, text: cur });
 					}
 				} else {
 					tokens.push({ type: mode, text: cur });
@@ -138,7 +138,7 @@
 				} else {
 					head.push(token.text);
 				}
-			} else if (token.type === TYPE_STRING || token.type === TYPE_NUMBER) {
+			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
 				head.push(token.text);
 			}
 		}
