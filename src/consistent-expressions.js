@@ -25,13 +25,13 @@
 	}
 
 	Consistent.expressionToFunction = function(value) {
-		var tokens = expressionTokens(value);
-		var safeExpression = expressionTokensToSafeJavascript(tokens, value);
+		var tokens = parseTokens(value);
+		var safeExpression = tokensToSafeJavascriptExpression(tokens, value);
 
 		try {
 			return new Function("snapshot", "ctx", "return " + safeExpression + ";");
 		} catch (e) {
-			throw "Expression syntax error in expression: " + value + " => " + safeExpression + " (" + e + ")";
+			throw "Error compiling expression: " + value + " => " + safeExpression + " (" + e + ")";
 		}
 	};
 
@@ -41,7 +41,7 @@
 	var TYPE_STRING = 3;
 	var TYPE_NUMBER = 4;
 
-	function expressionTokens(expression) {
+	function parseTokens(expression) {
 		var tokens = [];
 		var i = 0;
 		var n = expression.length;
@@ -61,12 +61,12 @@
 				} else if (isNumberStartChar(c)) {
 					mode = TYPE_NUMBER;
 				} else if (isEscapeChar(c)) {
-					throw "Illegal escape character at " + i + " in expression: " + expression;
+					throw "Illegal escape character at " + i + ": " + expression;
 				} else if (isWhiteChar(c)) {
 					i++;
 					continue;
 				} else {
-					throw "Invalid character '" + c + "' at " + i + " in expression: " + expression;
+					throw "Invalid character '" + c + "' at " + i + ": " + expression;
 				}
 			} else if (mode === TYPE_PROPERTY) {
 				/* Property */
@@ -125,31 +125,25 @@
 		return tokens;
 	}
 
-	function expressionTokensToSafeJavascript(tokens, expression) {
+	function tokensToSafeJavascriptExpression(tokens, expression) {
 		var head = [];
-		var tail = "";
 		var i, n = tokens.length;
 		for (i = 0; i < n; i++) {
 			var token = tokens[i];
 			if (token.type === TYPE_PROPERTY) {
-				var nextToken = i + 1 < n ? tokens[i + 1] : null;
-				if (nextToken !== null && nextToken.type === TYPE_OPERATOR && nextToken.text === "=") {
-					if (head.length > 0) {
-						throw "Invalid assignment expression: " + expression;
-					}
-					head.push("ctx.setNestedProperty(snapshot, \"" + slashes(token.text) + "\",");
-					tail = ");";
-					i++; /* Skip the = */
+				head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
+			} else if (token.type === TYPE_OPERATOR) {
+				if (token.text === "=") {
+					throw "Illegal assignment in expression: " + expression;
 				} else {
-					head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
+					head.push(token.text);
 				}
-			} else if (token.type === TYPE_OPERATOR || token.type === TYPE_STRING || 
-				token.type === TYPE_NUMBER) {
+			} else if (token.type === TYPE_STRING || token.type === TYPE_NUMBER) {
 				head.push(token.text);
 			}
 		}
 
-		return head.join(" ") + tail;
+		return head.join(" ");
 	}
 
 	function slashes(str) {
