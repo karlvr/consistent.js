@@ -6,7 +6,7 @@
 # To install jslint:
 # brew install jslint
 
-SOURCE=src/consistent.js
+SOURCE=src/consistent.js src/consistent-expressions.js
 MINIFIED=$(SOURCE:src/%.js=lib/%.min.js)
 GZIPPED=$(MINIFIED:.min.js=.min.js.gz)
 
@@ -31,8 +31,8 @@ libdir:
 lib/%.min.js: src/%.js
 	uglifyjs $(UGLIFY_FLAGS) $< -o $@
 
-lib/consistent-for-%.min.js: src/%.consistent.js src/consistent.js src/consistent-expressions.js
-	uglifyjs $(UGLIFY_FLAGS) -o $@ -- src/consistent.js src/consistent-expressions.js $< 
+lib/consistent-for-%.min.js: src/%.consistent.js $(SOURCE)
+	uglifyjs $(UGLIFY_FLAGS) -o $@ -- $(SOURCE) $< 
 
 lib/%.min.js.gz: lib/%.min.js
 	gzip -c -n $< > $@
