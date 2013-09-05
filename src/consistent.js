@@ -1152,27 +1152,35 @@
 			}
 		}
 
+		function trim(str) {
+			return str.replace(/^\s*(.*)\s*$/, "$1")
+		}
+
+		function isPropertyName(str) {
+			return str.match(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/);
+		}
+
 		function propertyNameOrExpression(value) {
 			/* Trim value */
-			value = value.replace(/^\s*(.*)\s*$/, "$1");
+			value = trim(value);
 
 			/* Determine whether this is a plain property name or an expression */
-			if (value.match(/[^a-zA-Z0-9_\.]/)) {
-				return Consistent.expressionToFunction(value);
-			} else {
+			if (isPropertyName(value)) {
 				return value;
+			} else {
+				return Consistent.expressionToFunction(value);
 			}
 		}
 
 		function handlerNameOrStatement(value) {
 			/* Trim value */
-			value = value.replace(/^\s*(.*)\s*$/, "$1");
+			value = trim(value);
 
 			/* Determine whether this is a plain property name or a statement */
-			if (value.match(/[^a-zA-Z0-9_\.]/)) {
-				return Consistent.statementToFunction(value);
-			} else {
+			if (isPropertyName(value)) {
 				return value;
+			} else {
+				return Consistent.statementToFunction(value);
 			}
 		}
 
