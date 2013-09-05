@@ -596,6 +596,22 @@
 				var value, i;
 				var bindings = options.bindings;
 
+				/* Select options */
+				if (bindings.selectOptions) {
+					var selectOptions = dom.options;
+					value = [];
+					for (i = 0; i < selectOptions.length; i++) {
+						var option = selectOptions[i];
+						value.push({
+							"text": option.text,
+							"value": option.value,
+							"label": option.label,
+							"disabled": option.disabled
+						});
+					}
+					scope.$.set(bindings.selectOptions, value);
+				}
+
 				/* Value */
 				if (bindings.key) {
 					value = this.getValue(dom);
