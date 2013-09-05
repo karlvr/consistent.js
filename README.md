@@ -22,7 +22,7 @@ Consistent includes a jQuery plugin, and the examples below show this approach. 
 <script src="src/jquery.consistent.js"></script>
 ```
 
-Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is just over 7KB.
+Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is around 9KB.
 
 ```html
 <script src="lib/consistent-for-jquery.min.js"></script>
