@@ -29,7 +29,7 @@
 		var safeExpression = tokensToSafeJavascriptExpression(tokens, value);
 
 		try {
-			return new Function("snapshot", "ctx", "return " + safeExpression + ";");
+			return new Function("ctx", "return " + safeExpression + ";");
 		} catch (e) {
 			throw "Error compiling expression: " + value + " => " + safeExpression + " (" + e + ")";
 		}
@@ -149,7 +149,7 @@
 		for (i = 0; i < n; i++) {
 			var token = tokens[i];
 			if (token.type === TYPE_PROPERTY) {
-				head.push("ctx.getNestedProperty(snapshot, \"" + slashes(token.text) + "\")");
+				head.push("ctx.get(\"" + slashes(token.text) + "\")");
 			} else if (token.type === TYPE_OPERATOR) {
 				if (isMutatingOperator(token.text)) {
 					/* It's not critical to catch these, as they will just result in an invalid

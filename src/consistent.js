@@ -527,9 +527,10 @@
 
 				function getPropertyOrEvaluateExpression(propertyOrExpression) {
 					if (typeof propertyOrExpression === "function") {
-						return propertyOrExpression(snapshot, {
-							"getNestedProperty": getNestedProperty,
-							"setNestedProperty": setNestedProperty
+						return propertyOrExpression({
+							"get": function(name) {
+								return getNestedProperty(snapshot, name);
+							}
 						});
 					} else {
 						return getNestedProperty(snapshot, propertyOrExpression);
