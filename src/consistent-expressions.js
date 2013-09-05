@@ -273,7 +273,8 @@
 	}
 
 	function isReservedWord(str) {
-		return str === "true" || str === "false" || str === "and" || str === "or" || str === "not" ||
+		return str === "true" || str === "false" || str === "null" || str === "undefined" ||
+			str === "and" || str === "or" || str === "not" ||
 			str === "lt" || str === "le" || str === "gt" || str === "ge" || str === "eq" || str === "ne";
 	}
 
