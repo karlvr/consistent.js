@@ -332,7 +332,6 @@
 			current = current[parts[i]];
 		}
 		current[parts[parts.length - 1]] = value;
-		return value;
 	}
 
 	/** Helper function to get the value of an <option> tag. IE doesn't set the value if there isn't one in the DOM. */
