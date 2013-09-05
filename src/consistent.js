@@ -1444,11 +1444,21 @@
 					} else {
 						return value;
 					}
-				} else if (valueFunctionPrefix) {
-					var prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+				} else {
+					var prefixedPropertyName;
+					if (valueFunctionPrefix) {
+						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						value = getNestedProperty(scope, prefixedPropertyName);
+						if (typeof value === "function") {
+							return value.call(scope);
+						}
+					}
+
+					/* If it matches an event handler, simply return it */
+					prefixedPropertyName = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
 					value = getNestedProperty(scope, prefixedPropertyName);
 					if (typeof value === "function") {
-						return value.call(scope);
+						return value;
 					}
 				}
 				
