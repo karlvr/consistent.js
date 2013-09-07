@@ -297,9 +297,32 @@
 		var current = object;
 		var i;
 		for (i = 0; i < parts.length && current !== undefined && current !== null; i++) {
+			if (parts[i] === "constructor") {
+				/* Expression security; don't allow to access constructors which can be
+				 * used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 */
+				throw exception("Illegal attempt to access 'constructor' keyword for property: " + property);
+			}
+			if (current && current.constructor === current) {
+				/* Expression security; don't allow access to the Function constructor which
+				 * can be used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 * This is their nifty check if the object is Function.
+				 */
+				throw exception("Illegal attempt to access Function constructor for property: " + property);
+			}
 			current = current[parts[i]];
 		}
 		if (i === parts.length) {
+			if (current && current.constructor === current) {
+				/* Expression security; don't allow access to the Function constructor which
+				 * can be used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 * This is their nifty check if the object is Function.
+				 */
+				throw exception("Illegal attempt to access Function constructor for property: " + property);
+			}
 			return current;
 		} else {
 			return undefined;
