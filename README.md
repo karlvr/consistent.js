@@ -423,7 +423,7 @@ You can use an expression in place of a scope property in a number of declaratio
 <h1 ct-show="showTitle and enabled">My title</h1>
 ```
 
-You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
+You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands and to be more conversational. Also supported is `not`, `gt`, `ge`, `lt`, `le`, `eq` and `ne`.
 
 Expressions can also be used to set the value or body of an element:
 
@@ -432,6 +432,26 @@ Expressions can also be used to set the value or body of an element:
 ```
 
 Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
+
+### Statements
+
+While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
+
+```html
+<button ct-on="numberOfClicks++">Count</button>
+```
+
+Multiple statements can be combined using the `;` separator.
+
+```html
+<button ct-on="clicked=true; numberOfClicks++">Count</button>
+```
+
+If the last statement is an expression, and it’s return value is a function then that function will be called as if it was the event handler function. This enables a statement to choose between two event handler functions.
+
+```html
+<button ct-on="clicked ? clickedHandler : notClickedHandler">Button</button>
+```
 
 ### Binding the scope to the DOM
 
@@ -884,10 +904,15 @@ scope.merge(object, [ "title", "person.name", "person.age", "location", friends"
 
 The above results in the title, the person’s name and age, and the location and friends arrays all being copied into the scope. The subtitle and the person’s gender are not copied.
 
-Reference
----------
+### Expressions and Statements
 
-### DOM attributes
+Consistent supports expressions and statements for writing simple functionality into the DOM declarations. Note the term “expressions” is sometimes used to refer to both expressions and statements.
+
+Expressions are parsed then reformed into safe Javascript, ensuring that expressions can only access values in the scope, and then compiled into Javascript functions for quick reuse.
+
+## Reference
+
+### DOM declarations
 
 By default, DOM attributes are used to declare the binding between DOM nodes and the scope. The preferred attributes style starts with `ct`. You can also use `data-ct` instead of `ct`.
 
@@ -971,7 +996,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.
 
-#### Expressions
+#### Expressions and Statements
 * `evaluate(expression)` evaluates the given expression string in the context of the scope.
 * `exec(statements)` parses and executes the given statements string in the context of the scope.
 
