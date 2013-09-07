@@ -43,4 +43,7 @@ lint:
 test:
 	karma start test/karma/karma.conf.js --single-run
 
-.PHONY: all test clean
+citest:
+	karma start test/karma/karma.conf.js
+
+.PHONY: all test citest clean
