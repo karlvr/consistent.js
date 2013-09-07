@@ -910,7 +910,18 @@ Consistent supports expressions and statements for writing simple functionality 
 
 Expressions are parsed then reformed into safe Javascript, ensuring that expressions can only access values in the scope, and then compiled into Javascript functions for quick reuse.
 
-Expressions and statements cannot call functions. A statement may return a function, and that function will then be called as if it was the event handler function.
+Expressions and statements work with value functions as a consequence of accessing a snapshot (where value functions are replaced by their value) or using `scope.$.get` (which also evaluates value functions), but they cannot themselves call functions. That is, an expression of the form `myProperty()` will not compile.
+
+A statement as an event handler may return a function (but not call it), and that function will then be called as if it was the event handler function.
+
+```html
+<button ct-on="clicked ? clickedHandler : notClickedHander">
+```
+
+```javascript
+scope.$clickedHandler = function(ev) {};
+scope.$notClickedHandler = function(ev) {};
+```
 
 Expressions enable you to inline simple logic and changes to your scope. However, don’t overuse expressions; they can result in an application that is harder to maintain if the application logic is spread between HTML and Javascript files.
 

@@ -19,6 +19,16 @@ describe('Expression tests', function() {
 		expect(scope.$.evaluate("a + ' and ' + d.f")).toBe("apple and orange");
 	});
 
+	it("Expressions with value functions", function() {
+		var scope = Consistent();
+		scope.a = function() {
+			return 101;
+		};
+
+		expect(scope.$.evaluate("a")).toBe(101);
+		expect(scope.$.evaluate("a * 2")).toBe(202);
+	});
+
 	it("Grouped expressions", function() {
 		var scope = Consistent();
 		scope.a = 3;
@@ -61,6 +71,16 @@ describe('Expression tests', function() {
 		expect(scope.$.exec("b = b + 1; b")).toBe(8);
 		expect(scope.$.exec("b++; b")).toBe(9);
 	})
+
+	it("Statements with value functions", function() {
+		var scope = Consistent();
+		scope.a = function() {
+			return 101;
+		};
+
+		expect(scope.$.exec("a")).toBe(101);
+		expect(scope.$.exec("a * 2")).toBe(202);
+	});
 
 	it("Scope.$.get doesn't return scope functions", function() {
 		var scope = Consistent({
