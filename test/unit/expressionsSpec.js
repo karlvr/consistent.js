@@ -19,6 +19,35 @@ describe('Expression tests', function() {
 		expect(scope.$.evaluate("a + ' and ' + d.f")).toBe("apple and orange");
 	});
 
+	it("Grouped expressions", function() {
+		var scope = Consistent();
+		scope.a = 3;
+		scope.b = 7;
+		scope.c = 11;
+
+		expect(scope.$.evaluate("a + b * 5")).toBe(38);
+		expect(scope.$.evaluate("(a + b) * 5")).toBe(50);
+		expect(scope.$.evaluate("((a + b) * (a + c))")).toBe(140);
+		expect(scope.$.evaluate("(a + (b * c))")).toBe(80);
+	});
+
+	it("Invalid grouped expressions", function() {
+		expect(function() { Consistent.expressionToFunction(") + a"); }).toThrow();
+		expect(function() { Consistent.expressionToFunction("((a + b) * b"); }).toThrow();
+	});
+
+	it("Grouped statements", function() {
+		var scope = Consistent();
+		scope.a = 3;
+		scope.b = 7;
+		scope.c = 11;
+
+		expect(scope.$.exec("a + b * 5")).toBe(38);
+		expect(scope.$.exec("(a + b) * 5")).toBe(50);
+		expect(scope.$.exec("((a + b) * (a + c))")).toBe(140);
+		expect(scope.$.exec("(a + (b * c))")).toBe(80);
+	});
+
 	it("Simple statements", function() {
 		var scope = Consistent();
 		scope.a = "apple";
@@ -40,6 +69,18 @@ describe('Expression tests', function() {
 
 		expect(scope.$.get("$")).toBe(undefined);
 		expect(scope.$.get("$.get")).toBe(undefined);
+	});
+
+	it("Expressions and statements can't execute functions", function() {
+		var scope = Consistent({
+			valueFunctionPrefix: "get" /* So the scope doesn't try to evaluate the functions */
+		});
+		scope.a = function() {
+			return 67;
+		};
+
+		expect(function() { scope.$.evaluate("a()") }).toThrow();
+		expect(function() { scope.$.evaluate("a(1)") }).toThrow();
 	});
 
 	it("Constructor abuse", function() {
