@@ -1179,7 +1179,7 @@
 		}
 
 		function trim(str) {
-			return str.replace(/^\s*(.*)\s*$/, "$1")
+			return str.replace(/^\s*(.*)\s*$/, "$1");
 		}
 
 		function isPropertyName(str) {
@@ -2205,9 +2205,10 @@
 									var key = keys[i];
 
 									var func;
+									var result;
 									if (typeof key === "function") {
 										/* Statements */
-										var result = key.call(self._scope);
+										result = key.call(self._scope);
 										if (typeof result !== "function") {
 											self._scope.$.apply();
 											continue;
@@ -2225,7 +2226,7 @@
 										 * but this is not an error.
 										 */
 										if (func) {
-											var result = func.call(self._scope, ev, dom);
+											result = func.call(self._scope, ev, dom);
 											if (result === false)
 												break;
 										}
