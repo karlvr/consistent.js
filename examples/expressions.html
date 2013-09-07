@@ -25,10 +25,13 @@ Example of basic Consistent.js usage
 		</p>
 	</div>
 	
-	<div ct="'Setting the value using an expression containing escapin\' in a string literal'"></div>
+	<div ct="'Settin\' the value using an expression containing escapin\' in a string literal'"></div>
+	<div ct="6 * myFavouritePrime - 1"></div>
 
-	<button ct-on="clicked=true; message='Message changed by button.'; times++">Click me</button>
-	<div ct-show="clicked">You clicked the button <span ct="times"></span> times.</div>
+	<p><button ct-on="clicked=true; message='Message changed by button.'; times++">Click me</button></p>
+	<div ct-show="clicked">You clicked the button <span ct="times"></span> time<span ct-show="times ne 1">s</span>.</div>
+
+	<p><button ct-on="clicked ? haveClickedHandler : haventClickedHandler">Click me before and after clicking above</button></p>
 
 <script>
 $(function() {
@@ -42,8 +45,15 @@ $(function() {
 		/* The message is visible unless it contains the word "hide" */
 		return this.message.indexOf("hide") === -1;
 	};
+	scope.myFavouritePrime = 25;
 	scope.clicked = false;
 	scope.times = 0;
+	scope.$haveClickedHandler = function(ev) {
+		alert("You've already clicked above");
+	};
+	scope.$haventClickedHandler = function(ev) {
+		alert("You haven't yet clicked above");
+	};
 	scope.$.apply();
 });
 </script>

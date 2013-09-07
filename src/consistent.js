@@ -332,7 +332,6 @@
 			current = current[parts[i]];
 		}
 		current[parts[parts.length - 1]] = value;
-		return value;
 	}
 
 	/** Helper function to get the value of an <option> tag. IE doesn't set the value if there isn't one in the DOM. */
@@ -914,7 +913,7 @@
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			var value = attrs[i].value;
+			var value = trim(attrs[i].value);
 			if (!value) {
 				continue;
 			}
@@ -1161,9 +1160,6 @@
 		}
 
 		function propertyNameOrExpression(value) {
-			/* Trim value */
-			value = trim(value);
-
 			/* Determine whether this is a plain property name or an expression */
 			if (isPropertyName(value)) {
 				return value;
@@ -1173,9 +1169,6 @@
 		}
 
 		function handlerNameOrStatement(value) {
-			/* Trim value */
-			value = trim(value);
-
 			/* Determine whether this is a plain property name or a statement */
 			if (isPropertyName(value)) {
 				return value;
@@ -1451,11 +1444,21 @@
 					} else {
 						return value;
 					}
-				} else if (valueFunctionPrefix) {
-					var prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+				} else {
+					var prefixedPropertyName;
+					if (valueFunctionPrefix) {
+						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						value = getNestedProperty(scope, prefixedPropertyName);
+						if (typeof value === "function") {
+							return value.call(scope);
+						}
+					}
+
+					/* If it matches an event handler, simply return it */
+					prefixedPropertyName = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
 					value = getNestedProperty(scope, prefixedPropertyName);
 					if (typeof value === "function") {
-						return value.call(scope);
+						return value;
 					}
 				}
 				
@@ -2157,14 +2160,22 @@
 								for (i = 0; i < keys.length; i++) {
 									var key = keys[i];
 
+									var func;
 									if (typeof key === "function") {
 										/* Statements */
-										key(self._scope);
-										self._scope.$.apply();
-										continue;
+										var result = key.call(self._scope);
+										if (typeof result !== "function") {
+											self._scope.$.apply();
+											continue;
+										} else {
+											func = result;
+										}
 									}
 
-									var func = self._scope.$.getEventHandler(key);
+									if (func === undefined) {
+										/* Lookup event handler in the scope */
+										func = self._scope.$.getEventHandler(key);
+									}
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,
 										 * but this is not an error.
