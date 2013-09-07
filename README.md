@@ -22,7 +22,7 @@ Consistent includes a jQuery plugin, and the examples below show this approach. 
 <script src="src/jquery.consistent.js"></script>
 ```
 
-Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is just over 7KB.
+Or use a minified and combined version. The minified and combined script for Consistent and the jQuery plugin is around 9KB.
 
 ```html
 <script src="lib/consistent-for-jquery.min.js"></script>
@@ -116,6 +116,8 @@ var scope = $("h1").consistent();
 scope.showTitle = true;
 scope.$.apply();
 ```
+
+#### Animation
 
 You can override the behaviour of showing and hiding elements. For example, you may want to fade elements in and out. See the Options section for more information.
 
@@ -412,6 +414,24 @@ You can also use templates to update attributes.
 <h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
 <script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
 ```
+
+### Expressions
+
+You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
+
+```html
+<h1 ct-show="showTitle and enabled">My title</h1>
+```
+
+You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands.
+
+Expressions can also be used to set the value or body of an element:
+
+```html
+<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
+```
+
+Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
 
 ### Binding the scope to the DOM
 
@@ -938,7 +958,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 
-* `get(key [, includeParents])` returns the value in the scope for the given key. If the scope contains a value function for the given key, the value function is evaluated and its result returned. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. If no property with the given key is found it returns undefined.
+* `get(key [, includeParents])` returns the value in the scope for the given key. If the scope contains a value function for the given key (after adding the value function prefix, if any), the value function is evaluated and its result returned. If the scope contains an event handler for the given key (after adding the event handler prefix), the event handler function is returned. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. If no property with the given key is found it returns undefined.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument. If no property exists in the scope for the given key, parent scopes are searched for a value function to call. If no value functions are found, a new property is created in the scope with the given value.
 
 * `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
@@ -950,6 +970,10 @@ All scope functions are nested inside the `$` object, and therefore you call the
 #### Watch
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.
+
+#### Expressions
+* `evaluate(expression)` evaluates the given expression string in the context of the scope.
+* `exec(statements)` parses and executes the given statements string in the context of the scope.
 
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.

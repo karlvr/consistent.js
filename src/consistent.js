@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.8.1
+ * Consistent.js 0.9.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -140,6 +140,14 @@
 			} else {
 				return null;
 			}
+		},
+
+		expressionToFunction: function(value) {
+			throw exception("Expression support requires consistent-expressions.js");
+		},
+
+		statementToFunction: function(value) {
+			throw exception("Expression support requires consistent-expressions.js");
 		},
 
 		merge: merge
@@ -289,9 +297,32 @@
 		var current = object;
 		var i;
 		for (i = 0; i < parts.length && current !== undefined && current !== null; i++) {
+			if (parts[i] === "constructor") {
+				/* Expression security; don't allow to access constructors which can be
+				 * used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 */
+				throw exception("Illegal attempt to access 'constructor' keyword for property: " + property);
+			}
+			if (current && current.constructor === current) {
+				/* Expression security; don't allow access to the Function constructor which
+				 * can be used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 * This is their nifty check if the object is Function.
+				 */
+				throw exception("Illegal attempt to access Function constructor for property: " + property);
+			}
 			current = current[parts[i]];
 		}
 		if (i === parts.length) {
+			if (current && current.constructor === current) {
+				/* Expression security; don't allow access to the Function constructor which
+				 * can be used to execute arbitrary code. Based on expression security in Angular:
+				 * https://github.com/angular/angular.js/blob/master/src/ng/parse.js
+				 * This is their nifty check if the object is Function.
+				 */
+				throw exception("Illegal attempt to access Function constructor for property: " + property);
+			}
 			return current;
 		} else {
 			return undefined;
@@ -333,6 +364,14 @@
 			optionValue = option.text;
 		}
 		return optionValue;
+	}
+
+	function evaluateExpression(func, snapshot) {
+		return func({
+			"get": function(name) {
+				return getNestedProperty(snapshot, name);
+			}
+		});
 	}
 
 	/**
@@ -390,7 +429,7 @@
 				/* Value */
 				if (bindings.key) {
 					/* Key */
-					value = getNestedProperty(snapshot, bindings.key);
+					value = getPropertyOrEvaluateExpression(bindings.key);
 					if (value !== undefined) {
 						this.setValue(dom, value);
 					}
@@ -404,7 +443,7 @@
 					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
-							value = getNestedProperty(snapshot, attrs[i].key);
+							value = getPropertyOrEvaluateExpression(attrs[i].key);
 						} else if (attrs[i].template !== undefined) {
 							value = attrs[i].template.render(snapshot);
 						} else {
@@ -430,7 +469,7 @@
 					}
 				}
 				if (bindings.classAttribute) {
-					value = getNestedProperty(snapshot, bindings.classAttribute);
+					value = getPropertyOrEvaluateExpression(bindings.classAttribute);
 					if (value !== undefined) {
 						if (isArray(value)) {
 							value = value.join(" ");
@@ -439,7 +478,7 @@
 					}
 				}
 				if (bindings.classAddAttribute) {
-					value = getNestedProperty(snapshot, bindings.classAddAttribute);
+					value = getPropertyOrEvaluateExpression(bindings.classAddAttribute);
 					if (value !== undefined)  {
 						this.addRemoveClasses(dom, value);
 					}
@@ -449,7 +488,7 @@
 				if (bindings.properties) {
 					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
-						value = getNestedProperty(snapshot, props[i].key);
+						value = getPropertyOrEvaluateExpression(props[i].key);
 						if (value !== undefined) {
 							this.setPropertyValue(dom, props[i].name, value);
 						}
@@ -468,7 +507,7 @@
 
 				/* Visibility */
 				if (bindings.show) {
-					value = getNestedProperty(snapshot, bindings.show);
+					value = getPropertyOrEvaluateExpression(bindings.show);
 					if (value !== undefined) {
 						if (value) {
 							this.show(dom);
@@ -478,7 +517,7 @@
 					}
 				}
 				if (bindings.hide) {
-					value = getNestedProperty(snapshot, bindings.hide);
+					value = getPropertyOrEvaluateExpression(bindings.hide);
 					if (value !== undefined) {
 						if (!value) {
 							this.show(dom);
@@ -490,13 +529,13 @@
 
 				/* Enabled / disabled */
 				if (bindings.enabled) {
-					value = getNestedProperty(snapshot, bindings.enabled);
+					value = getPropertyOrEvaluateExpression(bindings.enabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !value);
 					}
 				}
 				if (bindings.disabled) {
-					value = getNestedProperty(snapshot, bindings.disabled);
+					value = getPropertyOrEvaluateExpression(bindings.disabled);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "disabled", !!value);
 					}
@@ -504,15 +543,23 @@
 
 				/* Read only */
 				if (bindings.readOnly) {
-					value = getNestedProperty(snapshot, bindings.readOnly);
+					value = getPropertyOrEvaluateExpression(bindings.readOnly);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !!value);
 					}
 				}
 				if (bindings.readWrite) {
-					value = getNestedProperty(snapshot, bindings.readWrite);
+					value = getPropertyOrEvaluateExpression(bindings.readWrite);
 					if (value !== undefined) {
 						this.setPropertyValue(dom, "readOnly", !value);
+					}
+				}
+
+				function getPropertyOrEvaluateExpression(propertyOrExpression) {
+					if (typeof propertyOrExpression === "function") {
+						return evaluateExpression(propertyOrExpression, snapshot);
+					} else {
+						return getNestedProperty(snapshot, propertyOrExpression);
 					}
 				}
 			},
@@ -893,7 +940,7 @@
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			var value = attrs[i].value;
+			var value = trim(attrs[i].value);
 			if (!value) {
 				continue;
 			}
@@ -903,12 +950,12 @@
 				switch (matched.name) {
 					case "key": {
 						/* Body */
-						bindings.key = value;
+						bindings.key = propertyNameOrExpression(value);
 						break;
 					}
 					case "attributePrefix": {
 						/* Attribute */
-						addAttribute(matched.suffix, value);
+						addAttribute(matched.suffix, propertyNameOrExpression(value));
 						break;
 					}
 					case "attributes": {
@@ -942,7 +989,7 @@
 					}
 					case "propertyPrefix": {
 						/* Property */
-						addProperty(matched.suffix.replace(/-/g, "."), value);
+						addProperty(matched.suffix.replace(/-/g, "."), propertyNameOrExpression(value));
 						break;
 					}
 					case "properties": {
@@ -951,22 +998,22 @@
 					}
 					case "on": {
 						/* Bind default event */
-						addEvent(defaultEventName(dom), value);
+						addEvent(defaultEventName(dom), handlerNameOrStatement(value));
 						break;
 					}
 					case "onPrefix": {
 						/* Bind events */
-						addEvent(matched.suffix.toLowerCase(), value);
+						addEvent(matched.suffix.toLowerCase(), handlerNameOrStatement(value));
 						break;
 					}
 					case "show": {
 						/* Show */
-						bindings.show = value;
+						bindings.show = propertyNameOrExpression(value);
 						break;
 					}
 					case "hide": {
 						/* Hide */
-						bindings.hide = value;
+						bindings.hide = propertyNameOrExpression(value);
 						break;
 					}
 					case "repeat": {
@@ -981,22 +1028,22 @@
 					}
 					case "enabled": {
 						/* Enabled */
-						bindings.enabled = value;
+						bindings.enabled = propertyNameOrExpression(value);
 						break;
 					}
 					case "disabled": {
 						/* Disabled */
-						bindings.disabled = value;
+						bindings.disabled = propertyNameOrExpression(value);
 						break;
 					}
 					case "readOnly": {
 						/* Read Only */
-						bindings.readOnly = value;
+						bindings.readOnly = propertyNameOrExpression(value);
 						break;
 					}
 					case "readWrite": {
 						/* Read Write */
-						bindings.readWrite = value;
+						bindings.readWrite = propertyNameOrExpression(value);
 						break;
 					}
 					case "options": {
@@ -1005,11 +1052,11 @@
 						break;
 					}
 					case "classAttribute": {
-						bindings.classAttribute = value;
+						bindings.classAttribute = propertyNameOrExpression(value);
 						break;
 					}
 					case "classAddAttribute": {
-						bindings.classAddAttribute = value;
+						bindings.classAddAttribute = propertyNameOrExpression(value);
 						break;
 					}
 					case "warningPrefix": {
@@ -1128,6 +1175,32 @@
 				return "submit";
 			} else {
 				return "click";
+			}
+		}
+
+		function trim(str) {
+			return str.replace(/^\s*(.*)\s*$/, "$1");
+		}
+
+		function isPropertyName(str) {
+			return str.match(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/);
+		}
+
+		function propertyNameOrExpression(value) {
+			/* Determine whether this is a plain property name or an expression */
+			if (isPropertyName(value)) {
+				return value;
+			} else {
+				return Consistent.expressionToFunction(value);
+			}
+		}
+
+		function handlerNameOrStatement(value) {
+			/* Determine whether this is a plain property name or a statement */
+			if (isPropertyName(value)) {
+				return value;
+			} else {
+				return Consistent.statementToFunction(value);
 			}
 		}
 
@@ -1387,6 +1460,13 @@
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
+				if (key === "$" || key.substring(0, 2) === "$.") {
+					/* Do not allow access to $ object via get. The $ object is not part
+					 * of the model of the scope. This also prevents expression statements
+					 * from accessing scope functions.
+					 */
+					return undefined;
+				}
 
 				var valueFunctionPrefix = this.options().valueFunctionPrefix;
 				var scope = this._scope();
@@ -1398,11 +1478,21 @@
 					} else {
 						return value;
 					}
-				} else if (valueFunctionPrefix) {
-					var prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+				} else {
+					var prefixedPropertyName;
+					if (valueFunctionPrefix) {
+						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						value = getNestedProperty(scope, prefixedPropertyName);
+						if (typeof value === "function") {
+							return value.call(scope);
+						}
+					}
+
+					/* If it matches an event handler, simply return it */
+					prefixedPropertyName = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
 					value = getNestedProperty(scope, prefixedPropertyName);
 					if (typeof value === "function") {
-						return value.call(scope);
+						return value;
 					}
 				}
 				
@@ -1504,6 +1594,16 @@
 			},
 			options: function(dom) {
 				return this._manager().getOptions(dom);
+			},
+
+			evaluate: function(expression) {
+				var func = Consistent.expressionToFunction(expression);
+				var snapshot = this.snapshot();
+				return evaluateExpression(func, snapshot);
+			},
+			exec: function(statements) {
+				var func = Consistent.statementToFunction(statements);
+				return func.call(this._scope());
 			}
 		}
 	};
@@ -2103,13 +2203,30 @@
 
 								for (i = 0; i < keys.length; i++) {
 									var key = keys[i];
-									var func = self._scope.$.getEventHandler(key);
+
+									var func;
+									var result;
+									if (typeof key === "function") {
+										/* Statements */
+										result = key.call(self._scope);
+										if (typeof result !== "function") {
+											self._scope.$.apply();
+											continue;
+										} else {
+											func = result;
+										}
+									}
+
+									if (func === undefined) {
+										/* Lookup event handler in the scope */
+										func = self._scope.$.getEventHandler(key);
+									}
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,
 										 * but this is not an error.
 										 */
 										if (func) {
-											var result = func.call(self._scope, ev, dom);
+											result = func.call(self._scope, ev, dom);
 											if (result === false)
 												break;
 										}
