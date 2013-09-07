@@ -910,6 +910,10 @@ Consistent supports expressions and statements for writing simple functionality 
 
 Expressions are parsed then reformed into safe Javascript, ensuring that expressions can only access values in the scope, and then compiled into Javascript functions for quick reuse.
 
+Expressions and statements cannot call functions. A statement may return a function, and that function will then be called as if it was the event handler function.
+
+Expressions enable you to inline simple logic and changes to your scope. However, don’t overuse expressions; they can result in an application that is harder to maintain if the application logic is spread between HTML and Javascript files.
+
 ## Reference
 
 ### DOM declarations
