@@ -971,6 +971,10 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
 * `unwatch([key,] function)` unbinds the watch function.
 
+#### Expressions
+* `evaluate(expression)` evaluates the given expression string in the context of the scope.
+* `exec(statements)` parses and executes the given statements string in the context of the scope.
+
 #### General
 * `parent()` returns the parent scope, or null if there is no parent scope.
 * `children()` returns an array containing the immediate child scopes of this scope.

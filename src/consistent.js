@@ -343,6 +343,14 @@
 		return optionValue;
 	}
 
+	function evaluateExpression(func, snapshot) {
+		return func({
+			"get": function(name) {
+				return getNestedProperty(snapshot, name);
+			}
+		});
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -526,11 +534,7 @@
 
 				function getPropertyOrEvaluateExpression(propertyOrExpression) {
 					if (typeof propertyOrExpression === "function") {
-						return propertyOrExpression({
-							"get": function(name) {
-								return getNestedProperty(snapshot, name);
-							}
-						});
+						return evaluateExpression(propertyOrExpression, snapshot);
 					} else {
 						return getNestedProperty(snapshot, propertyOrExpression);
 					}
@@ -1560,6 +1564,16 @@
 			},
 			options: function(dom) {
 				return this._manager().getOptions(dom);
+			},
+
+			evaluate: function(expression) {
+				var func = Consistent.expressionToFunction(expression);
+				var snapshot = this.snapshot();
+				return evaluateExpression(func, snapshot);
+			},
+			exec: function(statements) {
+				var func = Consistent.statementToFunction(statements);
+				return func.call(this._scope());
 			}
 		}
 	};
