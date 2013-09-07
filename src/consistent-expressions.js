@@ -235,7 +235,7 @@
 
 	function isAssignmentOperator(str) {
 		return str === "=" || str === "+=" || str === "-=" || 
-			str === "*=" || str === "/=";
+			str === "*=" || str === "/=" || str === "%=";
 	}
 
 	function isMutatingOperator(str) {
