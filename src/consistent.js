@@ -374,6 +374,17 @@
 		});
 	}
 
+	function evaluateStatement(func, scope) {
+		return func({
+			"get": function(name) {
+				return scope.$.get(name);
+			},
+			"set": function(name, value) {
+				return scope.$.set(name, value);
+			}
+		});
+	}
+
 	/**
 	  * Default options for Consistent.js. This includes the "$" key which contains the functionality used to apply
 	  * the scope to the DOM.
@@ -1603,7 +1614,7 @@
 			},
 			exec: function(statements) {
 				var func = Consistent.statementToFunction(statements);
-				return func.call(this._scope());
+				return evaluateStatement(func, this._scope());
 			}
 		}
 	};
@@ -2208,7 +2219,7 @@
 									var result;
 									if (typeof key === "function") {
 										/* Statements */
-										result = key.call(self._scope);
+										result = evaluateStatement(key, self._scope);
 										if (typeof result !== "function") {
 											self._scope.$.apply();
 											continue;

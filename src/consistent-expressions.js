@@ -26,10 +26,10 @@
 
 	Consistent.expressionToFunction = function(value) {
 		var tokens = parseTokens(value);
-		var safeExpression = tokensToSafeJavascriptExpression(tokens, value);
+		var safeExpression = tokensToSafeJavascript(tokens, false, value);
 
 		try {
-			return new Function("ctx", "return " + safeExpression + ";");
+			return new Function("ctx", safeExpression);
 		} catch (e) {
 			throw "Error compiling expression: " + value + " => " + safeExpression + " (" + e + ")";
 		}
@@ -37,10 +37,10 @@
 
 	Consistent.statementToFunction = function(value) {
 		var tokens = parseTokens(value);
-		var safeStatements = tokensToSafeJavascriptStatements(tokens, value);
+		var safeStatements = tokensToSafeJavascript(tokens, true, value);
 
 		try {
-			return new Function("scope", safeStatements + ";");
+			return new Function("ctx", safeStatements);
 		} catch (e) {
 			throw "Error compiling statements: " + value + " => " + safeStatements + " (" + e + ")";
 		}
@@ -49,9 +49,10 @@
 	var TYPE_END_TOKEN = 0;
 	var TYPE_PROPERTY = 1;
 	var TYPE_OPERATOR = 2;
-	var TYPE_STRING = 3;
-	var TYPE_VALUE = 4;
-	var TYPE_SEPARATOR = 5;
+	var TYPE_GROUP = 3;
+	var TYPE_STRING = 4;
+	var TYPE_VALUE = 5;
+	var TYPE_SEPARATOR = 6;
 
 	function parseTokens(expression) {
 		var tokens = [];
@@ -70,6 +71,8 @@
 					mode = TYPE_STRING;
 				} else if (isOperatorChar(c)) {
 					mode = TYPE_OPERATOR;
+				} else if (isGroupChar(c)) {
+					mode = TYPE_GROUP;
 				} else if (isNumberStartChar(c)) {
 					mode = TYPE_VALUE;
 				} else if (isSeparatorChar(c)) {
@@ -94,6 +97,10 @@
 					appendCurrentToken();
 					continue;
 				}
+			} else if (mode === TYPE_GROUP) {
+				/* Group - can only be a single character */
+				appendCurrentToken();
+				continue;
 			} else if (mode === TYPE_STRING) {
 				/* String */
 				if (isStringDelimiterChar(c)) {
@@ -143,71 +150,89 @@
 		return tokens;
 	}
 
-	function tokensToSafeJavascriptExpression(tokens, expression) {
+	function tokensToSafeJavascript(tokens, isStatement, originalText) {
 		var head = [];
+		var bodies = [[]];
+		var tails = [[]];
+		var groupId = 0;
 		var i, n = tokens.length;
 		for (i = 0; i < n; i++) {
+			var body = bodies[bodies.length - 1];
+			var tail = tails[tails.length - 1];
 			var token = tokens[i];
-			if (token.type === TYPE_PROPERTY) {
-				head.push("ctx.get(\"" + slashes(token.text) + "\")");
-			} else if (token.type === TYPE_OPERATOR) {
+			var tokenType = token.type;
+			if (tokenType === TYPE_PROPERTY) {
+				if (isStatement) {
+					var nextToken = i + 1 < n ? tokens[i + 1] : null;
+					if (nextToken !== null && nextToken.type === TYPE_OPERATOR && 
+						isMutatingOperator(nextToken.text)) {
+						body.push("ctx.set(\"" + addSlashes(token.text) + "\", ");
+						tail.unshift(")");
+						
+						var suboperator = mutationOperatorSuboperator(nextToken.text);
+						if (suboperator) {
+							body.push("ctx.get(\"" + addSlashes(token.text) + "\")");
+							body.push(suboperator);
+						}
+
+						i++;
+						continue;
+					}
+				}
+
+				body.push("ctx.get(\"" + addSlashes(token.text) + "\")");
+			} else if (tokenType === TYPE_OPERATOR) {
 				if (isMutatingOperator(token.text)) {
 					/* It's not critical to catch these, as they will just result in an invalid
-					 * and harmless expression.
+					 * and harmless expression. Even when we're allow mutation, these tokens
+					 * should be consumed in relation to a property. Assignment to anything else
+					 * is invalid.
 					 */
-					throw "Assignment is invalid in expression: " + expression;
+					throw "Assignment is invalid in expression: " + originalText;
 				} else {
-					head.push(token.text);
+					body.push(token.text);
 				}
-			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
-				head.push(token.text);
-			} else if (token.type === TYPE_SEPARATOR) {
-				throw "Expressions may not contain multiple statements in expression: " + expression;
-			}
-		}
-
-		return head.join(" ");
-	}
-
-	function tokensToSafeJavascriptStatements(tokens, statement) {
-		var head = "";
-		var body = [];
-		var tail = "";
-		var i, n = tokens.length;
-		for (i = 0; i < n; i++) {
-			var token = tokens[i];
-			if (token.type === TYPE_PROPERTY) {
-				var nextToken = i + 1 < n ? tokens[i + 1] : null;
-				if (nextToken !== null && nextToken.type === TYPE_OPERATOR && 
-					isMutatingOperator(nextToken.text)) {
-					body.push("this.$.set(\"" + slashes(token.text) + "\", ");
-					tail = ")";
-					
-					var suboperator = mutationOperatorSuboperator(nextToken.text);
-					if (suboperator) {
-						body.push("this.$.get(\"" + slashes(token.text) + "\")");
-						body.push(suboperator);
+			} else if (tokenType === TYPE_STRING || tokenType === TYPE_VALUE) {
+				body.push(token.text);
+			} else if (tokenType === TYPE_GROUP) {
+				if (token.text === "(") {
+					/* Start group */
+					bodies.push([]);
+					tails.push([]);
+				} else {
+					/* End group */
+					if (!body.length || bodies.length < 2) {
+						throw "Invalid bracketed expression in expression: " + originalText;
 					}
-
-					i++;
-				} else {
-					body.push("this.$.get(\"" + slashes(token.text) + "\")");
+					head.push("var __group" + groupId + " = " + body.join(" ") + tail.join(" ") + ";");
+					bodies.pop();
+					tails.pop();
+					body = bodies[bodies.length - 1];
+					body.push("__group" + groupId);
+					groupId++;
 				}
-			} else if (token.type === TYPE_OPERATOR) {
-				body.push(token.text);
-			} else if (token.type === TYPE_STRING || token.type === TYPE_VALUE) {
-				body.push(token.text);
-			} else if (token.type === TYPE_SEPARATOR) {
-				head += " " + body.join(" ") + " " + tail + ";";
-				body = [];
-				tail = "";
+			} else if (tokenType === TYPE_SEPARATOR) {
+				if (isStatement) {
+					body.push(tails[0].join(" ") + ";");
+					tails[0] = [];
+
+					var subsequentStatements = tokensToSafeJavascript(tokens.slice(i + 1), true, originalText);
+					body.push(subsequentStatements);
+					break;
+				} else {
+					throw "Invalid multiple statements in expression: " + originalText;
+				}
 			}
 		}
 
-		return head + " return " + body.join(" ") + " " + tail;
+		if (bodies.length !== 1) {
+			throw "Unbalanced bracketed expressions in expression: " + originalText;
+		}
+
+		return head.join(" ") + (i == n ? " return " : "") + bodies[0].join(" ") + tails[0].join(" ") + ";";
 	}
 
-	function slashes(str) {
+	function addSlashes(str) {
 		return str.replace(/"/g, "\\\"");
 	}
 
@@ -229,13 +254,17 @@
 
 	function isOperatorChar(c) {
 		return c === '!' || c === '%' || c === '=' || c === '<' || c === '>' ||
-			c === "*" || c === "/" || c === "+" || c === "-" || c === "(" || c === ")" ||
-			c === "^" || c === "&" || c === "?" || c === ":";
+			c === '*' || c === '/' || c === '+' || c === '-' ||
+			c === '^' || c === '&' || c === '?' || c === ':';
+	}
+
+	function isGroupChar(c) {
+		return c === '(' || c === ')';
 	}
 
 	function isAssignmentOperator(str) {
 		return str === "=" || str === "+=" || str === "-=" || 
-			str === "*=" || str === "/=";
+			str === "*=" || str === "/=" || str === "%=";
 	}
 
 	function isMutatingOperator(str) {
