@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.8.1
+ * Consistent.js 0.9.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
