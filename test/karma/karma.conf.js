@@ -13,6 +13,7 @@ files = [
   'bower_components/jquery/jquery.js',
   'bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js',
   'src/consistent.js',
+  'src/consistent-expressions.js',
   'src/jquery.consistent.js',
   'test/lib/jasmine-jquery/jasmine-jquery.js',
   'test/karma/config.js',
