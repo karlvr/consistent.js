@@ -1437,6 +1437,13 @@
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
+				if (key === "$" || key.substring(0, 2) === "$.") {
+					/* Do not allow access to $ object via get. The $ object is not part
+					 * of the model of the scope. This also prevents expression statements
+					 * from accessing scope functions.
+					 */
+					return undefined;
+				}
 
 				var valueFunctionPrefix = this.options().valueFunctionPrefix;
 				var scope = this._scope();
