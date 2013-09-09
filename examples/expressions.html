@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Example of basic Consistent.js usage
+-->
+<html>
+<head>
+<title>Basic Consistent.js example</title>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/consistent-expressions.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+	<div>
+		<h1 ct-show="showAll and !hideTitle" ct="title + (titleSuffix ? ': ' + titleSuffix : '')">Default title</h1>
+		<div ct-show="showAll and visible" ct="message"></div>
+
+		<p>
+			<label><input type="checkbox" name="showAll"> Show all</label>
+			<label><input type="checkbox" name="hideTitle"> Hide title</label>
+			<br>
+			<label>Suffix <input type="text" name="titleSuffix"></label>
+			<br>
+			<label>Message <input type="text" name="message"></label>
+		</p>
+	</div>
+	
+	<div ct="'Settin\' the value using an expression containing escapin\' in a string literal'"></div>
+	<div ct="6 * myFavouritePrime - 1"></div>
+
+	<p><button ct-on="clicked=true; message='Message changed by button.'; times++">Click me</button></p>
+	<div ct-show="clicked">You clicked the button <span ct="times"></span> time<span ct-show="times ne 1">s</span>.</div>
+
+	<p><button ct-on="clicked ? haveClickedHandler : haventClickedHandler">Click me before and after clicking above</button></p>
+
+<script>
+$(function() {
+	var scope = $("body").consistent();
+	scope.showAll = true;
+	scope.hideTitle = false;
+	scope.title = "Consistent.js";
+	scope.titleSuffix = "expressions example";
+	scope.message = "Value functions also work in expressions";
+	scope.visible = function() {
+		/* The message is visible unless it contains the word "hide" */
+		return this.message.indexOf("hide") === -1;
+	};
+	scope.myFavouritePrime = 25;
+	scope.clicked = false;
+	scope.times = 0;
+	scope.$haveClickedHandler = function(ev) {
+		alert("You've already clicked above");
+	};
+	scope.$haventClickedHandler = function(ev) {
+		alert("You haven't yet clicked above");
+	};
+	scope.$.apply();
+});
+</script>
+</body>
+</html>
