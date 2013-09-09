@@ -108,6 +108,8 @@
 				repeat: [ "data-ct-repeat", "ct-repeat" ],
 				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
+				noBind: [ "data-ct-nobind", "ct-nobind" ],
+
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
 
@@ -951,13 +953,17 @@
 		var attrs = dom.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
-			var value = trim(attrs[i].value);
-			if (!value) {
-				continue;
-			}
 
 			var matched = findDeclarationAttribute(name);
 			if (matched) {
+				var value = trim(attrs[i].value);
+				if (!value && (matched.name !== "noBind")) {
+					/* If the value is empty and the match doesn't support that,
+					 * then ignore this declaration.
+					 */
+					continue;
+				}
+
 				switch (matched.name) {
 					case "key": {
 						/* Body */
@@ -1068,6 +1074,10 @@
 					}
 					case "classAddAttribute": {
 						bindings.classAddAttribute = propertyNameOrExpression(value);
+						break;
+					}
+					case "noBind": {
+						bindings.noBind = (!value || value === "true");
 						break;
 					}
 					case "warningPrefix": {
@@ -2139,6 +2149,10 @@
 		if (dom[Consistent.settings.scopeIdKey] !== this._id) {
 			nodeOptions = mergeOptions({}, this._options, options);
 			nodeOptions = nodeOptions.$.getNodeOptions(dom, nodeOptions);
+
+			if (nodeOptions.bindings.noBind) {
+				return;
+			}
 
 			/* Mark the node as being part of this scope, although we do nothing with it.
 			 * That way you can still ask which scope it's a part of and find out.

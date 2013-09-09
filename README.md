@@ -975,6 +975,9 @@ The `NAME` segment in the following list represents the name of the attribute or
 * `ct-repeat` repeats this element, and all of its children, for each item in the array in the named property in the scope.
 * `ct-repeat-container-id` the id of a DOM element that contains DOM nodes to be repeated in place of this element.
 
+#### Miscellaneous
+
+* `ct-nobind` prevents Consistent from binding this element to a scope, and prevents Consistent from cascading the bind to this element’s children. This declaration can be used to fence off markup that should not acquire Consistent functionality (e.g. any unsafe user-generated markup). This attribute can be declared with no value, e.g. `<div ct-nobind>`, or with the value `"true"`.
 
 ### Scope functions
 
