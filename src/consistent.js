@@ -102,8 +102,8 @@
 				classAttribute: [ "data-ct-class", "ct-class" ],
 				classAddAttribute: [ "data-ct-add-class", "ct-add-class" ],
 
-				on: [ "data-ct-on", "ct-on", /* Legacy */, "data-ct-bind", "ct-bind" ],
-				onPrefix: [ "data-ct-on-", "ct-on-", /* Legacy */, "data-ct-bind-", "ct-bind-" ],
+				on: [ "data-ct-on", "ct-on" ],
+				onPrefix: [ "data-ct-on-", "ct-on-" ],
 
 				repeat: [ "data-ct-repeat", "ct-repeat" ],
 				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
