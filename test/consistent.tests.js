@@ -31,7 +31,7 @@ function dispatchMouseEvent(domNodes, name) {
           		0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			domNodes[i].dispatchEvent(evt);
 		} else if (document.createEventObject) {
-			dom.fireEvent("on" + name);
+			domNodes[i].fireEvent("on" + name);
 		}
 	}
 }
