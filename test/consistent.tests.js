@@ -25,11 +25,13 @@ function dispatchMouseEvent(domNodes, name) {
 	for (var i = 0; i < domNodes.length; i++) {
 		if (domNodes[i].click) {
 			domNodes[i].click();
-		} else {
+		} else if (document.createEvent) {
 			var evt = document.createEvent("MouseEvents"); 
 			evt.initMouseEvent(name, true, true, window, 
           		0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			domNodes[i].dispatchEvent(evt);
+		} else if (document.createEventObject) {
+			domNodes[i].fireEvent("on" + name);
 		}
 	}
 }

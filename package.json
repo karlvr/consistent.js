@@ -1,6 +1,6 @@
 {
   "name": "consistent.js",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "A small and simple Javascript framework to enable an abstract model to be synced with the DOM.",
   "author": "Karl von Randow",
   "license": "Apache License Version 2.0",
@@ -26,6 +26,7 @@
       "test/lib/jasmine-reporters/jasmine.tap_reporter.js",
       "test/lib/jasmine-jquery/jasmine-jquery.js",
       "src/consistent.js",
+      "src/consistent-expressions.js",
       "bower_components/jquery/jquery.min.js",
       "bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js",
       "src/jquery.consistent.js",
