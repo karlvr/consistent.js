@@ -1706,23 +1706,21 @@
 		}
 
 		var key;
-		if (aObject !== null) {
-			if (bObject !== null) {
-				for (key in aObject) {
-					if (aObject[key] !== bObject[key]) {
-						if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
-							aObject[key] && bObject[key]) {
-							/* Nested objects */
-							differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
-						} else {
-							result.push(prefix + key);
-						}
+		if (bObject !== null) {
+			for (key in aObject) {
+				if (aObject[key] !== bObject[key]) {
+					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
+						aObject[key] && bObject[key]) {
+						/* Nested objects */
+						differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
+					} else {
+						result.push(prefix + key);
 					}
 				}
-			} else {
-				for (key in aObject) {
-					result.push(prefix + key);
-				}
+			}
+		} else {
+			for (key in aObject) {
+				result.push(prefix + key);
 			}
 		}
 
