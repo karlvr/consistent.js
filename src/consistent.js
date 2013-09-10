@@ -1701,13 +1701,26 @@
 		seen.push(aObject);
 		seen.push(bObject);
 
+		if (aObject === bObject) {
+			return result;
+		}
+
 		var key;
-		for (key in aObject) {
-			if (aObject[key] !== bObject[key]) {
-				if (typeof aObject[key] === "object" && typeof bObject[key] === "object") {
-					/* Nested objects */
-					differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
-				} else {
+		if (aObject !== null) {
+			if (bObject !== null) {
+				for (key in aObject) {
+					if (aObject[key] !== bObject[key]) {
+						if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
+							aObject[key] && bObject[key]) {
+							/* Nested objects */
+							differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
+						} else {
+							result.push(prefix + key);
+						}
+					}
+				}
+			} else {
+				for (key in aObject) {
 					result.push(prefix + key);
 				}
 			}
@@ -1715,7 +1728,7 @@
 
 		/* Collect anything that exists in bObject but isn't in aObject */
 		for (key in bObject) {
-			if (aObject[key] === undefined) {
+			if (aObject === null || aObject[key] === undefined) {
 				result.push(prefix + key);
 			}
 		}
