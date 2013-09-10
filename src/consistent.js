@@ -415,6 +415,9 @@
 					 */
 					value = getNestedProperty(snapshot, bindings.selectOptions);
 					if (value !== undefined) {
+						if (!value) {
+							value = [];
+						}
 						var selectedValue = dom.selectedIndex !== -1 ? inputOptionValue(dom.options[dom.selectedIndex]) : undefined;
 						dom.length = value.length;
 						for (i = 0; i < value.length; i++) {
