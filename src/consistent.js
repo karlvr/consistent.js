@@ -395,6 +395,7 @@
 
 		templateEngine: null,
 		autoListenToChange: true,
+		autoListenToKeyEvents: true,
 		eventHandlerPrefix: "$",
 		valueFunctionPrefix: "",
 
@@ -2291,9 +2292,10 @@
 
 					/* Handle specific nodes differently */
 					var nodeName = dom.nodeName;
+					var listener;
 					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-						/* For input and textarea nodes we bind to their change event by default. */
-						var listener = function(ev) {
+						/* For input, textarea and select nodes we bind to their change event */
+						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
 							self._scope.$.apply();
@@ -2304,6 +2306,16 @@
 						}
 
 						nodeOptions.$._changeListener = listener;
+					}
+					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
+						/* For input and textarea nodes we bind to their key events */
+						listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "keyup", listener, false);
+						nodeOptions.$._keyListener = listener;
 					}
 				}
 			}
@@ -2344,6 +2356,10 @@
 			/* Unbind changes */
 			if (options.$._changeListener !== undefined) {
 				dom.removeEventListener("change", options.$._changeListener, false);
+			}
+			/* Unbind keys */
+			if (options.$._keyListener !== undefined) {
+				dom.removeEventListener("keyup", options.$._keyListener, false);
 			}
 
 			this._domNodes.splice(i, 1);
