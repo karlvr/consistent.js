@@ -149,6 +149,15 @@
 			}
 		},
 
+		destroyScope: function(scope) {
+			var scopeManager = scope.$._manager();
+			scopeManager.destroy();
+			delete scopeManagers[scopeManager._id];
+			if (scopeManager._name) {
+				delete scopeManagersByName[scopeManager._name];
+			}
+		},
+
 		/** Returns the scope for the given DOM node, or null */
 		findScopeForNode: function(dom) {
 			var scopeId = dom[Consistent.settings.scopeIdKey];
@@ -2441,6 +2450,10 @@
 		newScope.$ = this._scope.$;
 		this._scope = newScope;
 		return newScope;
+	};
+
+	ConsistentScopeManager.prototype.destroy = function() {
+		this.unbind(this._rootDomNodes);
 	};
 
 
