@@ -154,6 +154,7 @@
 					for (var i = 0; i < n; i++) {
 						scopeName = dom.getAttribute(declarationAttributes[i]);
 						if (scopeName) {
+						if (typeof scopeName === "string") {
 							break;
 						}
 					}
