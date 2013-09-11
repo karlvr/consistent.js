@@ -2249,6 +2249,7 @@
 										/* Statements */
 										result = evaluateStatement(key, self._scope);
 										if (typeof result !== "function") {
+											ev.preventDefault();
 											self._scope.$.apply();
 											continue;
 										} else {
