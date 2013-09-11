@@ -112,6 +112,7 @@
 				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
 				noBind: [ "data-ct-nobind", "ct-nobind" ],
+				scope: [ "data-ct-scope", "ct-scope" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -121,7 +122,8 @@
 			oldDisplayKey: "__ConsistentOldDisplay",
 			addedClassesKey: "__ConsistentAddedClasses",
 
-			maxWatcherLoops: 100
+			maxWatcherLoops: 100,
+			autoCreateScopes: true
 		},
 
 		isScope: function(object) {
@@ -140,12 +142,36 @@
 			return scopeManager._scope;
 		},
 
-		findScopeByName: function(name) {
-			var scopeManager = scopeManagersByName[name];
-			if (scopeManager) {
-				return scopeManager._scope;
-			} else {
-				return null;
+		autoCreateScopes: function() {
+			var root = document;
+			var declarationAttributes = Consistent.settings.attributes.scope;
+			var n = declarationAttributes.length;
+			visit(root);
+
+			function visit(dom) {
+				var scopeName;
+				if (dom.getAttribute) {
+					for (var i = 0; i < n; i++) {
+						scopeName = dom.getAttribute(declarationAttributes[i]);
+						if (scopeName) {
+							break;
+						}
+					}
+				}
+				if (typeof scopeName === "string") {
+					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null);
+					scope.$.bind(dom);
+					scope.$.update();
+					scope.$.apply();
+				} else {
+					var child = dom.firstChild;
+					while (child !== null) {
+						if (child.nodeType === 1) {
+							visit(child);
+						}
+						child = child.nextSibling;
+					}
+				}
 			}
 		},
 
@@ -155,6 +181,15 @@
 			delete scopeManagers[scopeManager._id];
 			if (scopeManager._name) {
 				delete scopeManagersByName[scopeManager._name];
+			}
+		},
+
+		findScope: function(name) {
+			var scopeManager = scopeManagersByName[name];
+			if (scopeManager) {
+				return scopeManager._scope;
+			} else {
+				return null;
 			}
 		},
 
@@ -1106,6 +1141,10 @@
 					}
 					case "noBind": {
 						bindings.noBind = (!value || value === "true");
+						break;
+					}
+					case "scope": {
+						/* NOOP, this is used in autoCreateScopes */
 						break;
 					}
 					case "warningPrefix": {
