@@ -76,4 +76,10 @@
 		return scope;
 	};
 
+	$(function() {
+		if (Consistent.settings.autoCreateScopes) {
+			Consistent.autoCreateScopes();
+		}
+	});
+
 })(jQuery, window);

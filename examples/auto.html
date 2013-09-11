@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Example of auto scope creation
+-->
+<html>
+<head>
+<title>Auto scope Consistent.js example</title>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+	<div ct-scope>
+		<h1 ct="title">Consistent.js</h1>
+
+		<p><input type="text" name="title" value="Consistent.js" size="50" /></p>
+	</div>
+	
+	<div ct-scope="myScope">
+		<h1 ct="title">Consistent.js named scope</h1>
+
+		<p><input type="text" name="title" value="Consistent.js named scope" size="50" /></p>
+	</div>
+	<script>
+	$(function() {
+		var scope = Consistent.findScope("myScope");
+		scope.title = "Named scopes can be easily found in script";
+		scope.$.apply();
+	});
+	</script>
+</body>
+</html>
