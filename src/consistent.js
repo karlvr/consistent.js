@@ -51,6 +51,8 @@
 			} else if (typeof arg0 === "object") {
 				/* Options only */
 				return Consistent.createScope(null, arg0);
+			} else if (typeof arg0 === "string") {
+				return Consistent.findScopeByName(arg0);
 			} else {
 				throw exception("Unexpected argument to Consistent(): " + arg0);
 			}
@@ -61,6 +63,7 @@
 	};
 
 	var scopeManagers = {};
+	var scopeManagersByName = {};
 	var SCOPE_TYPE = "ConsistentScope";
 
 	var support = (function() {
@@ -131,7 +134,19 @@
 
 			var scopeManager = new ConsistentScopeManager(parentScope, options);
 			scopeManagers[scopeManager._id] = scopeManager;
+			if (scopeManager._name) {
+				scopeManagersByName[scopeManager._name] = scopeManager;
+			}
 			return scopeManager._scope;
+		},
+
+		findScopeByName: function(name) {
+			var scopeManager = scopeManagersByName[name];
+			if (scopeManager) {
+				return scopeManager._scope;
+			} else {
+				return null;
+			}
 		},
 
 		/** Returns the scope for the given DOM node, or null */
@@ -1767,6 +1782,10 @@
 	function ConsistentScopeManager(parentScope, options) {
 		this._id = "ConsistentScope" + scopeId;
 		scopeId++;
+
+		if (options.name) {
+			this._name = options.name;
+		}
 
 		if (parentScope) {
 			this._parentScopeManager = parentScope.$._manager();
