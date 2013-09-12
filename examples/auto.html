@@ -38,8 +38,17 @@ Example of automatic scope creation
 
 	<hr>
 
+	<h1>Explicit default initialisation</h1>
+	<div ct-scope ct-scope-init="update">
+		<h2 ct="title">Consistent.js</h2>
+
+		<p><input type="text" name="title" value="Consistent.js last wins" size="50"></p>
+	</div>
+
+	<hr>
+
 	<h1>No initialisation</h1>
-	<div ct-scope ct-scope-init="false">
+	<div ct-scope ct-scope-init="none">
 		<h2 ct="title">Consistent.js scope with no update or apply</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -48,7 +57,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>No initialisation, init with script</h1>
-	<div ct-scope="myScopeWithNoInit" ct-scope-init="false">
+	<div ct-scope="myScopeWithNoInit" ct-scope-init="none">
 		<h2 ct="title">Consistent.js scope with no update or apply</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -65,7 +74,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>Init statement</h1>
-	<div ct-scope ct-scope-init="title='The init statement worked'; content='Body content too'">
+	<div ct-scope ct-scope-init="title='The init statement worked'; content='Body content too.'">
 		<h2 ct="title">Consistent.js scope with init statement</h2>
 
 		<p><input type="text" name="title" size="50"></p>

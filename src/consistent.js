@@ -175,14 +175,16 @@
 					for (i = 0; i < o; i++) {
 						var initValue = dom.getAttribute(initDeclarationAttributes[i]);
 						if (initValue) {
-							if (initValue !== "true") {
+							if (initValue === "update") {
+								/* NOOP, fall through and do the default behaviour */
+							} else if (initValue === "none") {
 								initHandled = true;
-								if (initValue !== "false") {
-									/* If the string isn't empty then we evaluate it as a function */
-									func = Consistent.statementToFunction(initValue);
-									evaluateStatement(func, scope);
-									scope.$.apply();
-								}
+							} else if (initValue) {
+								/* If the string isn't empty then we evaluate it as a function */
+								initHandled = true;
+								func = Consistent.statementToFunction(initValue);
+								evaluateStatement(func, scope);
+								scope.$.apply();
 							}
 							break;
 						}
