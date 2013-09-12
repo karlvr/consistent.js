@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.9.2
+ * Consistent.js 0.9.3
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -51,6 +51,8 @@
 			} else if (typeof arg0 === "object") {
 				/* Options only */
 				return Consistent.createScope(null, arg0);
+			} else if (typeof arg0 === "string") {
+				return Consistent.findScopeByName(arg0);
 			} else {
 				throw exception("Unexpected argument to Consistent(): " + arg0);
 			}
@@ -61,6 +63,7 @@
 	};
 
 	var scopeManagers = {};
+	var scopeManagersByName = {};
 	var SCOPE_TYPE = "ConsistentScope";
 
 	var support = (function() {
@@ -109,6 +112,9 @@
 				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
 				noBind: [ "data-ct-nobind", "ct-nobind" ],
+				scope: [ "data-ct-scope", "ct-scope" ],
+				init: [ "data-ct-init", "ct-init" ],
+				initFunc: [ "data-ct-init-func", "ct-init-func" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -118,7 +124,8 @@
 			oldDisplayKey: "__ConsistentOldDisplay",
 			addedClassesKey: "__ConsistentAddedClasses",
 
-			maxWatcherLoops: 100
+			maxWatcherLoops: 100,
+			autoCreateScopes: true
 		},
 
 		isScope: function(object) {
@@ -131,7 +138,106 @@
 
 			var scopeManager = new ConsistentScopeManager(parentScope, options);
 			scopeManagers[scopeManager._id] = scopeManager;
+			if (scopeManager._name) {
+				scopeManagersByName[scopeManager._name] = scopeManager;
+			}
 			return scopeManager._scope;
+		},
+
+		autoCreateScopes: function() {
+			var root = document;
+			var declarationAttributes = Consistent.settings.attributes.scope;
+			var initDeclarationAttributes = Consistent.settings.attributes.init;
+			var initFuncDeclarationAttributes = Consistent.settings.attributes.initFunc;
+			var n = declarationAttributes.length;
+			var o = initDeclarationAttributes.length;
+			var p = initFuncDeclarationAttributes.length;
+
+			visit(root);
+
+			function visit(dom) {
+				var scopeName;
+				var i;
+				if (dom.getAttribute) {
+					for (i = 0; i < n; i++) {
+						scopeName = dom.getAttribute(declarationAttributes[i]);
+						if (typeof scopeName === "string") {
+							break;
+						}
+					}
+				}
+				if (typeof scopeName === "string") {
+					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null);
+					scope.$.bind(dom);
+
+					var initHandled = false;
+					var func;
+					for (i = 0; i < o; i++) {
+						var initValue = dom.getAttribute(initDeclarationAttributes[i]);
+						if (initValue) {
+							if (initValue === "update") {
+								/* Fall through and do the default behaviour */
+								break;
+							} else if (initValue === "none") {
+								initHandled = true;
+								break;
+							} else if (initValue) {
+								/* If the string isn't empty then we evaluate it as a function */
+								initHandled = true;
+								func = Consistent.statementToFunction(initValue);
+								evaluateStatement(func, scope);
+								scope.$.apply();
+								break;
+							}
+						}
+					}
+
+					if (!initHandled) {
+						for (i = 0; i < p; i++) {
+							var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
+							if (initFuncValue) {
+								func = getNestedProperty(window, initFuncValue);
+								if (func) {
+									func.call(scope);
+								} else {
+									throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
+								}
+							}
+						}
+					}
+
+					if (!initHandled) {
+						scope.$.update();
+						scope.$.apply();
+					}
+				} else {
+					var child = dom.firstChild;
+					while (child !== null) {
+						if (child.nodeType === 1) {
+							visit(child);
+						}
+						child = child.nextSibling;
+					}
+				}
+			}
+		},
+
+		destroyScope: function(scope) {
+			var scopeManager = scope.$._manager();
+			scopeManager.destroy();
+			delete scopeManagers[scopeManager._id];
+			if (scopeManager._name) {
+				delete scopeManagersByName[scopeManager._name];
+			}
+		},
+
+		findScope: function(name) {
+			var scopeManager = scopeManagersByName[name];
+			if (scopeManager) {
+				return scopeManager._scope;
+			} else {
+				return null;
+			}
 		},
 
 		/** Returns the scope for the given DOM node, or null */
@@ -395,6 +501,7 @@
 
 		templateEngine: null,
 		autoListenToChange: true,
+		autoListenToKeyEvents: true,
 		eventHandlerPrefix: "$",
 		valueFunctionPrefix: "",
 
@@ -660,7 +767,7 @@
 				var bindings = options.bindings;
 
 				/* Select options */
-				if (bindings.selectOptions) {
+				if (updatableBinding(bindings.selectOptions)) {
 					var selectOptions = dom.options;
 					value = [];
 					for (i = 0; i < selectOptions.length; i++) {
@@ -676,7 +783,7 @@
 				}
 
 				/* Value */
-				if (bindings.key) {
+				if (updatableBinding(bindings.key)) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
@@ -719,7 +826,7 @@
 				}
 
 				/* Attributes */
-				if (bindings.attributes) {
+				if (updatableBinding(bindings.attributes)) {
 					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
@@ -728,7 +835,7 @@
 						}
 					}
 				}
-				if (bindings.allAttributes) {
+				if (updatableBinding(bindings.allAttributes)) {
 					value = scope.$.get(bindings.allAttributes);
 					if (value !== undefined) {
 						for (i in value) {
@@ -737,7 +844,7 @@
 						scope.$.set(bindings.allAttributes, value);
 					}
 				}
-				if (bindings.classAttribute) {
+				if (updatableBinding(bindings.classAttribute)) {
 					value = this.getAttributeValue(dom, "class");
 					if (isArray(scope.$.get(bindings.classAttribute))) {
 						/* Convert to array */
@@ -747,14 +854,14 @@
 				}
 
 				/* Properties */
-				if (bindings.properties) {
+				if (updatableBinding(bindings.properties)) {
 					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
 				}
-				if (bindings.allProperties) {
+				if (updatableBinding(bindings.allProperties)) {
 					value = scope.$.get(bindings.allProperties);
 					if (value !== undefined) {
 						var names = getNestedPropertyNames(value);
@@ -766,33 +873,42 @@
 				}
 
 				/* Visibility */
-				if (bindings.show) {
+				if (updatableBinding(bindings.show)) {
 					value = this.isShowing(dom);
 					scope.$.set(bindings.show, value);
 				}
-				if (bindings.hide) {
+				if (updatableBinding(bindings.hide)) {
 					value = this.isShowing(dom);
 					scope.$.set(bindings.hide, !value);
 				}
 
 				/* Enabled / disabled */
-				if (bindings.enabled) {
+				if (updatableBinding(bindings.enabled)) {
 					value = this.getPropertyValue(dom, "disabled");
 					scope.$.set(bindings.enabled, !value);
 				}
-				if (bindings.disabled) {
+				if (updatableBinding(bindings.disabled)) {
 					value = this.getPropertyValue(dom, "disabled");
 					scope.$.set(bindings.disabled, value);
 				}
 
 				/* Read only */
-				if (bindings.readOnly) {
+				if (updatableBinding(bindings.readOnly)) {
 					value = this.getPropertyValue(dom, "readOnly");
 					scope.$.set(bindings.readOnly, value);
 				}
-				if (bindings.readWrite) {
+				if (updatableBinding(bindings.readWrite)) {
 					value = this.getPropertyValue(dom, "readOnly");
 					scope.$.set(bindings.readWrite, !value);
+				}
+
+				function updatableBinding(binding) {
+					/* Check if the given binding exists, and is not a function.
+					 * If it's a function, it's an expression. We cannot update
+					 * the scope from the DOM through a function as we do not
+					 * have a way to invert functions.
+					 */
+					return (binding && typeof binding !== "function");
 				}
 			},
 
@@ -1083,6 +1199,12 @@
 						bindings.noBind = (!value || value === "true");
 						break;
 					}
+					case "scope": 
+					case "init":
+					case "initFunc": {
+						/* NOOP, this is used in autoCreateScopes */
+						break;
+					}
 					case "warningPrefix": {
 						/* Catch all at the end. Catches any attributes that look like they're for Consistent, but
 						 * weren't recognized. Log these out to help developers catch errors.
@@ -1106,7 +1228,8 @@
 			for (var declAttr in settings.attributes) {
 				var attributes = settings.attributes[declAttr];
 				var i;
-				if (declAttr.lastIndexOf("Prefix") === declAttr.length - "Prefix".length) {
+				var foundPrefix = declAttr.lastIndexOf("Prefix");
+				if (foundPrefix !== -1 && foundPrefix === declAttr.length - "Prefix".length) {
 					if (isArray(attributes)) {
 						for (i = 0; i < attributes.length; i++) {
 							if (name.indexOf(attributes[i]) === 0) {
@@ -1767,6 +1890,10 @@
 		this._id = "ConsistentScope" + scopeId;
 		scopeId++;
 
+		if (options.name) {
+			this._name = options.name;
+		}
+
 		if (parentScope) {
 			this._parentScopeManager = parentScope.$._manager();
 			this._parentScopeManager._childScopeManagers.push(this);
@@ -2249,6 +2376,7 @@
 										/* Statements */
 										result = evaluateStatement(key, self._scope);
 										if (typeof result !== "function") {
+											ev.preventDefault();
 											self._scope.$.apply();
 											continue;
 										} else {
@@ -2290,9 +2418,10 @@
 
 					/* Handle specific nodes differently */
 					var nodeName = dom.nodeName;
+					var listener;
 					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-						/* For input and textarea nodes we bind to their change event by default. */
-						var listener = function(ev) {
+						/* For input, textarea and select nodes we bind to their change event */
+						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
 							self._scope.$.apply();
@@ -2303,6 +2432,16 @@
 						}
 
 						nodeOptions.$._changeListener = listener;
+					}
+					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
+						/* For input and textarea nodes we bind to their key events */
+						listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "keyup", listener, false);
+						nodeOptions.$._keyListener = listener;
 					}
 				}
 			}
@@ -2343,6 +2482,10 @@
 			/* Unbind changes */
 			if (options.$._changeListener !== undefined) {
 				dom.removeEventListener("change", options.$._changeListener, false);
+			}
+			/* Unbind keys */
+			if (options.$._keyListener !== undefined) {
+				dom.removeEventListener("keyup", options.$._keyListener, false);
 			}
 
 			this._domNodes.splice(i, 1);
@@ -2405,6 +2548,10 @@
 		newScope.$ = this._scope.$;
 		this._scope = newScope;
 		return newScope;
+	};
+
+	ConsistentScopeManager.prototype.destroy = function() {
+		this.unbind(this._rootDomNodes);
 	};
 
 

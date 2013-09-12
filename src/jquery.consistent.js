@@ -1,5 +1,5 @@
 /*! 
- * Consistent.js jQuery plugin 0.9.2
+ * Consistent.js jQuery plugin 0.9.3
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -75,5 +75,11 @@
 
 		return scope;
 	};
+
+	$(function() {
+		if (Consistent.settings.autoCreateScopes) {
+			Consistent.autoCreateScopes();
+		}
+	});
 
 })(jQuery, window);
