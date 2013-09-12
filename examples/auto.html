@@ -39,7 +39,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>Explicit default initialisation</h1>
-	<div ct-scope ct-scope-init="update">
+	<div ct-scope ct-init="update">
 		<h2 ct="title">Consistent.js</h2>
 
 		<p><input type="text" name="title" value="Consistent.js last wins" size="50"></p>
@@ -48,7 +48,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>No initialisation</h1>
-	<div ct-scope ct-scope-init="none">
+	<div ct-scope ct-init="none">
 		<h2 ct="title">Consistent.js scope with no update or apply</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -57,7 +57,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>No initialisation, init with script</h1>
-	<div ct-scope="myScopeWithNoInit" ct-scope-init="none">
+	<div ct-scope="myScopeWithNoInit" ct-init="none">
 		<h2 ct="title">Consistent.js scope with no update or apply</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -74,7 +74,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>Init statement</h1>
-	<div ct-scope ct-scope-init="title='The init statement worked'; content='Body content too.'">
+	<div ct-scope ct-init="title='The init statement worked'; content='Body content too.'">
 		<h2 ct="title">Consistent.js scope with init statement</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -84,7 +84,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>Init function</h1>
-	<div ct-scope ct-scope-init-func="myScopeInit">
+	<div ct-scope ct-init-func="myScopeInit">
 		<h2 ct="title">Consistent.js scope with init function</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -99,7 +99,7 @@ Example of automatic scope creation
 	<hr>
 
 	<h1>Nested init function</h1>
-	<div ct-scope ct-scope-init-func="MyApp.initScope">
+	<div ct-scope ct-init-func="MyApp.initScope">
 		<h2 ct="title">Consistent.js scope with init function</h2>
 
 		<p><input type="text" name="title" size="50"></p>
@@ -107,7 +107,7 @@ Example of automatic scope creation
 	<script>
 	var MyApp = {
 		initScope: function() {
-			this.title = "The init function worked";
+			this.title = "The nested init function worked";
 			this.$.apply();
 		} 
 	};

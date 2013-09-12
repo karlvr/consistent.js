@@ -113,8 +113,8 @@
 
 				noBind: [ "data-ct-nobind", "ct-nobind" ],
 				scope: [ "data-ct-scope", "ct-scope" ],
-				scopeInit: [ "data-ct-scope-init", "ct-scope-init" ],
-				scopeInitFunc: [ "data-ct-scope-init-func", "ct-scope-init-func" ],
+				init: [ "data-ct-init", "ct-init" ],
+				initFunc: [ "data-ct-init-func", "ct-init-func" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -147,8 +147,8 @@
 		autoCreateScopes: function() {
 			var root = document;
 			var declarationAttributes = Consistent.settings.attributes.scope;
-			var initDeclarationAttributes = Consistent.settings.attributes.scopeInit;
-			var initFuncDeclarationAttributes = Consistent.settings.attributes.scopeInitFunc;
+			var initDeclarationAttributes = Consistent.settings.attributes.init;
+			var initFuncDeclarationAttributes = Consistent.settings.attributes.initFunc;
 			var n = declarationAttributes.length;
 			var o = initDeclarationAttributes.length;
 			var p = initFuncDeclarationAttributes.length;
@@ -1191,8 +1191,8 @@
 						break;
 					}
 					case "scope": 
-					case "scopeInit":
-					case "scopeInitFunc": {
+					case "init":
+					case "initFunc": {
 						/* NOOP, this is used in autoCreateScopes */
 						break;
 					}
