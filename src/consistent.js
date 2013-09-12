@@ -1171,7 +1171,8 @@
 			for (var declAttr in settings.attributes) {
 				var attributes = settings.attributes[declAttr];
 				var i;
-				if (declAttr.lastIndexOf("Prefix") === declAttr.length - "Prefix".length) {
+				var foundPrefix = declAttr.lastIndexOf("Prefix");
+				if (foundPrefix !== -1 && foundPrefix === declAttr.length - "Prefix".length) {
 					if (isArray(attributes)) {
 						for (i = 0; i < attributes.length; i++) {
 							if (name.indexOf(attributes[i]) === 0) {
