@@ -113,6 +113,8 @@
 
 				noBind: [ "data-ct-nobind", "ct-nobind" ],
 				scope: [ "data-ct-scope", "ct-scope" ],
+				scopeInit: [ "data-ct-scope-init", "ct-scope-init" ],
+				scopeInitFunc: [ "data-ct-scope-init-func", "ct-scope-init-func" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -145,15 +147,20 @@
 		autoCreateScopes: function() {
 			var root = document;
 			var declarationAttributes = Consistent.settings.attributes.scope;
+			var initDeclarationAttributes = Consistent.settings.attributes.scopeInit;
+			var initFuncDeclarationAttributes = Consistent.settings.attributes.scopeInitFunc;
 			var n = declarationAttributes.length;
+			var o = initDeclarationAttributes.length;
+			var p = initFuncDeclarationAttributes.length;
+
 			visit(root);
 
 			function visit(dom) {
 				var scopeName;
+				var i;
 				if (dom.getAttribute) {
-					for (var i = 0; i < n; i++) {
+					for (i = 0; i < n; i++) {
 						scopeName = dom.getAttribute(declarationAttributes[i]);
-						if (scopeName) {
 						if (typeof scopeName === "string") {
 							break;
 						}
@@ -162,8 +169,43 @@
 				if (typeof scopeName === "string") {
 					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null);
 					scope.$.bind(dom);
-					scope.$.update();
-					scope.$.apply();
+
+					var initHandled = false;
+					var func;
+					for (i = 0; i < o; i++) {
+						var initValue = dom.getAttribute(initDeclarationAttributes[i]);
+						if (initValue) {
+							if (initValue !== "true") {
+								initHandled = true;
+								if (initValue !== "false") {
+									/* If the string isn't empty then we evaluate it as a function */
+									func = Consistent.statementToFunction(initValue);
+									evaluateStatement(func, scope);
+									scope.$.apply();
+								}
+							}
+							break;
+						}
+					}
+
+					if (!initHandled) {
+						for (i = 0; i < p; i++) {
+							var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
+							if (initFuncValue) {
+								func = getNestedProperty(window, initFuncValue);
+								if (func) {
+									func.call(scope);
+								} else {
+									throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
+								}
+							}
+						}
+					}
+
+					if (!initHandled) {
+						scope.$.update();
+						scope.$.apply();
+					}
 				} else {
 					var child = dom.firstChild;
 					while (child !== null) {
@@ -1144,7 +1186,9 @@
 						bindings.noBind = (!value || value === "true");
 						break;
 					}
-					case "scope": {
+					case "scope": 
+					case "scopeInit":
+					case "scopeInitFunc": {
 						/* NOOP, this is used in autoCreateScopes */
 						break;
 					}

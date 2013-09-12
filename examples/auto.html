@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Example of auto scope creation
+Example of automatic scope creation
 -->
 <html>
 <head>
@@ -8,26 +8,100 @@ Example of auto scope creation
 <script src="../bower_components/jquery/jquery.js"></script>
 <script src="../bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js"></script>
 <script src="../src/consistent.js"></script>
+<script src="../src/consistent-expressions.js"></script>
 <script src="../src/jquery.consistent.js"></script>
 </head>
 <body>
+	<h1>Default initialisation</h1>
 	<div ct-scope>
-		<h1 ct="title">Consistent.js</h1>
+		<h2 ct="title">Consistent.js</h2>
 
-		<p><input type="text" name="title" value="Consistent.js" size="50" /></p>
+		<p><input type="text" name="title" value="Consistent.js last wins" size="50" /></p>
 	</div>
+
+	<hr>
 	
+	<h1>Named scope</h1>
 	<div ct-scope="myScope">
-		<h1 ct="title">Consistent.js named scope</h1>
+		<h2 ct="title">Consistent.js named scope</h2>
 
 		<p><input type="text" name="title" value="Consistent.js named scope" size="50" /></p>
 	</div>
 	<script>
 	$(function() {
 		var scope = Consistent.findScope("myScope");
+		// scope.title == "Consistent.js named scope", because Consistent automatically calls update and apply.
 		scope.title = "Named scopes can be easily found in script";
 		scope.$.apply();
 	});
+	</script>
+
+	<hr>
+
+	<h1>No initialisation</h1>
+	<div ct-scope ct-scope-init="false">
+		<h2 ct="title">Consistent.js scope with no update or apply</h2>
+
+		<p><input type="text" name="title" size="50"></p>
+	</div>
+
+	<hr>
+
+	<h1>No initialisation, init with script</h1>
+	<div ct-scope="myScopeWithNoInit" ct-scope-init="false">
+		<h2 ct="title">Consistent.js scope with no update or apply</h2>
+
+		<p><input type="text" name="title" size="50"></p>
+	</div>
+	<script>
+	$(function() {
+		var scope = Consistent.findScope("myScopeWithNoInit");
+		// scope.title == undefined, because Consistent has not called update and apply.
+		scope.title = "Initted the named scope";
+		scope.$.apply();
+	});
+	</script>
+
+	<hr>
+
+	<h1>Init statement</h1>
+	<div ct-scope ct-scope-init="title='The init statement worked'; content='Body content too'">
+		<h2 ct="title">Consistent.js scope with init statement</h2>
+
+		<p><input type="text" name="title" size="50"></p>
+		<p ct="content"></p>
+	</div>
+
+	<hr>
+
+	<h1>Init function</h1>
+	<div ct-scope ct-scope-init-func="myScopeInit">
+		<h2 ct="title">Consistent.js scope with init function</h2>
+
+		<p><input type="text" name="title" size="50"></p>
+	</div>
+	<script>
+	function myScopeInit() {
+		this.title = "The init function worked";
+		this.$.apply();
+	}
+	</script>
+
+	<hr>
+
+	<h1>Nested init function</h1>
+	<div ct-scope ct-scope-init-func="MyApp.initScope">
+		<h2 ct="title">Consistent.js scope with init function</h2>
+
+		<p><input type="text" name="title" size="50"></p>
+	</div>
+	<script>
+	var MyApp = {
+		initScope: function() {
+			this.title = "The init function worked";
+			this.$.apply();
+		} 
+	};
 	</script>
 </body>
 </html>
