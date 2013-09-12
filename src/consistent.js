@@ -767,7 +767,7 @@
 				var bindings = options.bindings;
 
 				/* Select options */
-				if (bindings.selectOptions) {
+				if (updatableBinding(bindings.selectOptions)) {
 					var selectOptions = dom.options;
 					value = [];
 					for (i = 0; i < selectOptions.length; i++) {
@@ -783,7 +783,7 @@
 				}
 
 				/* Value */
-				if (bindings.key) {
+				if (updatableBinding(bindings.key)) {
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
@@ -826,7 +826,7 @@
 				}
 
 				/* Attributes */
-				if (bindings.attributes) {
+				if (updatableBinding(bindings.attributes)) {
 					var attrs = bindings.attributes;
 					for (i = 0; i < attrs.length; i++) {
 						if (attrs[i].key !== undefined) {
@@ -835,7 +835,7 @@
 						}
 					}
 				}
-				if (bindings.allAttributes) {
+				if (updatableBinding(bindings.allAttributes)) {
 					value = scope.$.get(bindings.allAttributes);
 					if (value !== undefined) {
 						for (i in value) {
@@ -844,7 +844,7 @@
 						scope.$.set(bindings.allAttributes, value);
 					}
 				}
-				if (bindings.classAttribute) {
+				if (updatableBinding(bindings.classAttribute)) {
 					value = this.getAttributeValue(dom, "class");
 					if (isArray(scope.$.get(bindings.classAttribute))) {
 						/* Convert to array */
@@ -854,14 +854,14 @@
 				}
 
 				/* Properties */
-				if (bindings.properties) {
+				if (updatableBinding(bindings.properties)) {
 					var props = bindings.properties;
 					for (i = 0; i < props.length; i++) {
 						value = this.getPropertyValue(dom, props[i].name);
 						scope.$.set(props[i].key, value);
 					}
 				}
-				if (bindings.allProperties) {
+				if (updatableBinding(bindings.allProperties)) {
 					value = scope.$.get(bindings.allProperties);
 					if (value !== undefined) {
 						var names = getNestedPropertyNames(value);
@@ -873,33 +873,42 @@
 				}
 
 				/* Visibility */
-				if (bindings.show) {
+				if (updatableBinding(bindings.show)) {
 					value = this.isShowing(dom);
 					scope.$.set(bindings.show, value);
 				}
-				if (bindings.hide) {
+				if (updatableBinding(bindings.hide)) {
 					value = this.isShowing(dom);
 					scope.$.set(bindings.hide, !value);
 				}
 
 				/* Enabled / disabled */
-				if (bindings.enabled) {
+				if (updatableBinding(bindings.enabled)) {
 					value = this.getPropertyValue(dom, "disabled");
 					scope.$.set(bindings.enabled, !value);
 				}
-				if (bindings.disabled) {
+				if (updatableBinding(bindings.disabled)) {
 					value = this.getPropertyValue(dom, "disabled");
 					scope.$.set(bindings.disabled, value);
 				}
 
 				/* Read only */
-				if (bindings.readOnly) {
+				if (updatableBinding(bindings.readOnly)) {
 					value = this.getPropertyValue(dom, "readOnly");
 					scope.$.set(bindings.readOnly, value);
 				}
-				if (bindings.readWrite) {
+				if (updatableBinding(bindings.readWrite)) {
 					value = this.getPropertyValue(dom, "readOnly");
 					scope.$.set(bindings.readWrite, !value);
+				}
+
+				function updatableBinding(binding) {
+					/* Check if the given binding exists, and is not a function.
+					 * If it's a function, it's an expression. We cannot update
+					 * the scope from the DOM through a function as we do not
+					 * have a way to invert functions.
+					 */
+					return (binding && typeof binding !== "function");
 				}
 			},
 
