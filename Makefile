@@ -50,4 +50,19 @@ test:
 citest:
 	karma start test/karma/karma.conf.js
 
+testie6:
+	testem -f test/testem/testem.json -l bs_ie_6
+
+testie7:
+	testem -f test/testem/testem.json -l bs_ie_7
+
+testie8:
+	testem -f test/testem/testem.json -l bs_ie_8
+
+testie9:
+	testem -f test/testem/testem.json -l bs_ie_9
+
+testie10:
+	testem -f test/testem/testem.json -l bs_ie_10
+
 .PHONY: all test citest clean
