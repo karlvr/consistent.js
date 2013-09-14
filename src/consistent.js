@@ -696,6 +696,11 @@
 			/** Set the given value in the given dom object.
 			  */
 			setValue: function(dom, value) {
+				var currentValue = this.getValue(dom);
+				if (currentValue === value) {
+					return;
+				}
+				
 				var nodeName = dom.nodeName;
 				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
 					if (dom.type === "checkbox") {
