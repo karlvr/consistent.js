@@ -2020,7 +2020,7 @@
 		 *         domNodes: an array of top-level DOM nodes created,
 		 *         scope: the child scope created,
 		 *         version: version counter to track deletions,
-		 *		   after: dom node this appears after (or null if it's first)
+		 *		   before: dom node this appears before (or null if it's last)
 		 *     ]
 		 * }
 		 */
@@ -2046,10 +2046,11 @@
 
 		var version = repeatData.version;
 		var insertBefore = repeatData.insertBefore;
+		var insertInside = insertBefore.parentNode;
 		var previousNode = null;
 		var item;
 
-		for (i = 0; i < repeatContext.length; i++) {
+		for (i = repeatContext.length - 1; i >= 0; i--) {
 			var object = repeatContext[i];
 			item = findRepeatItemForObject(object);
 
@@ -2074,15 +2075,19 @@
 				item.version = version;
 			}
 
-			insertDomNodesBefore(item.domNodes, insertBefore, insertBefore.parentNode);
+			var lastNode = item.domNodes[item.domNodes.length - 1];
+			if (wasNew || lastNode.nextSibling !== insertBefore) {
+				insertDomNodesBefore(item.domNodes, insertBefore, insertInside);
+			}
+		
 			if (wasNew) {
 				for (var j = 0; j < item.domNodes.length; j++) {
 					options.$.added(item.domNodes[j]);
 				}
 			}
 
-			item.after = previousNode;
-			previousNode = item.domNodes[item.domNodes.length - 1];
+			item.before = previousNode;
+			previousNode = insertBefore = item.domNodes[0];
 
 			item.scope.$.index = i;
 			item.scope.$.apply();
@@ -2092,11 +2097,11 @@
 		for (i = 0; i < repeatData.items.length; i++) {
 			item = repeatData.items[i];
 			if (item.version !== version) {
-				if (item.after) {
+				if (item.before) {
 					/* Maintain the position of this node in the DOM in case we animated
 					 * the removal.
 					 */
-					insertDomNodesBefore(item.domNodes, item.after.nextSibling, insertBefore.parentNode);
+					insertDomNodesBefore(item.domNodes, item.before, insertBefore.parentNode);
 				}
 				removeDomNodes(item.domNodes, item.scope);
 				repeatData.items.splice(i, 1);
@@ -2107,9 +2112,11 @@
 		}
 
 		function findRepeatItemForObject(object) {
-			for (var i = 0; i < repeatData.items.length; i++) {
-				if (repeatData.items[i].object === object) {
-					return repeatData.items[i];
+			var n = repeatData.items.length;
+			for (var i = 0; i < n; i++) {
+				var item = repeatData.items[i];
+				if (item.object === object) {
+					return item;
 				}
 			}
 			return undefined;
