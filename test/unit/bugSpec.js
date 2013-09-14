@@ -105,11 +105,16 @@ describe('Bugs', function() {
 		expect(childScope.state).toBe('active');
 		expect(checkbox.checked).toBe(true);
 
-		dispatchMouseEvent([checkbox]);
+		/* Mouse events to click checkboxes not working in IE 6 */
+		// dispatchMouseEvent([checkbox]);
+		scope.$toggleState.call(childScope);
+
 		expect(childScope.state).toBe('inactive');
 		expect(checkbox.checked).toBe(false);
 
-		dispatchMouseEvent([checkbox]);
+		// dispatchMouseEvent([checkbox]);
+		scope.$toggleState.call(childScope);
+
 		expect(childScope.state).toBe('active');
 		expect(childScope.$.snapshot().active).toBe(true);
 		expect(checkbox.checked).toBe(true);

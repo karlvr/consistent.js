@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--
+Example of value functions.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<form>
+	<p>Name: <input type="text" name="fullName"></p>
+	<p><label><input type="checkbox" name="optin"> Optin</label></p>
+	<p>
+		<label><input type="radio" name="gender" value="Male"> Male</label>
+		<label><input type="radio" name="gender" value="Female"> Female</label>
+	</p>
+	<p><select name="referrer">
+		<option></option>
+		<option value="email">Email</option>
+		<option value="website">Website</option>
+		<option value="friend">Friend</option>
+		<option value="search">Search Engine</option>
+		<option value="other">Other</option>
+	</select></p>
+	<p>Comments:<br><textarea name="comments" cols="50" rows="3"></textarea></p>
+</form>
+
+<script>
+$(function() {
+	var scope = $("form").consistent();
+	scope.fullName = "Nathanial Hornblower";
+	var myOptin = true;
+	scope.optin = function(newValue) {
+		if (newValue !== undefined) {
+			/* The value function has been called as a setter */
+			myOptin = newValue;
+		}
+		return myOptin;
+	};
+	scope.gender = function() {
+		/* By always returning the same value and not accepting new values this
+		 * effectively prevents the form element from being changed.
+		 */
+		return "Male";
+	};
+	var myReferrer = "friend";
+	scope.referrer = function(newValue) {
+		if (newValue === "website" || newValue === "friend") {
+			/* Only allow certain values to be set */
+			myReferrer = newValue;
+		}
+		return myReferrer;
+	};
+	scope.comments = function() {
+		/* By always returning the same value and not accepting new values this
+		 * effectively prevents the form element from being changed.
+		 */
+		return "I had the great pleasure of reading your unsolicited critique.";
+	};
+	scope.$.apply();
+});
+</script>
+
+</body>
+</html>

@@ -10,10 +10,10 @@ basePath = '../../';
 files = [
   JASMINE,
   JASMINE_ADAPTER,
-  'bower_components/jquery/jquery.js',
-  'bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js',
   'src/consistent.js',
   'src/consistent-expressions.js',
+  'bower_components/jquery/jquery.js',
+  'bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js',
   'src/jquery.consistent.js',
   'test/lib/jasmine-jquery/jasmine-jquery.js',
   'test/karma/config.js',

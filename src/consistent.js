@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.9.3
+ * Consistent.js 0.9.4
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -2424,6 +2424,7 @@
 						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
 							self._scope.$.apply();
 						};
 						addEventListener(dom, "change", listener, false);
@@ -2438,6 +2439,7 @@
 						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
 							self._scope.$.apply();
 						};
 						addEventListener(dom, "keyup", listener, false);

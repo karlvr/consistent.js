@@ -2,6 +2,7 @@
   "framework": "jasmine",
   "src_files": [
     "src/consistent.js",
+    "src/consistent-expressions.js",
     
     "bower_components/jquery/jquery.min.js",
     "bower_components/hogan/web/builds/2.0.0/hogan-2.0.0.js",
