@@ -1718,7 +1718,11 @@
 
 				var value = getNestedProperty(scope, addPrefixToPropertyName(key, eventHandlerPrefix));
 				if (value !== undefined) {
-					return value;
+					if (typeof value === "function") {
+						return value;
+					} else {
+						return undefined;
+					}
 				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.getEventHandler(key);
 				} else {
@@ -1747,7 +1751,11 @@
 
 				var value = getNestedProperty(scope, addPrefixToPropertyName(key, valueFunctionPrefix));
 				if (value !== undefined) {
-					return value;
+					if (typeof value === "function") {
+						return value;
+					} else {
+						return undefined;
+					}
 				} else if (includeParents !== false && this.parent()) {
 					return this.parent().$.getValueFunction(key);
 				} else {
