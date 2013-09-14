@@ -46,4 +46,13 @@ describe('Basic tests', function() {
 		expect(function() { JSON.stringify(scope); }).not.toThrow();
 	});
 
+	it("jQuery object as bind argument", function() {
+		var scope = Consistent();
+		scope.$.bind($("#container"));
+		scope.title = "Bind worked";
+		scope.$.apply();
+
+		expect($("#container h1").text()).toBe("Bind worked");
+	});
+
 });

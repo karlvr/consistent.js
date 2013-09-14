@@ -2317,12 +2317,16 @@
 		return ev;
 	}
 
+	function isMaybeArrayDefinitelyNotDom(dom) {
+		return dom.length !== undefined && dom.attributes === undefined;
+	}
+
 	/**
 	 * Acquire a new DOM node in this scope.
 	 */
 	ConsistentScopeManager.prototype.bind = function(dom, options, parentDom) {
 		var i;
-		if (isArray(dom)) {
+		if (isArray(dom) || isMaybeArrayDefinitelyNotDom(dom)) {
 			for (i = 0; i < dom.length; i++) {
 				this.bind(dom[i], options, parentDom);
 			}
@@ -2509,7 +2513,7 @@
 
 	ConsistentScopeManager.prototype.unbind = function(dom) {
 		var i;
-		if (isArray(dom)) {
+		if (isArray(dom) || isMaybeArrayDefinitelyNotDom(dom)) {
 			for (i = 0; i < dom.length; i++) {
 				this.unbind(dom[i]);
 			}
