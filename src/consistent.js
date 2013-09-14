@@ -275,10 +275,13 @@
 		return true;
 	}
 
-	function arrayIndexOf(array, searchElement, fromIndex) {
-		if (typeof array.indexOf === "function") {
+	var arrayIndexOf;
+	if (typeof [].indexOf === "function") {
+		arrayIndexOf = function(array, searchElement, fromIndex) {
 			return array.indexOf(searchElement, fromIndex);
-		} else {
+		};
+	} else {
+		arrayIndexOf = function(array, searchElement, fromIndex) {
 			if (fromIndex === undefined) {
 				fromIndex = 0;
 			}
@@ -294,7 +297,7 @@
 				}
 			}
 			return -1;
-		}
+		};
 	}
 
 	/**
@@ -700,7 +703,7 @@
 				if (currentValue === value) {
 					return;
 				}
-				
+
 				var nodeName = dom.nodeName;
 				if (nodeName === "INPUT" || nodeName === "TEXTAREA") {
 					if (dom.type === "checkbox") {
