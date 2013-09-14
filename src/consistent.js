@@ -1071,6 +1071,9 @@
 
 		var settings = Consistent.settings;
 		var attrs = dom.attributes;
+		if (attrs === undefined) {
+			throw exception("Unexpected object, expected DOM node: " + dom);
+		}
 		for (var i = 0; i < attrs.length; i++) {
 			var name = attrs[i].name;
 
