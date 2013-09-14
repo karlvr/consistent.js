@@ -2049,6 +2049,8 @@
 		var insertInside = insertBefore.parentNode;
 		var previousNode = null;
 		var item;
+		var currentActiveElement = document.activeElement;
+		var needToRestoreFocus = false;
 
 		for (i = repeatContext.length - 1; i >= 0; i--) {
 			var object = repeatContext[i];
@@ -2111,6 +2113,10 @@
 			}
 		}
 
+		if (needToRestoreFocus && currentActiveElement) {
+			currentActiveElement.focus();
+		}
+
 		function findRepeatItemForObject(object) {
 			var n = repeatData.items.length;
 			for (var i = 0; i < n; i++) {
@@ -2142,7 +2148,11 @@
 		function insertDomNodesBefore(domNodes, insertBefore, parentNode) {
 			var n = domNodes.length;
 			for (var i = 0; i < n; i++) {
-				parentNode.insertBefore(domNodes[i], insertBefore);
+				var node = domNodes[i];
+				parentNode.insertBefore(node, insertBefore);
+				if (node === currentActiveElement) {
+					needToRestoreFocus = true;
+				}
 			}
 		}
 	};
