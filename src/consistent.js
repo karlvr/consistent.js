@@ -1494,8 +1494,8 @@
 			needsApply: function() {
 				return this._manager().needsApply();
 			},
-			update: function() {
-				this._manager().update();
+			update: function(dom, includeChildren) {
+				this._manager().update(dom, includeChildren);
 				return this._scope();
 			},
 			bind: function(dom, options) {
@@ -2140,11 +2140,39 @@
 	/**
 	  * Update the scope from the DOM.
 	  */
-	ConsistentScopeManager.prototype.update = function() {
-		var n = this._nodes.length;
-		for (var i = 0; i < n; i++) {
-			var node = this._nodes[i];
-			node.options.$.update(node.dom, this._scope, node.options);
+	ConsistentScopeManager.prototype.update = function(dom, includeChildren) {
+		var i, n, node;
+		if (dom === undefined) {
+			/* Update all */
+			n = this._nodes.length;
+			for (i = 0; i < n; i++) {
+				node = this._nodes[i];
+				node.options.$.update(node.dom, this._scope, node.options);
+			}
+		} else {
+			if (isArray(dom) || isMaybeArrayDefinitelyNotDom(dom)) {
+				n = dom.length;
+				for (i = 0; i < n; i++) {
+					this.update(dom[i], includeChildren);
+				}
+			} else {
+				i = arrayIndexOf(this._domNodes, dom);
+				if (i !== -1) {
+					node = this._nodes[i];
+					node.options.$.update(node.dom, this._scope, node.options);
+				}
+
+				if (includeChildren) {
+					/* Update children */
+					var child = dom.firstChild;
+					while (child !== null) {
+						if (child.nodeType === 1) {
+							this.update(child, includeChildren);
+						}
+						child = child.nextSibling;
+					}
+				}
+			}
 		}
 	};
 
