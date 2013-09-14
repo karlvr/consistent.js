@@ -2117,21 +2117,24 @@
 
 		function newDomNodes() {
 			var result = [];
-			for (var i = 0; i < repeatData.domNodes.length; i++) {
+			var n = repeatData.domNodes.length;
+			for (var i = 0; i < n; i++) {
 				result.push(repeatData.domNodes[i].cloneNode(true));
 			}
 			return result;
 		}
 
 		function removeDomNodes(domNodes, scope) {
-			for (var i = 0; i < domNodes.length; i++) {
+			var n = domNodes.length;
+			for (var i = 0; i < n; i++) {
 				scope.$.unbind(domNodes[i]);
 				options.$.remove(domNodes[i]);
 			}
 		}
 
 		function insertDomNodesBefore(domNodes, insertBefore, parentNode) {
-			for (var i = 0; i < domNodes.length; i++) {
+			var n = domNodes.length;
+			for (var i = 0; i < n; i++) {
 				parentNode.insertBefore(domNodes[i], insertBefore);
 			}
 		}
