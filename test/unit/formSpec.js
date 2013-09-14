@@ -89,10 +89,12 @@ describe('Form tests', function() {
 
 		expect(scope.optin).toBe(false);
 
+		expect(scope.gender).toBe("m");
+
 		$("#form input[name=gender]").each(function() {
 			this.checked = (this.value == "f");
 		});
-		dispatchHTMLEvent($("#form input[name=gender]"), "change");
+		dispatchHTMLEvent($("#form input[name=gender][value=f]"), "change");
 
 		expect(scope.gender).toBe("f");
 
