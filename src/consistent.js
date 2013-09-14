@@ -2424,6 +2424,7 @@
 						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
 							self._scope.$.apply();
 						};
 						addEventListener(dom, "change", listener, false);
@@ -2438,6 +2439,7 @@
 						listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
 							self._scope.$.apply();
 						};
 						addEventListener(dom, "keyup", listener, false);
