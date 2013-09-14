@@ -243,7 +243,7 @@ You can of course bind the selected option as well, e.g. `scope.product = "bucke
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope. When you put an event handler function into the scope its name gets prefixed with a `$` in order to distinguish it from model values and functions. You must not include the `$` prefix when specifying the function in the DOM.
+Consistent can add event listeners to DOM nodes which call functions in the scope. When you create an event handler function in the scope you prefix its name with a `$` in order to distinguish it from scalar values and value functions. You must not include the `$` prefix when declaring the function in the DOM.
 
 ```html
 <a href="#" ct-on-click="handleClick">Click me</a>
@@ -261,7 +261,7 @@ scope.$handleClick = function(ev) {
 };
 ```
 
-The handler function is called with `this` as the scope. There is also a second argument to the function which is the element that triggered the event, in case you need it.
+The handler function is called with `this` as the scope. The event is the first argument, and the second argument is the DOM element that triggered the event.
 
 ```javascript
 scope.$handleClick = function(ev, dom) {
@@ -270,7 +270,9 @@ scope.$handleClick = function(ev, dom) {
 };
 ```
 
-Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. The event listeners are added when the DOM nodes are bound to the scope, you just have to make sure the handler functions are defined by the time they are invoked.
+This handler function makes a change to the scope and then calls `apply` to apply the scope to the DOM.
+
+Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; you just have to make sure the handler functions are defined by the time they are invoked.
 
 #### Shortcut
 
@@ -967,7 +969,7 @@ The `NAME` segment in the following list represents the name of the attribute or
 
 #### Event handlers
 
-* `ct-on` binds the default event for this element to the named event handler function in the scope.
+* `ct-on` binds the default event for this element to the named event handler function in the scope. Event handler functions are called with `this` set to the scope, the first argument is the event object and the second argument is the DOM node source of the event.
 * `ct-on-EVENT` binds the event named EVENT for this element to the named event handler function in the scope.
 
 #### Repeating blocks
