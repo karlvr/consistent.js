@@ -919,6 +919,7 @@
 					if (dom.type === "checkbox") {
 						return dom.checked;
 					} else if (dom.type === "radio") {
+						/* Returning undefined means don't change the value in the scope */
 						return dom.checked ? dom.value : undefined;
 					} else {
 						return dom.value;
