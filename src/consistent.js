@@ -1436,34 +1436,54 @@
 			/* The index of this scope in a repeating section */
 			index: undefined,
 
-			apply: function(options, func) {
+			apply: function(options, func, includeChildren) {
 				if (typeof options === "function") {
+					if (typeof func === "boolean") {
+						includeChildren = func;
+						func = undefined;
+					}
 					func = options;
 					options = undefined;
+				} else if (typeof options === "boolean") {
+					includeChildren = options;
+					options = undefined;
+				} else if (typeof func === "boolean") {
+					includeChildren = func;
+					func = undefined;
 				}
 
 				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(scope, options);
+					func.call(scope, options, includeChildren);
 				}
 
-				this._manager().apply(options);
+				this._manager().apply(options, includeChildren);
 				return scope;
 			},
-			applyLater: function(options, func) {
+			applyLater: function(options, func, includeChildren) {
 				if (typeof options === "function") {
+					if (typeof func === "boolean") {
+						includeChildren = func;
+						func = undefined;
+					}
 					func = options;
 					options = undefined;
+				} else if (typeof options === "boolean") {
+					includeChildren = options;
+					options = undefined;
+				} else if (typeof func === "boolean") {
+					includeChildren = func;
+					func = undefined;
 				}
 
 				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(scope, options);
+					func.call(scope, options, includeChildren);
 				}
 
 				window.clearTimeout(this._applyLaterTimeout);
 				this._applyLaterTimeout = window.setTimeout(function() {
-					scope.$.apply(options);
+					scope.$.apply(options, includeChildren);
 				}, 0);
 				return scope;
 			},
@@ -1925,17 +1945,30 @@
 	/**
 	 * Apply the scope to the DOM.
 	 */
-	ConsistentScopeManager.prototype.apply = function(options) {
+	ConsistentScopeManager.prototype.apply = function(options, includeChildren) {
 		/* Prevent re-entry into apply */
 		if (this._applying) {
 			return;
 		}
 		this._applying = true;
 
+		var i, n;
+		if (includeChildren) {
+			/* As we've already set _applying in this scope, each child scope will
+			 * attempt to call apply on its parent and we'll return immediately.
+			 * So we then come back and apply this scope after all the children are
+			 * done.
+			 */
+			var childScopes = this._scope.$.children();
+			for (i = 0, n = childScopes.length; i < n; i++) {
+				childScopes[i].$.apply(true);
+			}
+		}
+
 		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
-			var n = this._nodes.length;
-			var i, nodeOptions;
+			n = this._nodes.length;
+			var nodeOptions;
 			for (i = 0; i < n; i++) {
 				var node = this._nodes[i];
 				nodeOptions = options !== undefined ? mergeOptions({}, node.options, options) : node.options;

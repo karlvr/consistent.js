@@ -985,8 +985,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### DOM
 
-* `apply([options, ] [function])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied.
-* `applyLater([options, ] [function])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
+* `apply([options, ] [function, ] [includeChildren])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied and the `options` as an argument. If `includeChildren` is true, child scopes will be applied first.
+* `applyLater([options, ] [function, ] [includeChildren])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
 * `update()` updates the scope by reading keys and values from the DOM.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
