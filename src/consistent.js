@@ -1992,7 +1992,7 @@
 			var childScopes = this._scope.$.children();
 			for (i = 0, n = childScopes.length; i < n; i++) {
 				var childScope = childScopes[i];
-				
+
 				/* Check that the child isn't a repeat node, which is applied
 				 * below as part of the normal behaviour.
 				 */
@@ -2116,7 +2116,7 @@
 				}
 			}
 
-			item.before = previousNode;
+			item.before = insertBefore;
 			previousNode = insertBefore = item.domNodes[0];
 
 			item.scope.$.index = i;
@@ -2124,20 +2124,18 @@
 		}
 
 		/* Find deleted objects */
-		for (i = 0; i < repeatData.items.length; i++) {
+		for (i = repeatData.items.length - 1; i >= 0; i--) {
 			item = repeatData.items[i];
 			if (item.version !== version) {
-				if (item.before) {
-					/* Maintain the position of this node in the DOM in case we animated
-					 * the removal.
-					 */
-					insertDomNodesBefore(item.domNodes, item.before, insertBefore.parentNode);
-				}
+				/* Maintain the position of this node in the DOM in case we animated
+				 * the removal.
+				 */
+				insertDomNodesBefore(item.domNodes, item.before, insertInside);
+				
 				removeDomNodes(item.domNodes, item.scope);
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
-				i--;
 			}
 		}
 
