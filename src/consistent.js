@@ -1958,6 +1958,7 @@
 		this._watchers = {};
 		this._nodesDirty = false;
 		this._applying = false;
+		this._repeatNodeScope = false;
 
 		var self = this;
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
@@ -1990,7 +1991,16 @@
 			 */
 			var childScopes = this._scope.$.children();
 			for (i = 0, n = childScopes.length; i < n; i++) {
-				childScopes[i].$.apply(true);
+				var childScope = childScopes[i];
+				
+				/* Check that the child isn't a repeat node, which is applied
+				 * below as part of the normal behaviour.
+				 */
+				if (childScope.$._manager()._repeatNodeScope) {
+					continue;
+				}
+
+				childScope.$.apply(true);
 			}
 		}
 
@@ -2079,6 +2089,7 @@
 				var domNodes = newDomNodes();
 
 				var childScope = Consistent(this._scope, this._options);
+				childScope.$._manager()._repeatNodeScope = true;
 				childScope.$.bind(domNodes);
 				childScope = childScope.$.replace(object);
 
