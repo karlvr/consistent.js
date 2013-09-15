@@ -2452,6 +2452,36 @@
 
 					var self = this;
 
+					/* Bind special Consistent events before declared events */
+					var nodeName = dom.nodeName;
+					var listener;
+					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+						/* For input, textarea and select nodes we bind to their change event */
+						listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "change", listener, false);
+						if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
+							addEventListener(dom, "click", listener, false);
+						}
+
+						nodeOptions.$._changeListener = listener;
+					}
+					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
+						/* For input and textarea nodes we bind to their key events */
+						listener = function(ev) {
+							enhanceEvent(ev);
+							nodeOptions.$.update(dom, self._scope, nodeOptions);
+							self._nodesDirty = true; // TODO this is brute force, could be more narrow
+							self._scope.$.apply();
+						};
+						addEventListener(dom, "keyup", listener, false);
+						nodeOptions.$._keyListener = listener;
+					}
+
 					/* Bind events */
 					for (var eventName in nodeOptions.bindings.events) {
 						(function(eventName, keys) {
@@ -2519,36 +2549,6 @@
 							nodeOptions.bindings.events[eventName].listener = listener;
 							addEventListener(dom, eventName, listener);
 						})(eventName, nodeOptions.bindings.events[eventName].keys);
-					}
-
-					/* Handle specific nodes differently */
-					var nodeName = dom.nodeName;
-					var listener;
-					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
-						/* For input, textarea and select nodes we bind to their change event */
-						listener = function(ev) {
-							enhanceEvent(ev);
-							nodeOptions.$.update(dom, self._scope, nodeOptions);
-							self._nodesDirty = true; // TODO this is brute force, could be more narrow
-							self._scope.$.apply();
-						};
-						addEventListener(dom, "change", listener, false);
-						if (support.needAggressiveChangeHandlingOnInputElements && (nodeName === "INPUT" && (dom.type === "checkbox" || dom.type === "radio"))) {
-							addEventListener(dom, "click", listener, false);
-						}
-
-						nodeOptions.$._changeListener = listener;
-					}
-					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
-						/* For input and textarea nodes we bind to their key events */
-						listener = function(ev) {
-							enhanceEvent(ev);
-							nodeOptions.$.update(dom, self._scope, nodeOptions);
-							self._nodesDirty = true; // TODO this is brute force, could be more narrow
-							self._scope.$.apply();
-						};
-						addEventListener(dom, "keyup", listener, false);
-						nodeOptions.$._keyListener = listener;
 					}
 				}
 			}
