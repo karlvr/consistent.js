@@ -1746,6 +1746,15 @@
 				setNestedProperty(scope, key, value);
 				return scope;
 			},
+			fire: function(name, ev, dom) {
+				var func = this.getEventHandler(name);
+				var scope = this._scope();
+				if (func !== undefined) {
+					func.call(scope, ev, dom);
+				}
+				return scope;
+			},
+
 			getValueFunction: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
