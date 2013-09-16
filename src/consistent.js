@@ -2136,6 +2136,10 @@
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
+
+				if (i > 0) {
+					repeatData.items[i - 1].before = item.before;
+				}
 			}
 		}
 
