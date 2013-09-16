@@ -1983,26 +1983,6 @@
 		this._applying = true;
 
 		var i, n;
-		if (includeChildren) {
-			/* As we've already set _applying in this scope, each child scope will
-			 * attempt to call apply on its parent and we'll return immediately.
-			 * So we then come back and apply this scope after all the children are
-			 * done.
-			 */
-			var childScopes = this._scope.$.children();
-			for (i = 0, n = childScopes.length; i < n; i++) {
-				var childScope = childScopes[i];
-
-				/* Check that the child isn't a repeat node, which is applied
-				 * below as part of the normal behaviour.
-				 */
-				if (childScope.$._manager()._repeatNodeScope) {
-					continue;
-				}
-
-				childScope.$.apply(true);
-			}
-		}
 
 		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
@@ -2015,11 +1995,34 @@
 				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 			}
 
+			/* Handle repeated nodes */
 			n = this._repeatNodes.length;
 			for (i = 0; i < n; i++) {
 				var repeatData = this._repeatNodes[i];
 				nodeOptions = options !== undefined ? mergeOptions({}, repeatData.options, options) : repeatData.options;
 				this._handleRepeat(repeatData, nodeOptions, this._cleanScopeSnapshot);
+			}
+
+			/* Cascade to children */
+			if (includeChildren !== false) {
+				/* As we've already set _applying in this scope, each child scope will
+				 * attempt to call apply on its parent and we'll return immediately.
+				 * So we then come back and apply this scope after all the children are
+				 * done.
+				 */
+				var childScopes = this._scope.$.children();
+				for (i = 0, n = childScopes.length; i < n; i++) {
+					var childScope = childScopes[i];
+
+					/* Check that the child isn't a repeat node, which is applied
+					 * below as part of the normal behaviour.
+					 */
+					if (childScope.$._manager()._repeatNodeScope) {
+						continue;
+					}
+
+					childScope.$.apply(true);
+				}
 			}
 
 			this._nodesDirty = false;
@@ -2124,6 +2127,7 @@
 		}
 
 		/* Find deleted objects */
+		var nodesToRemove = [];
 		for (i = repeatData.items.length - 1; i >= 0; i--) {
 			item = repeatData.items[i];
 			if (item.version !== version) {
@@ -2132,14 +2136,19 @@
 				 */
 				insertDomNodesBefore(item.domNodes, item.before, insertInside);
 				
-				removeDomNodes(item.domNodes, item.scope);
+				item.scope.$.unbind(item.domNodes);
+				/* We queue the objects to remove them from the DOM after this loop
+				 * as we reposition the nodes relative to each other in this loop.
+				 */
+				nodesToRemove = nodesToRemove.concat(item.domNodes);
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
-
-				if (i > 0) {
-					repeatData.items[i - 1].before = item.before;
-				}
+			}
+		}
+		if (nodesToRemove.length) {
+			for (i = nodesToRemove.length - 1; i >= 0; i--) {
+				options.$.remove(nodesToRemove[i]);
 			}
 		}
 
@@ -2165,14 +2174,6 @@
 				result.push(repeatData.domNodes[i].cloneNode(true));
 			}
 			return result;
-		}
-
-		function removeDomNodes(domNodes, scope) {
-			var n = domNodes.length;
-			for (var i = 0; i < n; i++) {
-				scope.$.unbind(domNodes[i]);
-				options.$.remove(domNodes[i]);
-			}
 		}
 
 		function insertDomNodesBefore(domNodes, insertBefore, parentNode) {
