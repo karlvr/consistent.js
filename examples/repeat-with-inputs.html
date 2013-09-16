@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!--
+Example of repeating blocks created from an array of objects in the scope, with inline deletion
+and animation.
+
+The repeating blocks contain input fields, to demonstrate the focus behaviour
+inside repeating blocks.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<div id="container">
+	<ul>
+		<li ct-repeat="people">
+			<input type="text" name="name">
+			<button ct-on="delete">Delete</button>
+		</li>
+	</ul>
+</div>
+
+<input type="text" id="name" value="Evan">
+<button id="add">Add</button>
+<button id="remove">Remove First</button>
+<button id="style">Style</button>
+<button id="shuffle">Shuffle</button>
+<button id="clear">Clear</button>
+
+<script>
+$(function() {
+	/* Animation */
+	var dontFade = true;
+	var options = { $: {} };
+	options.$.added = function(dom) {
+		if (!dontFade) {
+			$(dom).hide().fadeIn();
+		}
+	};
+	options.$.remove = function(dom) {
+		$(dom).fadeOut(function() {
+			$(this).remove();
+		});
+	};
+
+	/* Scope */
+	var scope = $("#container").consistent(options);
+
+	scope.people = [
+		{ name: "Albert" },
+		{ name: "Bob" },
+		{ name: "Carl" },
+		{ name: "Donald" }
+	];
+	scope.$delete = function(ev, dom) {
+		/* this is the local scope created for each repeated block */
+		var i = scope.people.indexOf(this);
+		scope.people.splice(i, 1);
+		this.$.apply();
+	};
+
+	scope.$.apply();
+	dontFade = false;
+
+	/* Standard jQuery event handlers for the controls */
+	$("#add").click(function() {
+		scope.$.apply(function() {
+			this.people.push({ name: $("#name").val() });
+		});
+	});
+	$("#remove").click(function() {
+		scope.$.apply(function() {
+			this.people.shift();
+		});
+	});
+
+	var colors = [ "red", "green", "blue", "yellow", "magenta", "orange" ];
+	$("#style").click(function() {
+		$("#container li").each(function() {
+			this.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+		});
+	});
+
+	$("#shuffle").click(function() {
+		scope.$.apply(function() {
+			shuffle(this.people);
+		});
+	});
+
+	$("#clear").click(function() {
+		scope.$.apply(function() {
+			this.people = [];
+		});
+	});
+
+	/* Helper functions */
+
+	//+ Jonas Raoni Soares Silva
+	//@ http://jsfromhell.com/array/shuffle [v1.0]
+	function shuffle(o){ //v1.0
+	    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+	    return o;
+	};
+});
+
+// Add ECMA262-5 Array methods if not supported natively
+//
+if (!('indexOf' in Array.prototype)) {
+    Array.prototype.indexOf= function(find, i /*opt*/) {
+        if (i===undefined) i= 0;
+        if (i<0) i+= this.length;
+        if (i<0) i= 0;
+        for (var n= this.length; i<n; i++)
+            if (i in this && this[i]===find)
+                return i;
+        return -1;
+    };
+}
+</script>
+
+</body>
+</html>

@@ -324,6 +324,8 @@ Consistent only creates new nodes when new items are added to the array. So any 
 
 Consistent creates a child scope for each repeated block, and the object in the array becomes its scope. Therefore each object in the array will have a `$` property added containing Consistent’s scope functionality. As the objects in the array are the child scopes, you can access the child scopes if you need to via the original array in the original scope.
 
+You don’t need to call `apply` on the child scopes created for repeated blocks, as they are automatically applied when the parent is applied. You can use these child scopes as you would any other scope.
+
 See the Parent scopes section for essential information about parent and child scopes.
 
 Repeating clones the repeated element, including all of its children:
@@ -346,7 +348,7 @@ scope.index = function() {
 
 Note above that the scope contains a property `scope.$.index` that contains the 0-based index of the current repeated block. You can’t access this property directly from the DOM as it is inside the `$` object, but you can use a value function to access it (and to add 1 to it if you want the index to be 1-based!).
 
-Another interesting thing is happening here, which will be clearer after reading the Parent scopes section. The `scope.index` value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the `index` property falls back to the parent scope. When a value function is called in a parent scope, `this` is set to the child scope. So `return this.$.index` returns the index of the child scope.
+Another interesting thing is happening in this example, which will be clearer after reading the Parent scopes section. An `index` value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the `index` property will fall back to the parent scope. When a value function is called in a parent scope, `this` is set to the child scope. So `return this.$.index` above returns the index from the child scope!
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
 
@@ -987,10 +989,10 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### DOM
 
-* `apply([options, ] [function, ] [includeChildren])` applies the scope to the DOM. If the optional options are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied and the `options` as an argument. If `includeChildren` is true, child scopes will be applied first.
+* `apply([options, ] [function, ] [includeChildren])` applies the scope to the DOM. If the optional `options` are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied and the `options` as an argument. If `includeChildren` is true, child scopes will be applied first. Note that child scopes created for repeated blocks are always applied.
 * `applyLater([options, ] [function, ] [includeChildren])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
-* `update()` updates the scope by reading keys and values from the DOM.
+* `update([dom [, includeChildren]])` updates the scope by reading keys and values from the DOM. If the optional `dom` parameter is provided, only update the given node or array of nodes. If `includeChildren` is true, the update cascades to child nodes.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
 * `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
 * `nodes([includeParents])` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes unless the optional `includeParents` parameter is false.
@@ -1008,6 +1010,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 * `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
 * `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the event handler prefix to the last component of the key.
+* `fire(key [, event [, dom]])` looks for an event handler in the scope for the given key (supports nested keys and falls back to parent scopes), and call that event handler passing the optional arguments. If no event handler is found this function has no effect.
 
 * `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The value function prefix (by default empty) is added to the last component of the key and must not be included in the `key` parameter.
 * `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys. Adds the value function prefix to the last component of the key.
