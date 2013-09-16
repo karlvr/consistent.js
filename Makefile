@@ -31,13 +31,13 @@ libdir:
 	mkdir -p lib
 
 lib/%.min.js: src/%.js
-	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -- $<
+	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -p relative -- $<
 
 lib/consistent-for-%.js: src/%.consistent.js $(SOURCE)
 	cat $(SOURCE) $< > $@
 
 lib/consistent-for-%.min.js: src/%.consistent.js $(SOURCE)
-	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -- $(SOURCE) $<
+	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -p relative -- $(SOURCE) $<
 
 lib/%.min.js.gz: lib/%.min.js
 	gzip -c -n $< > $@
