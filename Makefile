@@ -22,6 +22,7 @@ all: lib
 clean:
 	rm -f lib/*.js
 	rm -f lib/*.js.gz
+	rm -f lib/*.map
 
 lib: libdir $(MINIFIED) $(GZIPPED) $(PLUGINS_COMBINED) $(PLUGINS_MINIFIED) $(PLUGINS_GZIPPED)
 	ls -l lib
@@ -30,13 +31,13 @@ libdir:
 	mkdir -p lib
 
 lib/%.min.js: src/%.js
-	uglifyjs $(UGLIFY_FLAGS) $< -o $@
+	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -- $<
 
 lib/consistent-for-%.js: src/%.consistent.js $(SOURCE)
 	cat $(SOURCE) $< > $@
 
 lib/consistent-for-%.min.js: src/%.consistent.js $(SOURCE)
-	uglifyjs $(UGLIFY_FLAGS) -o $@ -- $(SOURCE) $< 
+	uglifyjs $(UGLIFY_FLAGS) -o $@ --source-map $@.map -- $(SOURCE) $<
 
 lib/%.min.js.gz: lib/%.min.js
 	gzip -c -n $< > $@
@@ -65,4 +66,4 @@ testie9:
 testie10:
 	testem -f test/testem/testem.json -l bs_ie_10
 
-.PHONY: all test citest clean
+.PHONY: all test citest clean testie6 testie7 testie8 testie9 testie10
