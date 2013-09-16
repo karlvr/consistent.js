@@ -1983,26 +1983,6 @@
 		this._applying = true;
 
 		var i, n;
-		if (includeChildren) {
-			/* As we've already set _applying in this scope, each child scope will
-			 * attempt to call apply on its parent and we'll return immediately.
-			 * So we then come back and apply this scope after all the children are
-			 * done.
-			 */
-			var childScopes = this._scope.$.children();
-			for (i = 0, n = childScopes.length; i < n; i++) {
-				var childScope = childScopes[i];
-
-				/* Check that the child isn't a repeat node, which is applied
-				 * below as part of the normal behaviour.
-				 */
-				if (childScope.$._manager()._repeatNodeScope) {
-					continue;
-				}
-
-				childScope.$.apply(true);
-			}
-		}
 
 		if (this._updateCleanScopeAndFireWatchers() || this._nodesDirty) {
 			/* Apply to the DOM */
@@ -2015,11 +1995,34 @@
 				nodeOptions.$.apply(node.dom, this._cleanScopeSnapshot, nodeOptions);
 			}
 
+			/* Handle repeated nodes */
 			n = this._repeatNodes.length;
 			for (i = 0; i < n; i++) {
 				var repeatData = this._repeatNodes[i];
 				nodeOptions = options !== undefined ? mergeOptions({}, repeatData.options, options) : repeatData.options;
 				this._handleRepeat(repeatData, nodeOptions, this._cleanScopeSnapshot);
+			}
+
+			/* Cascade to children */
+			if (includeChildren !== false) {
+				/* As we've already set _applying in this scope, each child scope will
+				 * attempt to call apply on its parent and we'll return immediately.
+				 * So we then come back and apply this scope after all the children are
+				 * done.
+				 */
+				var childScopes = this._scope.$.children();
+				for (i = 0, n = childScopes.length; i < n; i++) {
+					var childScope = childScopes[i];
+
+					/* Check that the child isn't a repeat node, which is applied
+					 * below as part of the normal behaviour.
+					 */
+					if (childScope.$._manager()._repeatNodeScope) {
+						continue;
+					}
+
+					childScope.$.apply(true);
+				}
 			}
 
 			this._nodesDirty = false;
