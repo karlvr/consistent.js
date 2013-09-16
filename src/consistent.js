@@ -2127,6 +2127,7 @@
 		}
 
 		/* Find deleted objects */
+		var nodesToRemove = [];
 		for (i = repeatData.items.length - 1; i >= 0; i--) {
 			item = repeatData.items[i];
 			if (item.version !== version) {
@@ -2135,14 +2136,19 @@
 				 */
 				insertDomNodesBefore(item.domNodes, item.before, insertInside);
 				
-				removeDomNodes(item.domNodes, item.scope);
+				item.scope.$.unbind(item.domNodes);
+				/* We queue the objects to remove them from the DOM after this loop
+				 * as we reposition the nodes relative to each other in this loop.
+				 */
+				nodesToRemove = nodesToRemove.concat(item.domNodes);
 				repeatData.items.splice(i, 1);
 
 				item.scope.$.index = undefined;
-
-				if (i > 0) {
-					repeatData.items[i - 1].before = item.before;
-				}
+			}
+		}
+		if (nodesToRemove.length) {
+			for (i = nodesToRemove.length - 1; i >= 0; i--) {
+				options.$.remove(nodesToRemove[i]);
 			}
 		}
 
@@ -2168,14 +2174,6 @@
 				result.push(repeatData.domNodes[i].cloneNode(true));
 			}
 			return result;
-		}
-
-		function removeDomNodes(domNodes, scope) {
-			var n = domNodes.length;
-			for (var i = 0; i < n; i++) {
-				scope.$.unbind(domNodes[i]);
-				options.$.remove(domNodes[i]);
-			}
 		}
 
 		function insertDomNodesBefore(domNodes, insertBefore, parentNode) {
