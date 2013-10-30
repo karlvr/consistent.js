@@ -15,7 +15,7 @@
   "dependencies": {
   },
   "devDependencies": {
-    "karma": "~0.8"
+    "karma": "~0.10"
   },
   "scripts": {
     "test": "test/run-tests.sh"
