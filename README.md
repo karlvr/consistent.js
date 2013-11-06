@@ -5,6 +5,8 @@ Consistent is a small and simple Javascript framework to enable an abstract mode
 
 [![Build Status](https://travis-ci.org/karlvr/consistent.js.png)](https://travis-ci.org/karlvr/consistent.js)
 
+Consistent.js uses [BrowserStack](http://browserstack.com) for cross-browser testing.
+
 Introduction
 ------------
 Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
