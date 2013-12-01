@@ -3,7 +3,8 @@
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
- /*
+/*jslint browser: true, white: true, unparam: true */
+/*
     Copyright 2013 Karl von Randow
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +18,15 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-  */
+*/
 
 /**
  * Set global configuration:
  * eg. Consistent.defaultOptions.templateEngine = Hogan;
  */
 (function(window, undefined) {
-
+	"use strict";
+	
 	/**
 	 * Single point of entry for Consistent.
 	 * Arguments can be:
