@@ -7,7 +7,7 @@ What is it?
 
 Consistent is a small and simple Javascript framework for syncing an abstract model with the DOM. Consistent is designed to be easy to learn and use for anyone already using jQuery to manipulate the DOM. Consistent simplifies your code, and doesn’t prevent you from using jQuery at the same time.
 
-
+Consistent.js uses [BrowserStack](http://www.browserstack.com) for cross-browser testing.
 
 Give me an example
 ==================
