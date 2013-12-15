@@ -955,15 +955,15 @@ var scope = $("#container").consistent(options);
 
 If you’re adding existing objects to your scopes that use naming conventions that don’t fit with Consistent; when Consistent makes a snapshot of the scope (which occurs whenever you apply the scope), you may get unexpected results such as functions in your scope being called unexpectedly. This is because Consistent has interpreted those functions as value functions.
 
-To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions.
+To solve this issue you can pass options to the scope to change the way Consistent identifies value functions and event handler functions. You instruct Consistent to add a prefix to the name before looking in the scope or controller.
 
-By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You must still omit the prefix when declaring the event handler to bind to in the DOM.
+By default there are no prefixes. If you apply prefixes, you still refer to the thing without the prefix. It only when you add it to the scope or controller directly that you need to include the prefix.
 
 When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-do="click"` in the key `doClick`.
 
-By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` (or whatever the `eventHandlerPrefix` option is set to) is treated as a value function. You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.
+You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the prefix. Any functions that don’t match the value function prefix will be left untouched. The result of the value will appear in the snapshot without its prefix.
 
-When you use a value function prefix you must **not** include the prefix when declaring the binding in the DOM (same as for event handlers). The value function prefix is removed when the snapshot is created.
+When you use prefixes you must **not** include the prefix when declaring in the DOM. The value function prefix is removed when the snapshot is created, and event handler prefixes are added when Consistent looks for an event handler.
 
 ```html
 <div id="container">
@@ -981,10 +981,12 @@ var scope = $("#container").consistent(options);
 scope.getTitle = function() {
 	return "Consistent.js"
 };
-scope.doClick = function(ev) {
+scope.$.controller().doClick = function(ev) {
 	alert("Click!");
 };
 ```
+
+Note that we accessed the controller directly so we had to include the prefix. If we use the `scope.$.controller(name, function)` appraoch we do not include the prefix as Consistent will include it automatically.
 
 See [Merging only specified keys](#merging-only-specified-keys) below for an alternative to this approach.
 
