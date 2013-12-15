@@ -102,4 +102,13 @@ describe('Events tests', function() {
 		expect(abbrFocuses).toBe(2);
 	});
 
+	it("Fire", function() {
+		var scope = Consistent();
+		scope.$.controller("handle", function(localScope, firstArgument, secondArgument) {
+			return firstArgument * secondArgument;
+		});
+
+		expect(scope.$.fire("handle", 3, 5)).toBe(15);
+	});
+
 });

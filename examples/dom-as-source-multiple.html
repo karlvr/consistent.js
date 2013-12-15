@@ -102,7 +102,7 @@ $(function() {
 			scope = scopesByObjectId[objectId] = $(this).consistent();
 
 			/* Click handler to toggle the status */
-			scope.$.controller("handleClick", function(ev) {
+			scope.$.controller("handleClick", function() {
 				this.$.apply(function() {
 					this.status = this.status == "on" ? "off" : "on";
 				});

@@ -1771,16 +1771,18 @@
 				return scope;
 			},
 
-			fire: function(name, ev, dom) {
+			fire: function(name) {
 				var func = this.controller(name);
 				var scope = this._scope();
 				if (func !== undefined) {
 					/* Call the function, note that "this" is forced to be the controller by the controller()
 					 * implementation.
 					 */
-					func.apply(null, arguments.slice(1));
+					var newArguments = [ scope ].concat(Array.prototype.slice.call(arguments, 1));
+					return func.apply(null, newArguments);
+				} else {
+					return undefined;
 				}
-				return scope;
 			},
 
 			getValueFunction: function(key, includeParents) {
@@ -2589,7 +2591,7 @@
 										 * but this is not an error.
 										 */
 										if (func) {
-											result = func(ev, dom, self._scope);
+											result = func(self._scope, ev, dom);
 											if (result === false)
 												break;
 										}

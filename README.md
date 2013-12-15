@@ -268,26 +268,41 @@ Now create a scope and add the click handler.
 
 ```javascript
 var scope = $("a").consistent();
-scope.$.controller("handleClick", function(ev) {
+scope.$.controller("handleClick", function(scope, ev) {
 	ev.preventDefault();
 	alert("Click!");
 });
 ```
 
-The event handler function is called with `this` as the controller. The controller contains the same `$` object as the scope. The event is the first argument, and the second argument is the DOM element that triggered the event.
+The event handler function is called with `this` as the controller. The controller contains the same `$` object as the scope. The event handler function arguments are:
+  * The scope in which the event occurred
+  * The Javsacript event object
+  * The DOM element that is the source of the event
+
+The scope in which the event occurred is important when you use child and parent scopes.
 
 ```javascript
-scope.$.controller("handleClick", function(ev, dom) {
+scope.$.controller("handleClick", function(scope, ev, dom) {
 	scope.clickCount++;
-	this.$.apply();
+	scope.$.apply();
 });
 ```
 
 This handler function makes a change to the scope and then calls `apply` to apply the scope to the DOM.
 
+A nice style to use in event handlers is to nest scope modifications inside the optional function argument to `scope.$.apply()`. Inside that function `this` will be the scope, which may be tidier (especially if you’re changing lots of values), e.g.:
+
+```javascript
+scope.$.controller("handleClick", function(scope) {
+	scope.$.apply(function() {
+		this.clickCount++;
+	});
+});
+```
+
 Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; just make sure the handler functions are defined by the time they are invoked.
 
-If the event handler function doesn’t have an easy reference to the scope, it can call `this.$.scope()` to get it.
+The `scope` parameter is the scope in which the event occurred. This may not be the controller’s scope, it may be a child scope. In the event handler you can decide whether you want to operate on the child scope or not. You can always get a reference to the controller’s scope using `this.$.scope()`.
 
 #### Shortcut
 
@@ -307,7 +322,7 @@ Each scope has a controller. When you create a scope you can specify a construct
 
 The `$` object form the scope is always added to the controller, so the controller can access and control the scope. The best way for the controller to access the scope is using `this.$.scope()`. The controller can tell the scope to apply by simply calling `this.$.apply()`.
 
-You can access the controller using the `scope.$.controller()` function. To add a function to the controller, use the `scope.$.controller(name, function)` function, e.g. `scope.$.controller("handleClick", function(ev) { ... });`.
+You can access the controller using the `scope.$.controller()` function. To add a function to the controller, use the `scope.$.controller(name, function)` function, e.g. `scope.$.controller("handleClick", function() { ... });`.
 
 You can add anything to the controller. It is a good place to encapsulate all of the code related to the DOM and concept represented by the scope.
 
@@ -321,10 +336,10 @@ function MyController(scope) {
 	scope.title = "My title";
 }
 
-MyController.prototype.handleClick = function(ev) {
-	var scope = this.$.scope();
+MyController.prototype.handleClick = function(scope, ev) {
 	scope.title = "I’ve been clicked!";
 	scope.$.apply();
+	ev.preventDefault();
 };
 
 var scope = $("div").consistent(MyController);
@@ -827,7 +842,7 @@ If a scope’s controller doesn’t contain the named event handler, the parent 
 ```
 
 ```javascript
-rootScope.$.controller("handleClick", function(ev, dom, childScope) {
+rootScope.$.controller("handleClick", function(childScope, ev, dom) {
 	childScope.title += ".";
 };
 ```
@@ -981,7 +996,7 @@ var scope = $("#container").consistent(options);
 scope.getTitle = function() {
 	return "Consistent.js"
 };
-scope.$.controller().doClick = function(ev) {
+scope.$.controller().doClick = function() {
 	alert("Click!");
 };
 ```
@@ -1115,7 +1130,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `controller(object)` sets the controller to the given object. Consistent’s `$` object is added to this object. The return value is the scope.
 * `controller(name)` returns the value, usually an event handler function, with the given name in the scope’s controller. Supports nested names. If the value is a function, it is wrapped in an anonymous function that ensures `this` is bound to the controller when it is called.
 * `controller(name, function)` sets the function in the scope’s controller for the given name. Supports nested names.
-* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node). If no controller function is found this function has no effect.
+* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node), and returning the result. Supports nested keys and falls back to parent scopes’ controllers. Note that the first argument to the controller functions is always the scope in which the event occurred. If no controller function is found this function has no effect and returns undefined.
 
 * `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false.
 * `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys.

@@ -42,7 +42,7 @@ describe('Bugs', function() {
 		scope.getActive = function(childScope) {
 			return childScope.state == 'active';
 		};
-		scope.$.controller("toggleState", function(ev, dom, childScope) {
+		scope.$.controller("toggleState", function(childScope) {
 			if (childScope.state == 'active') {
 				childScope.state = 'inactive';
 			} else {
@@ -85,7 +85,7 @@ describe('Bugs', function() {
 		  return childScope.state == 'active';
 		};
 
-		scope.$.controller("toggleState", function(ev, dom, childScope) {
+		scope.$.controller("toggleState", function(childScope) {
 		  // console.log("Toggling state from", childScope.state);
 		  if (childScope.state == 'active') {
 		    childScope.state = 'inactive';
