@@ -3,7 +3,8 @@
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
- /*
+/*jshint newcap: false, smarttabs: true */
+/*
     Copyright 2013 Karl von Randow
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,9 @@
  * eg. Consistent.defaultOptions.templateEngine = Hogan;
  */
 (function(window, undefined) {
+	"use strict";
+
+	var document = window.document;
 
 	/**
 	 * Single point of entry for Consistent.
@@ -33,16 +37,16 @@
 	 * * An object containing key value pairs, used for the configuration of the new scope.
 	 * * A dom node; returns the scope that bound that node, or null.
 	 */
-	var Consistent = window.Consistent = function() {
+	var Consistent = window.Consistent = function(arg0) {
 		if (arguments.length === 0) {
 			/* No arguments */
 			return Consistent.createScope();
 		}
 
-		var arg0 = arguments[0];
 		if (typeof arg0 === "string") {
 			return Consistent.findScopeByName(arg0);
-		} else if (arg0.nodeName !== undefined) {
+		}
+		if (arg0.nodeName !== undefined) {
 			/* DOM node */
 			return Consistent.findScopeForNode(arg0);
 		}
@@ -243,7 +247,7 @@
 						}
 					} else if (initValue) {
 						/* If the string isn't empty then we evaluate it as a function */
-						func = Consistent.statementToFunction(initValue);
+						var func = Consistent.statementToFunction(initValue);
 						evaluateStatement(func, scope);
 						if (initFunc) {
 							initFunc.call(scope);
@@ -405,7 +409,7 @@
 			return target;
 		}
 
-		return _merge.apply(this, arguments);
+		return _merge.apply(null, arguments);
 	}
 
 	/**
@@ -426,8 +430,8 @@
 			$s[0] = {};
 		}
 
-		var result = merge.apply(this, arguments);
-		result.$ = merge.apply(this, $s);
+		var result = merge.apply(null, arguments);
+		result.$ = merge.apply(null, $s);
 		return result;
 	}
 
@@ -1590,7 +1594,7 @@
 					return this._scope();
 				} else if (typeof newControllerOrFunctionName === "string") {
 					/* controller(string) - gets or sets a function in the controller */
-					var name = addPrefixToPropertyName(newControllerOrFunctionName, this.options().eventHandlerPrefix);;
+					var name = addPrefixToPropertyName(newControllerOrFunctionName, this.options().eventHandlerPrefix);
 					var funcOrIncludeParents = arguments[1];
 
 					if (typeof funcOrIncludeParents === "function") {
@@ -1950,7 +1954,7 @@
 		}
 	}
 
-	ConsistentScopeManager.prototype = new Object();
+	ConsistentScopeManager.prototype = {};
 
 	var scopeId = 0;
 	var functionId = 0;
@@ -2533,6 +2537,7 @@
 
 					/* Bind events */
 					for (var eventName in nodeOptions.bindings.events) {
+						/*jshint loopfunc: true */
 						(function(eventName, keys) {
 							var listener = function(ev) {
 								var i;
@@ -2723,7 +2728,7 @@
 		return new ConsistentException(message);
 	}
 
-	ConsistentException.prototype = new Object();
+	ConsistentException.prototype = {};
 
 	function ConsistentException(message) {
 		this.name = "ConsistentException";
