@@ -1606,9 +1606,16 @@
 							throw exception("Invalid argument type for get or set controller function: " + typeof func);
 						}
 
-						var value = getNestedProperty(this._controller(), name);
+						var controller = this._controller();
+						var value = getNestedProperty(controller, name);
 						if (value !== undefined) {
-							return value;
+							if (typeof value === "function") {
+								return function() {
+									return value.apply(controller, arguments);
+								};
+							} else {
+								return value;
+							}
 						} else if (includeParents && this.parent()) {
 							return this.parent().$.controller(newControllerOrFunctionName);
 						} else {
@@ -1761,7 +1768,10 @@
 				var func = this.controller(name);
 				var scope = this._scope();
 				if (func !== undefined) {
-					func.apply(scope, arguments.slice(1));
+					/* Call the function, note that "this" is forced to be the controller by the controller()
+					 * implementation.
+					 */
+					func.apply(null, arguments.slice(1));
 				}
 				return scope;
 			},
@@ -2568,7 +2578,7 @@
 										 * but this is not an error.
 										 */
 										if (func) {
-											result = func.call(self._controller, ev, dom);
+											result = func(ev, dom, self._scope);
 											if (result === false)
 												break;
 										}

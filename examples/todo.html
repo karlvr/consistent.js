@@ -41,9 +41,9 @@ $(function() {
 		{ text: "build a consistent app", done: false }
 	];
 	scope.$.controller("addTodo", function(ev) {
-		scope.$.apply(function() {
-			scope.todos.push({ text: scope.todoText, done: false });
-			scope.todoText = "";
+		this.$.apply(function() {
+			this.todos.push({ text: this.todoText, done: false });
+			this.todoText = "";
 		});
 		ev.preventDefault();
 	});
@@ -55,12 +55,12 @@ $(function() {
 		return count;
 	};
 	scope.$.controller("archive", function(ev) {
-		scope.$.apply(function() {
-			var oldTodos = scope.todos;
-			scope.todos = [];
+		this.$.apply(function() {
+			var oldTodos = this.todos;
+			this.todos = [];
 			for (var i = 0; i < oldTodos.length; i++) {
 				if (!oldTodos[i].done) {
-					scope.todos.push(oldTodos[i]);
+					this.todos.push(oldTodos[i]);
 				}
 			}
 		});

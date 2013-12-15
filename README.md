@@ -285,17 +285,17 @@ This handler function makes a change to the scope and then calls `apply` to appl
 
 Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; just make sure the handler functions are defined by the time they are invoked.
 
-If the event handler function doesn’t have an easy reference to the scope, it can call `this.$.scope()`.
+If the event handler function doesn’t have an easy reference to the scope, it can call `this.$.scope()` to get it.
 
 #### Shortcut
 
-There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on`, but chooses an event based on the type of element. It chooses the `click` event for most elements:
+There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on-...`, but binds a default event based on the type of element. It chooses the `click` event for most elements, e.g.:
 
 ```html
 <a href="#" ct-do="handleClick">Click me</a>
 ```
 
-The following special cases apply:
+But the following special cases apply:
   * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
 
@@ -672,11 +672,9 @@ Note that `get` will fall back to a parent scope, if there is one. See below for
 
 ### Parent scopes
 
-You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function. This includes value functions. Note that `this` inside the value function will be the child scope, rather than the scope in which it is defined.
+You can create parent and child scopes. Child scopes will look to their parent if they don’t contain a value for a given property, and so on up the parent chain. When a snapshot is created of a scope, it will include all of the properties in its parent, and its parent’s parent, and so on. As snapshots are used to apply the scope to the DOM, the combined properties of all of the scopes are available to be applied to the DOM.
 
 When `apply()` is called on a child scope, it automatically calls `apply()` on its parent scope.
-
-Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which it is defined.
 
 ```javascript
 var rootScope = Consistent(); /* Create the root scope */
@@ -684,11 +682,9 @@ var childScope = Consistent(rootScope); /* Create a child scope */
 $("#item").consistent(childScope); /* Bind a DOM node to the child scope */
 ```
 
-Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it treats that as the scope to bind to.
+Note that here we call the `Consistent` function, whereas previously we’ve used the jQuery plugin to create the scope, as the jQuery plugin does not support the creation of child scopes. If you pass a scope as a parameter to the jQuery plugin it treats that as the scope to bind to. The `Consistent` function also has an alias created by the jQuery plugin at `$.consistent`.
 
-Note that here we call the `Consistent` function, whereas previously we’ve used the jQuery plugin to create the scope, as the jQuery plugin does not support the creation of child scopes. The `Consistent` function also has an alias in the jQuery plugin at `$.consistent`.
-
-Now the following will work.
+Now the following will work:
 
 ```html
 <div id="item">
@@ -703,7 +699,20 @@ childScope.$.apply();
 
 Then if you add a title to the childScope and apply it again, it will override the title property in the parent.
 
-Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is particularly important when using parent scopes, as that argument will contain the originating scope, even if the event handler is declared in a parent scope.
+#### Value functions
+
+When a snapshot is created, the value functions are executed and the snapshot contains their value rather. When a value function in a parent scope is executed for a child scope, `this` inside the value function will be the child scope, rather than the scope in which it is defined.
+
+```javascript
+rootScope.title = function() {
+	return this.myTitle;
+};
+childScope.myTitle = "Title from the child";
+```
+
+#### Event handlers
+
+If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Unlike value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers receive a third argument, which is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
 
 ```html
 <div id="item">
@@ -712,11 +721,15 @@ Event handlers also work. Remember that event handlers receive a second argument
 ```
 
 ```javascript
-rootScope.$handleClick = function(ev, dom) {
-	// this === childScope
-	this.title += ".";
+rootScope.$.controller("handleClick", function(ev, dom, childScope) {
+	childScope.title += ".";
 };
 ```
+
+#### Watch handler functions
+
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which the watch function is defined.
+
 
 ### Getting the nodes bound to a scope
 
@@ -1003,9 +1016,9 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 * `controller()` returns the controller.
 * `controller(object)` sets the controller to the given object. Consistent’s `$` object is added to this object. The return value is the scope.
-* `controller(name [, includeParents])` returns the function (or other value) with the given name in the scope’s controller. Supports nested names and falls back to parent scopes, unless the optional `includeParents` parameter is false.
+* `controller(name)` returns the value, usually an event handler function, with the given name in the scope’s controller. Supports nested names. If the value is a function, it is wrapped in an anonymous function that ensures `this` is bound to the controller when it is called.
 * `controller(name, function)` sets the function in the scope’s controller for the given name. Supports nested names.
-* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names and falls back to parent scopes), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node). If no controller function is found this function has no effect.
+* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node). If no controller function is found this function has no effect.
 
 * `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false.
 * `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys.
