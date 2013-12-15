@@ -278,10 +278,10 @@ Note that we don’t need to call `apply` after defining the event handler in th
 
 #### Shortcut
 
-There is a shortcut for binding events, which is to omit the event name. This chooses the `click` event for most elements:
+There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on`, but chooses an event based on the type of element. It chooses the `click` event for most elements:
 
 ```html
-<a href="#" ct-on="handleClick">Click me</a>
+<a href="#" ct-do="handleClick">Click me</a>
 ```
 
 The following special cases apply:
@@ -444,19 +444,19 @@ Expressions are supported in most declarations. The exceptions are repeat declar
 While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
 
 ```html
-<button ct-on="numberOfClicks++">Count</button>
+<button ct-do="numberOfClicks++">Count</button>
 ```
 
 Multiple statements can be combined using the `;` separator.
 
 ```html
-<button ct-on="clicked=true; numberOfClicks++">Count</button>
+<button ct-do="clicked=true; numberOfClicks++">Count</button>
 ```
 
 If the last statement is an expression, and it’s return value is a function then that function will be called as if it was the event handler function. This enables a statement to choose between two event handler functions.
 
 ```html
-<button ct-on="clicked ? clickedHandler : notClickedHandler">Button</button>
+<button ct-do="clicked ? clickedHandler : notClickedHandler">Button</button>
 ```
 
 ### Binding the scope to the DOM
@@ -851,7 +851,7 @@ To solve this issue you can pass options to the scope to change the way Consiste
 
 By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You must still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-do="click"` in the key `doClick`.
 
 By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` (or whatever the `eventHandlerPrefix` option is set to) is treated as a value function. You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.
 
@@ -860,7 +860,7 @@ When you use a value function prefix you must **not** include the prefix when de
 ```html
 <div id="container">
 	<h1 ct="title"></h1>
-	<button ct-on="click">Button</button>
+	<button ct-do="click">Button</button>
 </div>
 ```
 
@@ -921,7 +921,7 @@ Expressions and statements work with value functions as a consequence of accessi
 A statement as an event handler may return a function (but not call it), and that function will then be called as if it was the event handler function.
 
 ```html
-<button ct-on="clicked ? clickedHandler : notClickedHander">
+<button ct-do="clicked ? clickedHandler : notClickedHander">
 ```
 
 ```javascript

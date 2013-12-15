@@ -15,10 +15,10 @@ Example of using ct-show, ct-on, ct-disabled and value functions to create an in
 
 <div id="container">
 	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
-	<button ct-on="registerClick" ct-disabled="hasClickedTooManyTimes">Click me</button>
+	<button ct-do="registerClick" ct-disabled="hasClickedTooManyTimes">Click me</button>
 	<div ct-show="hasClickedTooManyTimes">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button ct-on="resetClicks">Reset clicks</button>
+	    <button ct-do="resetClicks">Reset clicks</button>
 	</div>
 </div>
 

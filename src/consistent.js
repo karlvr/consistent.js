@@ -115,7 +115,7 @@
 				classAttribute: [ "data-ct-class", "ct-class" ],
 				classAddAttribute: [ "data-ct-add-class", "ct-add-class" ],
 
-				on: [ "data-ct-on", "ct-on" ],
+				on: [ "data-ct-do", "ct-do" ],
 				onPrefix: [ "data-ct-on-", "ct-on-" ],
 
 				repeat: [ "data-ct-repeat", "ct-repeat" ],
