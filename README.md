@@ -12,6 +12,8 @@ Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent in
 
 The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `ct...` attributes to declare to Consistent how to use the scope’s properties. You can also use `data-ct...` instead of `ct...` if you prefer.
 
+The scope can be created programmatically, or automatically using declarations in your markup.
+
 The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it.
 
 The scope may contain scalar values, such as booleans, strings and numbers, and also value functions that return a calculated value.
@@ -394,6 +396,109 @@ Note above that the scope contains a property `scope.$.index` that contains the 
 Another interesting thing is happening in this example, which will be clearer after reading the Parent scopes section. An `index` value function is added to the parent scope. Each repeating block gets a child scope, which when it looks for the `index` property will fall back to the parent scope. When a value function is called in a parent scope, `this` is set to the child scope. So `return this.$.index` above returns the index from the child scope!
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
+
+
+### Automatic scope creation
+
+The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to form, and Consistent will create them automatically when the DOM is ready.
+
+Note: Consistent uses the jQuery plugin to fire the onDOMReady event. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes();` yourself.
+
+The simplest way to declare a scope is to add an empty `ct-scope` attribute. This tells Consistent to create a scope with the given root node, and to call `scope.$.update()` followed by `scope.$.apply()`. This will populate the scope from the DOM and then apply the state back to the DOM. You can get the scope in Javascript by finding the scope from the DOM node.
+
+
+```html
+<div ct-scope>
+	<p ct="body"></p>
+</div>
+```
+
+```javascript
+var scope = $("div").consistent();
+```
+
+#### Named scopes
+
+You can also declare scopes with a name, and then you can fetch the scope by name in Javascript:
+
+```html
+<div ct-scope="myScope"></div>
+```
+
+```javascript
+var scope = Consistent("myScope");
+```
+
+#### Controllers
+
+You can declare the constructor function to use to create the controller for the scope using the `ct-controller` attribute.
+
+```html
+<body ct-controller="MyPageController">
+	<h1 ct="title"></h1>
+</body>
+```
+
+```javascript
+function MyPageController(scope) {
+	scope.title = "My page title";
+}
+```
+
+The controller function name can also be nested, e.g.:
+
+```html
+<body ct-controller="MyApp.MyPageController">
+	<h1 ct="title"></h1>
+	<button ct-do="handleClick">Change</button>
+</body>
+```
+
+```javascript
+var MyApp = (function() {
+	function MyPageController(scope) {
+		scope.title = "My page title";
+	}
+
+	MyPageController.prototype.handleClick = function() {
+		this.$.apply(function() {
+			this.title = "My clicked page title";
+		});
+	};
+
+	return {
+		MyPageController: MyPageController
+
+	};
+})();
+```
+
+#### Initialising the scope
+
+You can declare how you want to initialise the scope, and provide initialisation statements and functions, using the `ct-init` attribute. You can name a function to use to init the scope using the `ct-init-func` attribute.
+
+The following values of `ct-init` are supported:
+  * `update` - the scope will be updated, init function called if declared, and then the scope will be applied.
+  * `none` - the scope will not be updated or applied, but the init function will be called if declared.
+  * Any other value is interpreted as a statement, and the scope values are set by it, e.g. `ct-init="title='My title'; subtitle='My subtitle'"`. The init function will be called if declared. Then the scope will be applied.
+
+ If `ct-init` is missing or empty, the scope will default to `update` if there is no init function and no controller declared. Otherwise it will not update, call the init function, if applicable, and then apply the scope.
+
+```html
+<div ct-scope ct-init="title='My title'; subtitle='My subtitle'"></div>
+```
+
+The init function should exist in the global scope. You can use nested property names. The init function will be called with `this` set to the scope.
+
+```html
+<div ct-scope ct-init-func="MyInitFunc">
+```
+
+```javascript
+function MyInitFunc() {
+	this.title = "My title";
+}
+```
 
 ### Attributes
 

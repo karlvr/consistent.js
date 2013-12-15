@@ -62,5 +62,30 @@ Example of automatic scope creation
 	};
 	</script>
 
+	<hr>
+
+	<div ct-controller="MyApp2.MyPageController">
+		<h2 ct="title"></h2>
+		<button ct-do="handleClick">Change</button>
+	</div>
+	<script>
+	var MyApp2 = (function() {
+		function MyPageController(scope) {
+			scope.title = "My page title";
+		}
+
+		MyPageController.prototype.handleClick = function() {
+			this.$.apply(function() {
+				this.title = "My clicked page title";
+			});
+		};
+
+		return {
+			MyPageController: MyPageController
+
+		};
+	})();
+	</script>
+
 </body>
 </html>
