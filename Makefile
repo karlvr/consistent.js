@@ -48,6 +48,9 @@ lint:
 test:
 	karma start test/karma/karma.conf.js --single-run
 
+test1:
+	karma start test/karma/karma.conf.js --single-run --browsers PhantomJS
+
 citest:
 	karma start test/karma/karma.conf.js
 
@@ -66,4 +69,4 @@ testie9:
 testie10:
 	testem -f test/testem/testem.json -l bs_ie_10
 
-.PHONY: all test citest clean testie6 testie7 testie8 testie9 testie10
+.PHONY: all test test1 citest clean testie6 testie7 testie8 testie9 testie10
