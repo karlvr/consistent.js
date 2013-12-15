@@ -398,6 +398,39 @@ Another interesting thing is happening in this example, which will be clearer af
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
 
 
+### Expressions
+
+You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
+
+```html
+<h1 ct-show="showTitle and enabled">My title</h1>
+```
+
+You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands and to be more conversational. Also supported is `not`, `gt`, `ge`, `lt`, `le`, `eq` and `ne`.
+
+Expressions can also be used to set the value or body of an element:
+
+```html
+<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
+```
+
+Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
+
+### Statements
+
+While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
+
+```html
+<button ct-do="numberOfClicks++">Count</button>
+```
+
+Multiple statements can be combined using the `;` separator.
+
+```html
+<button ct-do="clicked=true; numberOfClicks++">Count</button>
+```
+
+
 ### Automatic scope creation
 
 The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to form, and Consistent will create them automatically when the DOM is ready.
@@ -565,38 +598,6 @@ You can also use templates to update attributes.
 
 <h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
 <script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
-```
-
-### Expressions
-
-You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
-
-```html
-<h1 ct-show="showTitle and enabled">My title</h1>
-```
-
-You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands and to be more conversational. Also supported is `not`, `gt`, `ge`, `lt`, `le`, `eq` and `ne`.
-
-Expressions can also be used to set the value or body of an element:
-
-```html
-<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
-```
-
-Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
-
-### Statements
-
-While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
-
-```html
-<button ct-do="numberOfClicks++">Count</button>
-```
-
-Multiple statements can be combined using the `;` separator.
-
-```html
-<button ct-do="clicked=true; numberOfClicks++">Count</button>
 ```
 
 ### Binding the scope to the DOM
