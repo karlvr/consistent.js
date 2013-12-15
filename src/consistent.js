@@ -149,7 +149,7 @@
 				if (typeof controller === "function") {
 					scopeManager.replaceController(new controller(scope));
 				} else {
-					throw exception("Invalid type for controller: " + typeof controller);
+					throw exception("Invalid argument type for controller: " + typeof controller);
 				}
 			}
 			return scope;
@@ -1543,14 +1543,43 @@
 				}
 			},
 
-			controller: function(newController) {
-				if (newController === undefined) {
+			controller: function(newControllerOrFunctionName) {
+				if (newControllerOrFunctionName === undefined) {
+					/* controller() - returns the controller */
 					return this._controller();
-				} else if (typeof newController === "object") {
-					this._manager().replaceController(newController);
+				} else if (typeof newControllerOrFunctionName === "object") {
+					/* controller(object) - sets the controller */
+					this._manager().replaceController(newControllerOrFunctionName);
 					return this._scope();
+				} else if (typeof newControllerOrFunctionName === "string") {
+					/* controller(string) - gets or sets a function in the controller */
+					var name = addPrefixToPropertyName(newControllerOrFunctionName, this.options().eventHandlerPrefix);;
+					var funcOrIncludeParents = arguments[1];
+
+					if (typeof funcOrIncludeParents === "function") {
+						/* controller(string, function) - sets a function in the controller */
+						setNestedProperty(this._controller(), name, funcOrIncludeParents);
+						return this._scope();
+					} else {
+						/* controller(string [, boolean]) - gets a function from the controller, with optional include parents */
+						var includeParents = true;
+						if (typeof funcOrIncludeParents === "boolean") {
+							includeParents = funcOrIncludeParents;
+						} else if (funcOrIncludeParents !== undefined) {
+							throw exception("Invalid argument type for get or set controller function: " + typeof func);
+						}
+
+						var value = getNestedProperty(this._controller(), name);
+						if (value !== undefined) {
+							return value;
+						} else if (includeParents && this.parent()) {
+							return this.parent().$.controller(newControllerOrFunctionName);
+						} else {
+							return undefined;
+						}
+					}
 				} else {
-					throw exception("Invalid type for controller: " + typeof newController);
+					throw exception("Invalid argument type for controller(): " + typeof newController);
 				}
 			},
 
@@ -1564,7 +1593,7 @@
 			 */
 			model: function(includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
@@ -1586,7 +1615,7 @@
 			 */
 			snapshot: function(includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
@@ -1601,7 +1630,7 @@
 
 			nodes: function(includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var result = this._manager()._domNodes;
@@ -1643,7 +1672,7 @@
 			},
 			get: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 				if (key === "$" || key.substring(0, 2) === "$.") {
 					/* Do not allow access to $ object via get. The $ object is not part
@@ -1714,34 +1743,8 @@
 				return scope;
 			},
 
-			getEventHandler: function(key, includeParents) {
-				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
-				}
-
-				var controller = this._controller();
-
-				var value = getNestedProperty(controller, addPrefixToPropertyName(key, this.options().eventHandlerPrefix));
-				if (value !== undefined) {
-					if (typeof value === "function") {
-						return value;
-					} else {
-						return undefined;
-					}
-				} else if (includeParents !== false && this.parent()) {
-					return this.parent().$.getEventHandler(key);
-				} else {
-					return undefined;
-				}
-			},
-			setEventHandler: function(key, value) {
-				key = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
-				var controller = this._controller();
-				setNestedProperty(controller, key, value);
-				return this._scope();
-			},
 			fire: function(name, ev, dom) {
-				var func = this.getEventHandler(name);
+				var func = this.controller(name);
 				var scope = this._scope();
 				if (func !== undefined) {
 					func.call(scope, ev, dom);
@@ -1751,7 +1754,7 @@
 
 			getValueFunction: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
@@ -2543,7 +2546,7 @@
 
 									if (func === undefined) {
 										/* Lookup event handler in the scope */
-										func = self._scope.$.getEventHandler(key);
+										func = self._scope.$.controller(key);
 									}
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,
