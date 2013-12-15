@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+Example of automatic scope creation
+-->
+<html>
+<head>
+<title>Auto scope Consistent.js example</title>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/consistent-expressions.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+	<h1>Simple controller</h1>
+	<div ct-controller="Controller1">
+		<h2 ct="title">Consistent.js</h2>
+
+		<p><input type="text" name="title" value="Consistent.js last wins" size="50" /></p>
+	</div>
+	<script>
+	function Controller1(scope) {
+		scope.title = "Controller configuration is applied, as update is skipped";
+	}
+	</script>
+
+	<hr>
+
+	<h1>Simple controller with update</h1>
+	<div ct-controller="Controller1" ct-init="update">
+		<h2 ct="title">Consistent.js</h2>
+
+		<p><input type="text" name="title" value="With explicit update, the update overrides the Controller" size="50" /></p>
+	</div>
+
+	<hr>
+
+	<h1>Controller with init</h1>
+	<div ct-init="title='Init happens after controller'" ct-controller="Controller2">
+		<h2 ct="title">Consistent.js</h2>
+
+		<p><input type="text" name="title" value="Consistent.js last wins" size="50" /></p>
+	</div>
+	<script>
+	function Controller2(scope) {
+		scope.title = "Controller will be overriden so you won't see this";
+	}
+	</script>
+
+	<hr>
+
+	<h1>Nested controller</h1>
+	<div ct-controller="MyApp.Controller3">
+		<h2 ct="title">Consistent.js</h2>
+
+		<p><input type="text" name="title" value="Nested controller failed" size="50" /></p>
+	</div>
+	<script>
+	var MyApp = {
+		Controller3: function(scope) {
+			scope.title = "Nested controller has worked";
+		}
+	};
+	</script>
+
+	<hr>
+
+	<div ct-controller="MyApp2.MyPageController">
+		<h2 ct="title"></h2>
+		<button ct-do="handleClick">Change</button>
+	</div>
+	<script>
+	var MyApp2 = (function() {
+		function MyPageController(scope) {
+			scope.title = "My page title";
+		}
+
+		MyPageController.prototype.handleClick = function() {
+			this.$.apply(function() {
+				this.title = "My clicked page title";
+			});
+		};
+
+		return {
+			MyPageController: MyPageController
+
+		};
+	})();
+	</script>
+
+</body>
+</html>

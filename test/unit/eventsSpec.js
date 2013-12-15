@@ -9,13 +9,13 @@ describe('Events tests', function() {
 	it("Default click events", function() {
 		var scope = $("#container").consistent();
 		var titleClicks = 0, buttonClicks = 0;
-		scope.$handleTitleClick = function(ev) {
+		scope.$.controller("handleTitleClick", function(ev) {
 			titleClicks++;
-		};
-		scope.$handleButtonClick = function(ev) {
+		});
+		scope.$.controller("handleButtonClick", function(ev) {
 			buttonClicks++;
-		};
-		
+		});
+
 		/* No need to apply as events are attached in bind */
 		dispatchMouseEvent($("#container h1"));
 
@@ -30,11 +30,10 @@ describe('Events tests', function() {
 
 	it("Nested event handlers", function() {
 		var scope = $("#container").consistent();
-		scope.events = {};
 		var sectionClicks = 0;
-		scope.events.$handleSectionClick = function(ev) {
+		scope.$.controller("events.handleSectionClick", function(ev) {
 			sectionClicks++;
-		};
+		});
 
 		dispatchMouseEvent($("#container section"));
 
@@ -42,11 +41,11 @@ describe('Events tests', function() {
 	});
 
 	it("Event handlers must not be declared with the prefix", function() {
-		var scope = $("#bad").consistent();
+		var scope = $("#bad").consistent({ eventHandlerPrefix: "$" });
 		var buttonClicks = 0;
-		scope.$$handleButtonClick = function() {
+		scope.$.controller("$handleButtonClick", function() {
 			buttonClicks++;
-		};
+		});
 
 		dispatchMouseEvent($("#bad button"));
 
@@ -56,9 +55,9 @@ describe('Events tests', function() {
 	it("Bind specific click event", function() {
 		var scope = $("#container").consistent();
 		var navClicks = 0;
-		scope.$handleNavClick = function() {
+		scope.$.controller("handleNavClick", function() {
 			navClicks++;
-		};
+		});
 
 		dispatchMouseEvent($("#container nav"));
 
@@ -68,9 +67,9 @@ describe('Events tests', function() {
 	it("Bind specific other event", function() {
 		var scope = $("#container").consistent();
 		var contentFocuses = 0;
-		scope.$handleContentFocus = function() {
+		scope.$.controller("handleContentFocus", function() {
 			contentFocuses++;
-		};
+		});
 
 		dispatchHTMLEvent($("#container input"), "focus");
 
@@ -81,12 +80,12 @@ describe('Events tests', function() {
 		var scope = $("#container").consistent();
 		var abbrClicks = 0;
 		var abbrFocuses = 0;
-		scope.$handleAbbrClick = function() {
+		scope.$.controller("handleAbbrClick", function() {
 			abbrClicks++;
-		};
-		scope.$handleAbbrFocus = function() {
+		});
+		scope.$.controller("handleAbbrFocus", function() {
 			abbrFocuses++;
-		};
+		});
 
 		dispatchHTMLEvent($("#container abbr"), "focus");
 		expect(abbrClicks).toBe(0);
