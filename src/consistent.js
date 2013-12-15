@@ -48,6 +48,9 @@
 			} else if (arg0.nodeName !== undefined) {
 				/* DOM node */
 				return Consistent.findScopeForNode(arg0);
+			} else if (typeof arg0 === "function") {
+				/* Controller function */
+				return Consistent.createScope(null, null, arg0);
 			} else if (typeof arg0 === "object") {
 				/* Options only */
 				return Consistent.createScope(null, arg0);
@@ -132,7 +135,7 @@
 			return object !== undefined && object.$ !== undefined && object.$._type === SCOPE_TYPE;
 		},
 
-		createScope: function(parentScope, options) {
+		createScope: function(parentScope, options, controller) {
 			/* Create scope */
 			options = mergeOptions({}, Consistent.defaultOptions, options);
 
@@ -141,7 +144,15 @@
 			if (scopeManager._name) {
 				scopeManagersByName[scopeManager._name] = scopeManager;
 			}
-			return scopeManager._scope;
+			var scope = scopeManager._scope;
+			if (controller !== undefined) {
+				if (typeof controller === "function") {
+					scopeManager.replaceController(new controller(scope));
+				} else {
+					throw exception("Invalid type for controller: " + typeof controller);
+				}
+			}
+			return scope;
 		},
 
 		autoCreateScopes: function() {
@@ -505,7 +516,7 @@
 		templateEngine: null,
 		autoListenToChange: true,
 		autoListenToKeyEvents: true,
-		eventHandlerPrefix: "$",
+		eventHandlerPrefix: "",
 		valueFunctionPrefix: "",
 
 		$: {
@@ -1370,10 +1381,9 @@
 	/* Scope */
 
 	/**
-	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
-	 * objects in the scope.
+	 * Evaluate value functions. Recursive to handle nested objects in the scope.
 	 */
-	function processSnapshot(snapshot, dontRemoveEventHandlers, baseScope, scope, seen) {
+	function processSnapshot(snapshot, baseScope, scope, seen) {
 		if (seen === undefined) {
 			seen = [];
 		}
@@ -1383,7 +1393,6 @@
 		seen.push(snapshot);
 
 		var options = scope.$.options();
-		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
 		var propertyName;
 
@@ -1393,24 +1402,7 @@
 				continue;
 			}
 
-			if (name.indexOf(eventHandlerPrefix) === 0) {
-				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
-				if (dontRemoveEventHandlers) {
-					propertyName = propertyNameFromPrefixed(name, eventHandlerPrefix);
-					if (propertyName === name || snapshot[propertyName] === undefined) {
-						snapshot[propertyName] = snapshot[name];
-					}
-					if (propertyName !== name) {
-						delete snapshot[name];
-						/* Skip the new property if we encounter it in this loop, which
-						 * can happen in IE6, maybe other browsers.
-						 */
-						skip.push(propertyName);
-					}
-				} else {
-					delete snapshot[name];
-				}
-			} else if (typeof snapshot[name] === "function") {
+			if (typeof snapshot[name] === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
 					snapshot[name] = snapshot[name].call(baseScope);
@@ -1430,7 +1422,7 @@
 				}
 			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], dontRemoveEventHandlers, baseScope, scope, seen);
+				processSnapshot(snapshot[name], baseScope, scope, seen);
 			}
 		}
 	}
@@ -1441,6 +1433,9 @@
 
 			/* Function returning the root of the scope */
 			_scope: null,
+
+			/* Function returning the controller */
+			_controller: null,
 
 			/* Function returning the manager */
 			_manager: null,
@@ -1548,9 +1543,20 @@
 				}
 			},
 
+			controller: function(newController) {
+				if (newController === undefined) {
+					return this._controller();
+				} else if (typeof newController === "object") {
+					this._manager().replaceController(newController);
+					return this._scope();
+				} else {
+					throw exception("Invalid type for controller: " + typeof newController);
+				}
+			},
+
 			/**
 			 * Return a plain object with a snapshot of the model values from the scope, excluding the $ object
-			 * that contains Consistent functionality, any properties beginning with the event handler prefix,
+			 * that contains Consistent functionality,
 			 * and replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.
 			 * @param includeParents If false, only include the local scope properties
@@ -1563,7 +1569,7 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, false, childScope !== undefined ? childScope : scope, scope);
+				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
@@ -1585,7 +1591,7 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, true, childScope !== undefined ? childScope : scope, scope);
+				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
@@ -1666,13 +1672,6 @@
 							return value.call(scope);
 						}
 					}
-
-					/* If it matches an event handler, simply return it */
-					prefixedPropertyName = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
-					value = getNestedProperty(scope, prefixedPropertyName);
-					if (typeof value === "function") {
-						return value;
-					}
 				}
 				
 				if (includeParents !== false && this.parent()) {
@@ -1720,14 +1719,9 @@
 					throw exception("Invalid type for includeParents: " + typeof includeParents);
 				}
 
-				var scope = this._scope();
-				var eventHandlerPrefix = this.options().eventHandlerPrefix;
-				/* Note that we're not concerned about event handler functions being
-				 * shadowed by other properties, as we always access event handlers
-				 * specifically. The same is not true for value functions.
-				 */
+				var controller = this._controller();
 
-				var value = getNestedProperty(scope, addPrefixToPropertyName(key, eventHandlerPrefix));
+				var value = getNestedProperty(controller, addPrefixToPropertyName(key, this.options().eventHandlerPrefix));
 				if (value !== undefined) {
 					if (typeof value === "function") {
 						return value;
@@ -1742,9 +1736,9 @@
 			},
 			setEventHandler: function(key, value) {
 				key = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
-				var scope = this._scope();
-				setNestedProperty(scope, key, value);
-				return scope;
+				var controller = this._controller();
+				setNestedProperty(controller, key, value);
+				return this._scope();
 			},
 			fire: function(name, ev, dom) {
 				var func = this.getEventHandler(name);
@@ -1960,13 +1954,18 @@
 		this._applying = false;
 		this._repeatNodeScope = false;
 
-		var self = this;
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
+		this._controller = { scope: this._scope };
+
+		var self = this;
 		this._scope.$._manager = function() {
 			return self;
 		};
 		this._scope.$._scope = function() {
 			return self._scope;
+		};
+		this._scope.$._controller = function() {
+			return self._controller;
 		};
 
 		this._cleanScopeSnapshot = this._scope.$.snapshot();
@@ -2551,7 +2550,7 @@
 										 * but this is not an error.
 										 */
 										if (func) {
-											result = func.call(self._scope, ev, dom);
+											result = func.call(self._controller, ev, dom);
 											if (result === false)
 												break;
 										}
@@ -2675,9 +2674,14 @@
 	};
 
 	ConsistentScopeManager.prototype.replaceScope = function(newScope) {
+		// TODO the controller needs to know about the new scope
 		newScope.$ = this._scope.$;
 		this._scope = newScope;
 		return newScope;
+	};
+
+	ConsistentScopeManager.prototype.replaceController = function(newController) {
+		this._controller = newController;
 	};
 
 	ConsistentScopeManager.prototype.destroy = function() {

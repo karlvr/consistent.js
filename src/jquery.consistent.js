@@ -64,6 +64,9 @@
 				/* Options */
 				scope = Consistent(arg0);
 				options = null;
+			} else if (typeof arg0 === "function") {
+				scope = Consistent(arg0);
+				options = null;
 			} else {
 				throw "First argument to $.consistent was not an appropriate type: " + typeof arg0;
 			}
