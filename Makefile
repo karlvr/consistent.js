@@ -43,7 +43,7 @@ lib/%.min.js.gz: lib/%.min.js
 	gzip -c -n $< > $@
 
 lint:
-	find src -name "*.js" -exec jsl -process \{\} \;
+	find src -name "*.js" -exec jshint --verbose \{\} \;
 
 test:
 	karma start test/karma/karma.conf.js --single-run

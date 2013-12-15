@@ -17,5 +17,13 @@ You can now run `make test` to test Consistent.js.
 ## Linting
 
 ```
-brew install jslint
+npm -g install jshint
+```
+
+## Packaging
+
+We use Uglify to munge and combine the source files.
+
+```
+npm -g install uglify-js
 ```
