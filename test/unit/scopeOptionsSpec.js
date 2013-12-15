@@ -45,7 +45,7 @@ describe('Scope options tests', function() {
 	it("Set value function with no value function prefix", function() {
 		var scope = Consistent();
 		var actualValue = "success";
-		scope.value = function(newValue) {
+		scope.value = function(scope, newValue) {
 			if (newValue === undefined) {
 				return actualValue;
 			} else {
@@ -68,7 +68,7 @@ describe('Scope options tests', function() {
 		};
 		var scope = Consistent(options);
 		var actualValue = "success";
-		scope.getValue = function(newValue) {
+		scope.getValue = function(scope, newValue) {
 			if (newValue === undefined) {
 				return actualValue;
 			} else {

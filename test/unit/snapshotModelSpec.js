@@ -121,7 +121,7 @@ describe('Snapshot tests', function() {
 		var parentScope = Consistent();
 		var scope = Consistent(parentScope);
 
-		parentScope.a = function() { return this === scope; }
+		parentScope.a = function(childScope) { return childScope === scope; }
 
 		var snapshot = scope.$.snapshot();
 
@@ -141,7 +141,7 @@ describe('Snapshot tests', function() {
 		grandScope.b = function() { return "grand b"; }
 		grandScope.c = "grand c";
 		grandScope.d = "grand d";
-		parentScope.a = function() { return this === scope; }
+		parentScope.a = function(childScope) { return childScope === scope; }
 		parentScope.b = "parent b";
 		scope.c = "child c";
 

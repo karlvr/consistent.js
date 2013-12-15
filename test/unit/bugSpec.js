@@ -39,17 +39,17 @@ describe('Bugs', function() {
 	it("Snapshot with valueFunctionPrefix with child contexts", function() {
 		var template = $('<tr ct-repeat="subscriptions"><td><input type="checkbox" name="state" ct="active" ct-do="toggleState" ct-hide="toggling" /></td></tr>');
 		var scope = template.consistent({valueFunctionPrefix: "get"});
-		scope.getActive = function() {
-			return this.state == 'active';
+		scope.getActive = function(childScope) {
+			return childScope.state == 'active';
 		};
-		scope.$toggleState = function(ev, dom) {
-			if (this.state == 'active') {
-				this.state = 'inactive';
+		scope.$.controller("toggleState", function(ev, dom, childScope) {
+			if (childScope.state == 'active') {
+				childScope.state = 'inactive';
 			} else {
-				this.state = 'active';
+				childScope.state = 'active';
 			}
 			this.$.apply();
-		}
+		});
 
 		var childScope = Consistent(scope);
 
@@ -58,11 +58,11 @@ describe('Bugs', function() {
 		expect(childScope.state).not.toBeDefined();
 		expect(childScope.$.snapshot().active).toBe(false);
 
-		scope.$toggleState.call(childScope);
+		childScope.$.fire("toggleState");
 		expect(childScope.state).toBe("active");
 		expect(childScope.$.snapshot().active).toBe(true);
 
-		scope.$toggleState.call(childScope);
+		childScope.$.fire("toggleState");
 		expect(childScope.state).toBe("inactive");
 		expect(childScope.$.snapshot().active).toBe(false);
 	});
@@ -80,20 +80,20 @@ describe('Bugs', function() {
 		var template = $('#template');
 		var scope = template.consistent({valueFunctionPrefix: "get"});
 
-		scope.getActive = function() {
-		  // console.log("getActive", this.state == 'active', this.state);
-		  return this.state == 'active';
+		scope.getActive = function(childScope) {
+		  // console.log("getActive", childScope.state == 'active', childScope.state);
+		  return childScope.state == 'active';
 		};
 
-		scope.$toggleState = function(ev, dom) {
-		  // console.log("Toggling state from", this.state);
-		  if (this.state == 'active') {
-		    this.state = 'inactive';
+		scope.$.controller("toggleState", function(ev, dom, childScope) {
+		  // console.log("Toggling state from", childScope.state);
+		  if (childScope.state == 'active') {
+		    childScope.state = 'inactive';
 		  } else {
-		    this.state = 'active';
+		    childScope.state = 'active';
 		  }
 		  this.$.apply();
-		};
+		});
 
 		scope.subscriptions = [{ name: "One", state: "active"}];
 
@@ -107,13 +107,13 @@ describe('Bugs', function() {
 
 		/* Mouse events to click checkboxes not working in IE 6 */
 		// dispatchMouseEvent([checkbox]);
-		scope.$toggleState.call(childScope);
+		childScope.$.fire("toggleState");
 
 		expect(childScope.state).toBe('inactive');
 		expect(checkbox.checked).toBe(false);
 
 		// dispatchMouseEvent([checkbox]);
-		scope.$toggleState.call(childScope);
+		childScope.$.fire("toggleState");
 
 		expect(childScope.state).toBe('active');
 		expect(childScope.$.snapshot().active).toBe(true);

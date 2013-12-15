@@ -1436,13 +1436,15 @@
 				continue;
 			}
 
-			if (typeof snapshot[name] === "function") {
+			var value = snapshot[name];
+
+			if (typeof value === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
-					snapshot[name] = snapshot[name].call(baseScope);
+					snapshot[name] = value.call(scope, baseScope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
 					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
-					snapshot[propertyName] = snapshot[name].call(baseScope);
+					snapshot[propertyName] = value.call(scope, baseScope);
 
 					/* Delete the original value function */
 					delete snapshot[name];
@@ -1454,9 +1456,9 @@
 						skip.push(propertyName);
 					}
 				}
-			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
+			} else if (typeof value === "object" && value !== null) {
 				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], baseScope, scope, seen);
+				processSnapshot(value, baseScope, scope, seen);
 			}
 		}
 	}
@@ -1695,7 +1697,8 @@
 				this._manager().unwatch(key, handler);
 				return this._scope();
 			},
-			get: function(key, includeParents) {
+
+			get: function(key, includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
@@ -1713,7 +1716,7 @@
 				var value = getNestedProperty(scope, key);
 				if (value !== undefined) {
 					if (!valueFunctionPrefix && typeof value === "function") {
-						return value.call(scope);
+						return value.call(scope, childScope !== undefined ? childScope : scope);
 					} else {
 						return value;
 					}
@@ -1723,13 +1726,13 @@
 						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
 						value = getNestedProperty(scope, prefixedPropertyName);
 						if (typeof value === "function") {
-							return value.call(scope);
+							return value.call(scope, scope);
 						}
 					}
 				}
 				
 				if (includeParents !== false && this.parent()) {
-					return this.parent().$.get(key);
+					return this.parent().$.get(key, includeParents, childScope !== undefined ? childScope : scope);
 				} else {
 					return undefined;
 				}
@@ -1748,7 +1751,7 @@
 					 */
 					var valueFunction = this.getValueFunction(key);
 					if (valueFunction !== undefined) {
-						valueFunction.call(scope, value);
+						valueFunction.call(null, scope, value);
 						return scope;
 					}
 				}
@@ -1758,7 +1761,7 @@
 					setNestedProperty(scope, key, value);
 				} else if (!this.options().valueFunctionPrefix) {
 					/* Value function */
-					current.call(scope, value);
+					current.call(null, scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
@@ -1797,7 +1800,9 @@
 				var value = getNestedProperty(scope, addPrefixToPropertyName(key, valueFunctionPrefix));
 				if (value !== undefined) {
 					if (typeof value === "function") {
-						return value;
+						return function() {
+							return value.apply(scope, arguments);
+						};
 					} else {
 						return undefined;
 					}
@@ -1813,6 +1818,7 @@
 				setNestedProperty(scope, key, value);
 				return scope;
 			},
+
 			options: function(dom) {
 				return this._manager().getOptions(dom);
 			},
