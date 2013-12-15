@@ -2547,6 +2547,7 @@
 											self._scope.$.apply();
 											continue;
 										} else {
+											// TODO we don't have a clear path to returning a function to go on to call
 											func = result;
 										}
 									}

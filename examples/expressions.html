@@ -31,8 +31,6 @@ Example of basic Consistent.js usage
 	<p><button ct-on="clicked=true; message='Message changed by button.'; times++">Click me</button></p>
 	<div ct-show="clicked">You clicked the button <span ct="times"></span> time<span ct-show="times ne 1">s</span>.</div>
 
-	<p><button ct-on="clicked ? haveClickedHandler : haventClickedHandler">Click me before and after clicking above</button></p>
-
 <script>
 $(function() {
 	var scope = $("body").consistent();
@@ -48,12 +46,6 @@ $(function() {
 	scope.myFavouritePrime = 25;
 	scope.clicked = false;
 	scope.times = 0;
-	scope.$.controller("haveClickedHandler", function(ev) {
-		alert("You've already clicked above");
-	});
-	scope.$.controller("haventClickedHandler", function(ev) {
-		alert("You haven't yet clicked above");
-	});
 	scope.$.apply();
 });
 </script>
