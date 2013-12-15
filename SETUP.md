@@ -13,3 +13,9 @@ npm -g install karma-safari-launcher
 ```
 
 You can now run `make test` to test Consistent.js.
+
+## Linting
+
+```
+brew install jslint
+```
