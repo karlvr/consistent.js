@@ -25,7 +25,7 @@ Example of using scope.$.roots() to find nodes in a scope and manipulate them ma
 <script>
 $(function() {
 	var scope = $("#container").consistent();
-	scope.$.controller("registerClick", function(ev, dom) {
+	scope.$.controller("registerClick", function() {
 		this.$.apply(function() {
 			this.numberOfClicks++;
 			if (this.numberOfClicks >= 3) {
@@ -35,7 +35,7 @@ $(function() {
 		});
 	});
 
-	scope.$.controller("resetClicks", function(ev, dom) {
+	scope.$.controller("resetClicks", function() {
 		this.$.apply(function() {
 			this.numberOfClicks = 0;
 			$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);

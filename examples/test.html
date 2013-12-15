@@ -70,7 +70,7 @@ $(function() {
 		console.log("Snapshot faulty", exp);
 	}
 
-	myScope.$.controller("clickHandler", function(ev) {
+	myScope.$.controller("clickHandler", function(localScope, ev) {
 		myScope.clickCount++;
 		myScope.$.apply();
 		ev.preventDefault();

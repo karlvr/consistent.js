@@ -53,7 +53,7 @@ $(function() {
 		{ name: "Carl" },
 		{ name: "Donald" }
 	];
-	scope.$.controller("delete", function(ev, dom, childScope) {
+	scope.$.controller("delete", function(childScope, ev, dom) {
 		var i = scope.people.indexOf(childScope);
 		scope.people.splice(i, 1);
 		this.$.apply();

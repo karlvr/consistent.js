@@ -42,7 +42,7 @@ $(function() {
 			success: function(data) {
 				var scope = Consistent(rootScope);
 				scope.$.merge(data);
-				scope.$.controller("select", function(ev) {
+				scope.$.controller("select", function(localScope, ev) {
 					ev.preventDefault();
 
 					scope.$.parent().$.apply(function() {
