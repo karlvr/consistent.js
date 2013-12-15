@@ -1,7 +1,7 @@
 Consistent.js
 =============
 
-Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM. Consistent is designed to be easy to use and understand for developers already using jQuery, and it doesn’t prevent you from using jQuery at the same time.
+Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM.
 
 [![Build Status](https://travis-ci.org/karlvr/consistent.js.png)](https://travis-ci.org/karlvr/consistent.js)
 
@@ -13,9 +13,9 @@ Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent in
 
 The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `ct...` attributes to declare to Consistent how to use the scope’s properties. You can also use `data-ct...` instead of `ct...` if you prefer.
 
-The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it as it is contained in the scope.
+The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it.
 
-The scope contains scalar values, such as booleans, strings and numbers, and value functions, that return a calculated value. The scope also contains any event handler functions you create. To separate these event handlers from your values they are stored in properties beginning with a `$`, e.g. `$handleClick`.
+The scope may contain scalar values, such as booleans, strings and numbers, and also value functions that return a calculated value. The scope also contains any event handler functions you create. To separate these event handlers from your values they are stored in properties beginning with a `$`, e.g. `$handleClick`.
 
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.
 
@@ -1053,7 +1053,7 @@ The scope exposes some properties inside the `$` object, e.g. `scope.$.index`.
 What Consistent doesn’t do
 --------------------------
 
-Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in templates; however see the [templating section](#templating) for advice about that.
+Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in repeat blocks or templates; however see the [templating section](#templating) for advice about that.
 
 Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.model()` functions, respectively.
 
