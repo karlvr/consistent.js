@@ -1777,7 +1777,7 @@
 				var func = this.controller(name);
 				var scope = this._scope();
 				if (func !== undefined) {
-					func.call(scope, ev, dom);
+					func.apply(scope, arguments.slice(1));
 				}
 				return scope;
 			},
