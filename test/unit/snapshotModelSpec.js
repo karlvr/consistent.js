@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Merge tests', function() {
+describe('Snapshot tests', function() {
 
 	it("Snapshot", function() {
 		var scope = Consistent();
@@ -50,81 +50,81 @@ describe('Merge tests', function() {
 		expect(model.a).toBe(9);
 	});
 
-	it("Snapshot event handler function", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		var snapshot = scope.$.snapshot();
-		expect(snapshot.$a).not.toBeDefined();
-	});
+	// 	var snapshot = scope.$.snapshot();
+	// 	expect(snapshot.$a).not.toBeDefined();
+	// });
 
-	it("Snapshot event handler function 2", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function 2", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		var snapshot = scope.$.snapshot();
+	// 	var snapshot = scope.$.snapshot();
 
-		/* Event handler function is returned in the snapshot as a */
-		expect(snapshot.a).toBe(scope.$a);
-	});
+	// 	/* Event handler function is returned in the snapshot as a */
+	// 	expect(snapshot.a).toBe(scope.$a);
+	// });
 
-	it("Snapshot event handler function 3", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function 3", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		expect(scope.$a).toBe(scope.$a);
-	});
+	// 	expect(scope.$a).toBe(scope.$a);
+	// });
 
-	it("Snapshot event handler function 4", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function 4", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		expect(typeof scope.$a).toBe("function");
-	});
+	// 	expect(typeof scope.$a).toBe("function");
+	// });
 
-	it("Model event handler function", function() {
-		var scope = Consistent();
+	// it("Model event handler function", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ec) {}
+	// 	scope.$a = function(ec) {}
 
-		var model = scope.$.model();
-		expect(model.$a).not.toBeDefined();
+	// 	var model = scope.$.model();
+	// 	expect(model.$a).not.toBeDefined();
 
-		/* Event handler function is not returned in the model */
-		expect(model.a).not.toBeDefined();
-	});
+	// 	/* Event handler function is not returned in the model */
+	// 	expect(model.a).not.toBeDefined();
+	// });
 
-	it("Snapshot event handler prefix", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler prefix", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = "abc";
+	// 	scope.$a = "abc";
 
-		var snapshot = scope.$.snapshot();
-		expect(snapshot.$a).not.toBeDefined();
-		expect(snapshot.a).toBe("abc");
-	});
+	// 	var snapshot = scope.$.snapshot();
+	// 	expect(snapshot.$a).not.toBeDefined();
+	// 	expect(snapshot.a).toBe("abc");
+	// });
 
-	it("Model event handler prefix", function() {
-		var scope = Consistent();
+	// it("Model event handler prefix", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = "abc";
+	// 	scope.$a = "abc";
 
-		var model = scope.$.model();
-		expect(model.$a).not.toBeDefined();
-		expect(model.a).not.toBeDefined();
-	});
+	// 	var model = scope.$.model();
+	// 	expect(model.$a).not.toBeDefined();
+	// 	expect(model.a).not.toBeDefined();
+	// });
 
 	it("Snapshot value function in parent", function() {
 		var parentScope = Consistent();
@@ -165,7 +165,6 @@ describe('Merge tests', function() {
 		grandScope.b = function() { return "grand b"; }
 		grandScope.c = "grand c";
 		grandScope.d = "grand d";
-		grandScope.$e = function(ev) {};
 		parentScope.a = function() { return this === scope; }
 		parentScope.b = "parent b";
 		scope.c = "child c";
@@ -181,9 +180,6 @@ describe('Merge tests', function() {
 		expect(snapshot.b).toBe("parent b");
 		expect(snapshot.c).toBe("child c");
 		expect(snapshot.d).toBe("grand d");
-
-		/* Event handler functions included */
-		expect(snapshot.e).toBe(grandScope.$e);
 	});
 
 	it("Model multiple parents", function() {
