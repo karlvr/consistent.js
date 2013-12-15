@@ -118,6 +118,7 @@
 				scope: [ "data-ct-scope", "ct-scope" ],
 				init: [ "data-ct-init", "ct-init" ],
 				initFunc: [ "data-ct-init-func", "ct-init-func" ],
+				controller: [ "data-ct-controller", "ct-controller" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -157,68 +158,89 @@
 
 		autoCreateScopes: function() {
 			var root = document;
-			var declarationAttributes = Consistent.settings.attributes.scope;
+			var scopeDeclarationAttributes = Consistent.settings.attributes.scope;
+			var controllerDeclarationAttributes = Consistent.settings.attributes.controller;
 			var initDeclarationAttributes = Consistent.settings.attributes.init;
 			var initFuncDeclarationAttributes = Consistent.settings.attributes.initFunc;
-			var n = declarationAttributes.length;
+			var n = scopeDeclarationAttributes.length;
+			var m = controllerDeclarationAttributes.length;
 			var o = initDeclarationAttributes.length;
 			var p = initFuncDeclarationAttributes.length;
 
 			visit(root);
 
 			function visit(dom) {
-				var scopeName;
+				var scopeName, controllerName;
 				var i;
-				if (dom.getAttribute) {
+				if (dom.hasAttribute) {
+					/* This is a node that can have attributes, so look for our declarations */
 					for (i = 0; i < n; i++) {
-						scopeName = dom.getAttribute(declarationAttributes[i]);
-						if (typeof scopeName === "string") {
+						if (dom.hasAttribute(scopeDeclarationAttributes[i])) {
+							scopeName = dom.getAttribute(scopeDeclarationAttributes[i]);
+							break;
+						}
+					}
+					for (i = 0; i < m; i++) {
+						if (dom.hasAttribute(controllerDeclarationAttributes[i])) {
+							controllerName = dom.getAttribute(controllerDeclarationAttributes[i]);
 							break;
 						}
 					}
 				}
-				if (typeof scopeName === "string") {
-					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null);
+				if (typeof scopeName === "string" || controllerName) {
+					var controller;
+					if (controllerName) {
+						controller = getNestedProperty(window, controllerName);
+					}
+
+					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null, controller);
 					scope.$.bind(dom);
 
-					var initHandled = false;
-					var func;
+					var initValue;
 					for (i = 0; i < o; i++) {
-						var initValue = dom.getAttribute(initDeclarationAttributes[i]);
+						initValue = dom.getAttribute(initDeclarationAttributes[i]);
 						if (initValue) {
-							if (initValue === "update") {
-								/* Fall through and do the default behaviour */
-								break;
-							} else if (initValue === "none") {
-								initHandled = true;
-								break;
-							} else if (initValue) {
-								/* If the string isn't empty then we evaluate it as a function */
-								initHandled = true;
-								func = Consistent.statementToFunction(initValue);
-								evaluateStatement(func, scope);
-								scope.$.apply();
-								break;
-							}
+							break;
 						}
 					}
 
-					if (!initHandled) {
-						for (i = 0; i < p; i++) {
-							var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
-							if (initFuncValue) {
-								func = getNestedProperty(window, initFuncValue);
-								if (func) {
-									func.call(scope);
-								} else {
-									throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
-								}
+					var initFunc;
+					for (i = 0; i < p; i++) {
+						var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
+						if (initFuncValue) {
+							initFunc = getNestedProperty(window, initFuncValue);
+							if (typeof initFunc !== "function") {
+								throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
 							}
+							break;
 						}
 					}
 
-					if (!initHandled) {
+					if (!initValue) {
+						if (!initFunc && !controller) {
+							scope.$.update();
+						}
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+						scope.$.apply();
+					} else if (initValue === "update") {
 						scope.$.update();
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+						scope.$.apply();
+					} else if (initValue === "none") {
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+					} else if (initValue) {
+						/* If the string isn't empty then we evaluate it as a function */
+						func = Consistent.statementToFunction(initValue);
+						evaluateStatement(func, scope);
+						if (initFunc) {
+							initFunc.call(scope);
+						}
 						scope.$.apply();
 					}
 				} else {
@@ -1224,7 +1246,8 @@
 					}
 					case "scope": 
 					case "init":
-					case "initFunc": {
+					case "initFunc":
+					case "controller": {
 						/* NOOP, this is used in autoCreateScopes */
 						break;
 					}
