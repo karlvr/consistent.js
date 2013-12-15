@@ -1621,29 +1621,6 @@
 			},
 
 			/**
-			 * Return a plain object with a snapshot of the model values from the scope, excluding the $ object
-			 * that contains Consistent functionality,
-			 * and replacing any value functions with their current value.
-			 * If there is a parent scope, the values from that scope are merged in.
-			 * @param includeParents If false, only include the local scope properties
-			 * @param childScope internal use
-			 */
-			model: function(includeParents, childScope) {
-				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
-				}
-
-				var scope = this._scope();
-				var temp = merge(true, {}, scope);
-				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
-
-				if (includeParents !== false && this.parent()) {
-					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
-				}
-				return temp;
-			},
-
-			/**
 			 * Return a plain object with a snapshot of the values from the scope, excluding the $ object
 			 * that contains Consistent functionality, and replacing any value functions with their current value.
 			 * If there is a parent scope, the values from that scope are merged in.

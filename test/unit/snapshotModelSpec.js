@@ -41,15 +41,6 @@ describe('Snapshot tests', function() {
 		expect(snapshot.a).toBe(9);
 	});
 
-	it("Model value function", function() {
-		var scope = Consistent();
-
-		scope.a = function() { return 9; }
-
-		var model = scope.$.model();
-		expect(model.a).toBe(9);
-	});
-
 	// it("Snapshot event handler function", function() {
 	// 	var scope = Consistent();
 
@@ -141,21 +132,6 @@ describe('Snapshot tests', function() {
 		expect(parentSnapshot.a).toBe(false);
 	});
 
-	it("Model value function in parent", function() {
-		var parentScope = Consistent();
-		var scope = Consistent(parentScope);
-
-		parentScope.a = function() { return this === scope; }
-
-		var model = scope.$.model();
-
-		/* In a value function, this is the originating scope */
-		expect(model.a).toBe(true);
-
-		var parentModel = parentScope.$.model();
-		expect(parentModel.a).toBe(false);
-	});
-
 	it("Snapshot multiple parents", function() {
 		var grandScope = Consistent();
 		var parentScope = Consistent(grandScope);
@@ -180,36 +156,6 @@ describe('Snapshot tests', function() {
 		expect(snapshot.b).toBe("parent b");
 		expect(snapshot.c).toBe("child c");
 		expect(snapshot.d).toBe("grand d");
-	});
-
-	it("Model multiple parents", function() {
-		var grandScope = Consistent();
-		var parentScope = Consistent(grandScope);
-		var scope = Consistent(parentScope);
-
-		grandScope.a = function() { return "nope"; }
-		grandScope.b = function() { return "grand b"; }
-		grandScope.c = "grand c";
-		grandScope.d = "grand d";
-		grandScope.$e = function(ev) {};
-		parentScope.a = function() { return this === scope; }
-		parentScope.b = "parent b";
-		scope.c = "child c";
-
-		var model = scope.$.model();
-
-		/* In a value function, "this" is the originating scope */
-		expect(model.a).toBe(true);
-
-		var parentModel = parentScope.$.model();
-		expect(parentModel.a).toBe(false);
-
-		expect(model.b).toBe("parent b");
-		expect(model.c).toBe("child c");
-		expect(model.d).toBe("grand d");
-
-		/* Event handler functions included */
-		expect(model.e).not.toBeDefined();
 	});
 
 	/* Cycles */
