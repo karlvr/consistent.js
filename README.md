@@ -1,10 +1,8 @@
 # Consistent.js
 
-Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM.
+Consistent is a small and simple Javascript framework to enable an abstract model and controller to be connected to the DOM.
 
 [![Build Status](https://travis-ci.org/karlvr/consistent.js.png)](https://travis-ci.org/karlvr/consistent.js)
-
-Consistent.js uses [BrowserStack](http://browserstack.com) for cross-browser testing.
 
 ## Introduction
 
@@ -40,6 +38,8 @@ Consistent is released under the [Apache License, Version 2.0](http://www.apache
 ## Browser compatibility
 
 Consistent works in all modern browsers. It has also been tested, and works in its entirety, in IE 6 and later.
+
+Consistent.js uses [BrowserStack](http://browserstack.com) for cross-browser testing.
 
 ## Features
 
