@@ -1531,9 +1531,6 @@
 					throw exception("Invalid keys argument to merge: " + keys);
 				}
 			},
-			replace: function(object) {
-				return this._manager().replaceScope(object);
-			},
 			clear: function() {
 				var scope = this._scope();
 				for (var i in scope) {
@@ -1543,8 +1540,14 @@
 				}
 			},
 
-			scope: function() {
-				return this._scope();
+			scope: function(newScope) {
+				if (newScope === undefined) {
+					return this._scope();
+				} else if (typeof newScope === "object") {
+					return this._manager().replaceScope(newScope);
+				} else {
+					throw exception("Invalid argument type to scope(newScope): " + typeof newScope);
+				}
 			},
 
 			controller: function(newControllerOrFunctionName) {
@@ -2100,7 +2103,7 @@
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$._manager()._repeatNodeScope = true;
 				childScope.$.bind(domNodes);
-				childScope = childScope.$.replace(object);
+				childScope = childScope.$.scope(object);
 
 				item = {
 					object: object,
