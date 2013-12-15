@@ -57,15 +57,12 @@
 		} else {
 			var arg0 = arguments[0];
 			if (Consistent.isScope(arg0)) {
-				/* Scope and maybe options */
+				/* Existing scope to bind to, and maybe bind options */
 				scope = arg0;
 				options = arguments.length > 1 ? arguments[1] : null;
-			} else if (typeof arg0 === "object") {
-				/* Options */
-				scope = Consistent(arg0);
-				options = null;
 			} else {
-				throw "First argument to $.consistent was not an appropriate type: " + typeof arg0;
+				scope = Consistent.apply(window, arguments);
+				options = null; /* No bind specific options */
 			}
 		}
 

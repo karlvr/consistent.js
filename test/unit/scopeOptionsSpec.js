@@ -118,26 +118,41 @@ describe('Scope options tests', function() {
 	it("Default event handler function prefix", function() {
 		var scope = Consistent();
 		var func = function() {};
-		scope.$handleClick = func;
-		expect(scope.$.getEventHandler("handleClick")).toBe(func);
+		scope.$.controller("handleClick", func);
+		expect(scope.$.controller("handleClick")).toBe(func);
 
 		/* Can't request with the prefix */
-		expect(scope.$.getEventHandler("$handleClick")).toBe(undefined);
+		expect(scope.$.controller("$handleClick")).toBe(undefined);
 	});
 
 	it("Event handler function prefix", function() {
 		var options = { eventHandlerPrefix: "do" };
 		var scope = Consistent(options);
 		var func = function() {};
-		scope.doHandleClick = func;
-		expect(scope.$.getEventHandler("handleClick")).toBe(func);
-		expect(scope.$.getEventHandler("HandleClick")).toBe(func);
+		scope.$.controller().doHandleClick = func;
+		expect(scope.$.controller("handleClick")).toBe(func);
+		expect(scope.$.controller("HandleClick")).toBe(func);
 
 		/* Can't request with the prefix */
-		expect(scope.$.getEventHandler("doHandleClick")).toBe(undefined);
+		expect(scope.$.controller("doHandleClick")).toBe(undefined);
 
 		/* Not the right prefix */
-		expect(scope.$.getEventHandler("$handleClick")).not.toBe(func);
+		expect(scope.$.controller("$handleClick")).not.toBe(func);
+	});
+
+	it("Event handler function prefix is implicit", function() {
+		var options = { eventHandlerPrefix: "do" };
+		var scope = Consistent(options);
+		var func = function() {};
+		scope.$.controller("handleClick", func);
+		expect(scope.$.controller("handleClick")).toBe(func);
+		expect(scope.$.controller("HandleClick")).toBe(func);
+
+		/* Can't request with the prefix */
+		expect(scope.$.controller("doHandleClick")).toBe(undefined);
+
+		/* Not the right prefix */
+		expect(scope.$.controller("$handleClick")).not.toBe(func);
 	});
 
 	it("Event handler function prefix not respecting camel-case", function() {
@@ -145,11 +160,11 @@ describe('Scope options tests', function() {
 		var scope = Consistent(options);
 		var func = function() {};
 		scope.dohandleClick = func;
-		expect(scope.$.getEventHandler("handleClick")).not.toBe(func);
-		expect(scope.$.getEventHandler("HandleClick")).not.toBe(func);
+		expect(scope.$.controller("handleClick")).not.toBe(func);
+		expect(scope.$.controller("HandleClick")).not.toBe(func);
 
 		/* Can't request with the prefix */
-		expect(scope.$.getEventHandler("dohandleClick")).toBe(undefined);
+		expect(scope.$.controller("dohandleClick")).toBe(undefined);
 	});
 
 });

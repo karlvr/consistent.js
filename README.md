@@ -1,5 +1,4 @@
-Consistent.js
-=============
+# Consistent.js
 
 Consistent is a small and simple Javascript framework to enable an abstract model to be synced with the DOM.
 
@@ -7,15 +6,19 @@ Consistent is a small and simple Javascript framework to enable an abstract mode
 
 Consistent.js uses [BrowserStack](http://browserstack.com) for cross-browser testing.
 
-Introduction
-------------
+## Introduction
+
 Use Consistent to create a _scope_, and then bind DOM nodes to it. Consistent inspects the DOM nodes (and their children) to learn how to relate them to the scope.
 
 The scope starts with no properties. You add properties to the scope and then apply them to the DOM. In your HTML markup you add `ct...` attributes to declare to Consistent how to use the scope’s properties. You can also use `data-ct...` instead of `ct...` if you prefer.
 
+The scope can be created programmatically, or automatically using declarations in your markup.
+
 The scope contains a `$` property in which Consistent keeps its functions and scope. For example, when you want to apply the scope you call `scope.$.apply()`. This `$` property separates the properties you add to the scope from Consistent, so you can add properties with any other name. Note that this `$` is nothing to do with jQuery and doesn’t interfere with it.
 
-The scope may contain scalar values, such as booleans, strings and numbers, and also value functions that return a calculated value. The scope also contains any event handler functions you create. To separate these event handlers from your values they are stored in properties beginning with a `$`, e.g. `$handleClick`.
+The scope may contain scalar values, such as booleans, strings and numbers, and also value functions that return a calculated value.
+
+The scope has a _controller_ object that contains any event handler functions you create. The controller can be a custom class, or you can functions ad hoc.
 
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.
 
@@ -29,6 +32,16 @@ Or use a minified and combined version. The minified and combined script for Con
 ```html
 <script src="lib/consistent-for-jquery.min.js"></script>
 ```
+
+## License
+
+Consistent is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+## Browser compatibility
+
+Consistent works in all modern browsers. It has also been tested, and works in its entirety, in IE 6 and later.
+
+## Features
 
 ### Substitution
 Set the contents of an `h1` element with the `title` property in the scope.
@@ -245,48 +258,78 @@ You can of course bind the selected option as well, e.g. `scope.product = "bucke
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope. When you create an event handler function in the scope you prefix its name with a `$` in order to distinguish it from scalar values and value functions. You must not include the `$` prefix when declaring the function in the DOM.
+Consistent can add event listeners to DOM nodes which call functions in the scope’s controller. The _controller_ is an object that holds the scope’s event handler functions.
 
 ```html
 <a href="#" ct-on-click="handleClick">Click me</a>
 ```
 
-Now create a scope and provide the click handler. Note that in the DOM the handler is `handleClick` but to define it in the scope it is `$handleClick`. You must follow this pattern otherwise Consistent will not find your event handler function.
-
-If you are using nested objects, the `$` prefix must be on the last part, e.g. `person.$handleClick`.
+Now create a scope and add the click handler.
 
 ```javascript
 var scope = $("a").consistent();
-scope.$handleClick = function(ev) {
+scope.$.controller("handleClick", function(ev) {
 	ev.preventDefault();
 	alert("Click!");
-};
+});
 ```
 
-The handler function is called with `this` as the scope. The event is the first argument, and the second argument is the DOM element that triggered the event.
+The event handler function is called with `this` as the controller. The controller contains the same `$` object as the scope. The event is the first argument, and the second argument is the DOM element that triggered the event.
 
 ```javascript
-scope.$handleClick = function(ev, dom) {
-	this.clickCount++;
+scope.$.controller("handleClick", function(ev, dom) {
+	scope.clickCount++;
 	this.$.apply();
-};
+});
 ```
 
 This handler function makes a change to the scope and then calls `apply` to apply the scope to the DOM.
 
-Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; you just have to make sure the handler functions are defined by the time they are invoked.
+Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; just make sure the handler functions are defined by the time they are invoked.
+
+If the event handler function doesn’t have an easy reference to the scope, it can call `this.$.scope()` to get it.
 
 #### Shortcut
 
-There is a shortcut for binding events, which is to omit the event name. This chooses the `click` event for most elements:
+There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on-...`, but binds a default event based on the type of element. It chooses the `click` event for most elements, e.g.:
 
 ```html
-<a href="#" ct-on="handleClick">Click me</a>
+<a href="#" ct-do="handleClick">Click me</a>
 ```
 
-The following special cases apply:
+But the following special cases apply:
   * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
   * `<form>` elements bind the `submit` event
+
+### Controllers
+
+Each scope has a controller. When you create a scope you can specify a constructor function to create the controller, otherwise an empty object is used.
+
+The `$` object form the scope is always added to the controller, so the controller can access and control the scope. The best way for the controller to access the scope is using `this.$.scope()`. The controller can tell the scope to apply by simply calling `this.$.apply()`.
+
+You can access the controller using the `scope.$.controller()` function. To add a function to the controller, use the `scope.$.controller(name, function)` function, e.g. `scope.$.controller("handleClick", function(ev) { ... });`.
+
+You can add anything to the controller. It is a good place to encapsulate all of the code related to the DOM and concept represented by the scope.
+
+
+#### Custom controller classes
+
+The custom controller class is specified using a constructor function that takes one argument, the scope.
+
+```javascript
+function MyController(scope) {
+	scope.title = "My title";
+}
+
+MyController.prototype.handleClick = function(ev) {
+	var scope = this.$.scope();
+	scope.title = "I’ve been clicked!";
+	scope.$.apply();
+};
+
+var scope = $("div").consistent(MyController);
+```
+
 
 ### Repeating blocks
 
@@ -354,6 +397,142 @@ Another interesting thing is happening in this example, which will be clearer af
 
 It is also possible to repeat a collection of elements. See Repeating multiple elements in the Advanced section.
 
+
+### Expressions
+
+You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
+
+```html
+<h1 ct-show="showTitle and enabled">My title</h1>
+```
+
+You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands and to be more conversational. Also supported is `not`, `gt`, `ge`, `lt`, `le`, `eq` and `ne`.
+
+Expressions can also be used to set the value or body of an element:
+
+```html
+<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
+```
+
+Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
+
+### Statements
+
+While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
+
+```html
+<button ct-do="numberOfClicks++">Count</button>
+```
+
+Multiple statements can be combined using the `;` separator.
+
+```html
+<button ct-do="clicked=true; numberOfClicks++">Count</button>
+```
+
+
+### Automatic scope creation
+
+The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to form, and Consistent will create them automatically when the DOM is ready.
+
+Note: Consistent uses the jQuery plugin to fire the onDOMReady event. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes();` yourself.
+
+The simplest way to declare a scope is to add an empty `ct-scope` attribute. This tells Consistent to create a scope with the given root node, and to call `scope.$.update()` followed by `scope.$.apply()`. This will populate the scope from the DOM and then apply the state back to the DOM. You can get the scope in Javascript by finding the scope from the DOM node.
+
+
+```html
+<div ct-scope>
+	<p ct="body"></p>
+</div>
+```
+
+```javascript
+var scope = $("div").consistent();
+```
+
+#### Named scopes
+
+You can also declare scopes with a name, and then you can fetch the scope by name in Javascript:
+
+```html
+<div ct-scope="myScope"></div>
+```
+
+```javascript
+var scope = Consistent("myScope");
+```
+
+#### Controllers
+
+You can declare the constructor function to use to create the controller for the scope using the `ct-controller` attribute.
+
+```html
+<body ct-controller="MyPageController">
+	<h1 ct="title"></h1>
+</body>
+```
+
+```javascript
+function MyPageController(scope) {
+	scope.title = "My page title";
+}
+```
+
+The controller function name can also be nested, e.g.:
+
+```html
+<body ct-controller="MyApp.MyPageController">
+	<h1 ct="title"></h1>
+	<button ct-do="handleClick">Change</button>
+</body>
+```
+
+```javascript
+var MyApp = (function() {
+	function MyPageController(scope) {
+		scope.title = "My page title";
+	}
+
+	MyPageController.prototype.handleClick = function() {
+		this.$.apply(function() {
+			this.title = "My clicked page title";
+		});
+	};
+
+	return {
+		MyPageController: MyPageController
+
+	};
+})();
+```
+
+#### Initialising the scope
+
+You can declare how you want to initialise the scope, and provide initialisation statements and functions, using the `ct-init` attribute. You can name a function to use to init the scope using the `ct-init-func` attribute.
+
+The following values of `ct-init` are supported:
+  * `update` - the scope will be updated, init function called if declared, and then the scope will be applied.
+  * `none` - the scope will not be updated or applied, but the init function will be called if declared.
+  * Any other value is interpreted as a statement, and the scope values are set by it, e.g. `ct-init="title='My title'; subtitle='My subtitle'"`. The init function will be called if declared. Then the scope will be applied.
+
+ If `ct-init` is missing or empty, the scope will default to `update` if there is no init function and no controller declared. Otherwise it will not update, call the init function, if applicable, and then apply the scope.
+
+```html
+<div ct-scope ct-init="title='My title'; subtitle='My subtitle'"></div>
+```
+
+The init function should exist in the global scope. You can use nested property names. The init function will be called with `this` set to the scope.
+
+```html
+<div ct-scope ct-init-func="MyInitFunc">
+```
+
+```javascript
+function MyInitFunc() {
+	this.title = "My title";
+}
+```
+
 ### Attributes
 
 You can set DOM element attributes from the scope.
@@ -419,44 +598,6 @@ You can also use templates to update attributes.
 
 <h1 ct-tmpl-id-attr-title="h1-title-template">Title</h1>
 <script id="h1-title-template" type="text/x-hogan-template">This is a story about {{subject}}</script>
-```
-
-### Expressions
-
-You can use an expression in place of a scope property in a number of declarations. The expression is evaluated each time the scope is applied.
-
-```html
-<h1 ct-show="showTitle and enabled">My title</h1>
-```
-
-You may use `and` and `or` in place of `&&` and `||` to avoid the need to escape ampersands and to be more conversational. Also supported is `not`, `gt`, `ge`, `lt`, `le`, `eq` and `ne`.
-
-Expressions can also be used to set the value or body of an element:
-
-```html
-<h1 ct="title + (titleSuffix ? ': ' + titleSuffix : '')"></h1>
-```
-
-Expressions are supported in most declarations. The exceptions are repeat declarations, declarations that specify ids and template declarations.
-
-### Statements
-
-While expressions can be used in place of a scope property, statements can be used in place of an event handler function.
-
-```html
-<button ct-on="numberOfClicks++">Count</button>
-```
-
-Multiple statements can be combined using the `;` separator.
-
-```html
-<button ct-on="clicked=true; numberOfClicks++">Count</button>
-```
-
-If the last statement is an expression, and it’s return value is a function then that function will be called as if it was the event handler function. This enables a statement to choose between two event handler functions.
-
-```html
-<button ct-on="clicked ? clickedHandler : notClickedHandler">Button</button>
 ```
 
 ### Binding the scope to the DOM
@@ -561,42 +702,17 @@ Note that the merge is a shallow merge. For each key in the given object it adds
 
 ### Exporting the scope to a Javascript object
 
-The scope contains some extra properties required for Consistent. Particularly the `$` property, where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains event handler functions (property names prefixed with a `$`), and value functions.
+The scope contains one extra property required for Consistent, the `$` property, where all of Consistent’s functionality lives (e.g. `scope.$.apply()`). It also contains value functions.
 
 #### Snapshot
 
-Use the `snapshot` function to obtain a Javascript object without the `$` property, with properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) renamed to exclude the prefix, and with value functions evaluated and replaced with their value. This provides a snapshot of the state of the scope, and can be used to inspect values without being concerned with value functions, and without being concerned with the `$` prefix.
+Use the `snapshot` function to obtain a Javascript object without the `$` property, and with value functions evaluated and replaced with their value. This provides a snapshot of the state of the scope, and can be used to inspect values without being concerned with value functions, or for submitting back to a server using Ajax.
 
 ```javascript
 scope.title = "My title";
 scope.subtitle = function() { return "My subtitle" };
-scope.$doNext = function(ev) { ... };
-scope.$anotherProperty = "see below";
 
 console.log(scope.$.snapshot());
-```
-
-```javascript
-{
-	title: "My title",
-	subtitle: "My subtitle",
-	doNext: function(ev) { ... },
-	anotherProperty: "see below"
-}
-```
-
-A snapshot is used when applying the scope to the DOM. This is how the declarations in the DOM can refer to `$` prefixed scope properties without the prefix.
-
-The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass `false` for the optional `includeParents` parameter, e.g. `snapshot(false)`.
-
-#### Model
-
-The snapshot includes properties that are not relevant if you want to submit data back to a server using Ajax, or give the data to other code. For this, use the `model` function. The `model` function behaves like `snapshot`, except rather than renaming any properties prefixed with the `$` character (or whatever the `eventHandlerPrefix` option is set to) they are removed.
-
-Following on from the snapshot example above:
-
-```javascript
-console.log(scope.$.model());
 ```
 
 ```javascript
@@ -606,43 +722,20 @@ console.log(scope.$.model());
 }
 ```
 
-So for use with Ajax, as an example:
+A snapshot is used when applying the scope to the DOM, and in the watcher functions.
+
+The `snapshot` function includes properties from parent scopes. If you don’t want to include parent scopes, pass `false` for the optional `includeParents` parameter, e.g. `snapshot(false)`.
+
+An example using jQuery and Ajax:
 
 ```javascript
 var scope = $("#item").consistent();
 scope.$.update();
 $.ajax({
-	data: scope.$.model()
+	data: scope.$.snapshot()
 });
 ```
 
-The `model` function includes properties from parent scopes. If you don’t want to include parent scopes, pass false for the optional `includeParents` parameter, e.g. `model(false)`.
-
-#### Private properties
-
-What follows from the implementation of the `model` function, is that if you want to include properties in your scope that you don’t want to export out of the scope for Ajax or other purposes, you can prefix those properties with a `$` (or whatever the `eventHandlerPrefix` option is set to). You still refer to them without the `$` prefix in the binding declarations, so it is quite transparent.
-
-```html
-<h1 ct="title"></h1>
-```
-
-```javascript
-scope.$title = "My title";
-
-// The following are both true
-scope.$.snapshot().title === "My title";
-scope.$.model().title === undefined;
-```
-
-License
--------
-
-Consistent is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
-Compatibility
--------------
-
-Consistent works in all modern browsers. It has also been tested, and works in its entirety, in IE 6, 7 and 8.
 
 Principles
 ----------
@@ -685,21 +778,19 @@ Note that `get` will fall back to a parent scope, if there is one. See below for
 
 ### Parent scopes
 
-You can create child scopes. Child scopes will look to their parent if they don’t contain a value for a given property key, in order to populate a DOM node or when looking for an event handler function. This includes value functions. Note that `this` inside the value function will be the child scope, rather than the scope in which it is defined.
+You can create parent and child scopes. Child scopes will look to their parent if they don’t contain a value for a given property, and so on up the parent chain. When a snapshot is created of a scope, it will include all of the properties in its parent, and its parent’s parent, and so on. As snapshots are used to apply the scope to the DOM, the combined properties of all of the scopes are available to be applied to the DOM.
 
 When `apply()` is called on a child scope, it automatically calls `apply()` on its parent scope.
 
-Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which it is defined.
-
 ```javascript
-var rootScope = $.consistent(); /* Create the root scope */
-var childScope = $.consistent(rootScope); /* Create a child scope */
+var rootScope = Consistent(); /* Create the root scope */
+var childScope = Consistent(rootScope); /* Create a child scope */
 $("#item").consistent(childScope); /* Bind a DOM node to the child scope */
 ```
 
-Note that we have to create the scope and then bind the DOM node, rather than doing that at the same time as we have in other examples. This is because if you pass a scope as a parameter to the form with the selector it treats that as the scope to bind to. You have to call the `$.consistent` function in order to create a new scope with a parent. Note that `$.consistent` and `Consistent` are the same function.
+Note that here we call the `Consistent` function, whereas previously we’ve used the jQuery plugin to create the scope, as the jQuery plugin does not support the creation of child scopes. If you pass a scope as a parameter to the jQuery plugin it treats that as the scope to bind to. The `Consistent` function also has an alias created by the jQuery plugin at `$.consistent`.
 
-Now the following will work.
+Now the following will work:
 
 ```html
 <div id="item">
@@ -714,7 +805,20 @@ childScope.$.apply();
 
 Then if you add a title to the childScope and apply it again, it will override the title property in the parent.
 
-Event handlers also work. Remember that event handlers receive a second argument which is the scope. This is particularly important when using parent scopes, as that argument will contain the originating scope, even if the event handler is declared in a parent scope.
+#### Value functions
+
+When a snapshot is created, the value functions are executed and the snapshot contains their value rather. When a value function in a parent scope is executed for a child scope, `this` inside the value function will be the child scope, rather than the scope in which it is defined.
+
+```javascript
+rootScope.title = function() {
+	return this.myTitle;
+};
+childScope.myTitle = "Title from the child";
+```
+
+#### Event handlers
+
+If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Unlike value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers receive a third argument, which is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
 
 ```html
 <div id="item">
@@ -723,11 +827,15 @@ Event handlers also work. Remember that event handlers receive a second argument
 ```
 
 ```javascript
-rootScope.$handleClick = function(ev, dom) {
-	// this === childScope
-	this.title += ".";
+rootScope.$.controller("handleClick", function(ev, dom, childScope) {
+	childScope.title += ".";
 };
 ```
+
+#### Watch handler functions
+
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which the watch function is defined.
+
 
 ### Getting the nodes bound to a scope
 
@@ -851,7 +959,7 @@ To solve this issue you can pass options to the scope to change the way Consiste
 
 By default, keys containing event handlers are prefixed with a `$`, e.g. `$handleClick`. You can change this to any string by setting the option `eventHandlerPrefix`. You must still omit the prefix when declaring the event handler to bind to in the DOM.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-on="click"` in the key `doClick`.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-do="click"` in the key `doClick`.
 
 By default, keys containing value functions have no prefix – every function that doesn’t have a key prefixed with a `$` (or whatever the `eventHandlerPrefix` option is set to) is treated as a value function. You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the valuePrefix. Any functions that don’t match the value function prefix will be left untouched.
 
@@ -860,7 +968,7 @@ When you use a value function prefix you must **not** include the prefix when de
 ```html
 <div id="container">
 	<h1 ct="title"></h1>
-	<button ct-on="click">Button</button>
+	<button ct-do="click">Button</button>
 </div>
 ```
 
@@ -917,17 +1025,6 @@ Consistent supports expressions and statements for writing simple functionality 
 Expressions are parsed then reformed into safe Javascript, ensuring that expressions can only access values in the scope, and then compiled into Javascript functions for quick reuse.
 
 Expressions and statements work with value functions as a consequence of accessing a snapshot (where value functions are replaced by their value) or using `scope.$.get` (which also evaluates value functions), but they cannot themselves call functions. That is, an expression of the form `myProperty()` will not compile.
-
-A statement as an event handler may return a function (but not call it), and that function will then be called as if it was the event handler function.
-
-```html
-<button ct-on="clicked ? clickedHandler : notClickedHander">
-```
-
-```javascript
-scope.$clickedHandler = function(ev) {};
-scope.$notClickedHandler = function(ev) {};
-```
 
 Expressions enable you to inline simple logic and changes to your scope. However, don’t overuse expressions; they can result in an application that is harder to maintain if the application logic is spread between HTML and Javascript files.
 
@@ -1001,21 +1098,25 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `roots()` returns an array of the DOM nodes explicitly bound to this scope, that is the nodes that were passed to the `bind` function.
 
 #### Scope
-* `snapshot([includeParents])` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, any properties prefixed with a `$` (usually event handlers) and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional `includeParents` parameter is false.
+* `snapshot([includeParents])` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional `includeParents` parameter is false.
 * `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.
 * `merge(object, keys)` merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
-* `replace(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this new object. The return value is the object given.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
+
+* `scope()` returns the scope itself.
+* `scope(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this object. The return value is the object given.
 
 * `get(key [, includeParents])` returns the value in the scope for the given key. If the scope contains a value function for the given key (after adding the value function prefix, if any), the value function is evaluated and its result returned. If the scope contains an event handler for the given key (after adding the event handler prefix), the event handler function is returned. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. If no property with the given key is found it returns undefined.
 * `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument. If no property exists in the scope for the given key, parent scopes are searched for a value function to call. If no value functions are found, a new property is created in the scope with the given value.
 
-* `getEventHandler(key [, includeParents])` returns the event handler in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The event handler prefix (by default `$`) is added to the last component of the key and must not be included in the `key` parameter, e.g. `getEventHandler("people.handleClick")` to access `people.$handleClick`.
-* `setEventHandler(key, function)` sets the event handler in the scope for the given key. Supports nested keys. Adds the event handler prefix to the last component of the key.
-* `fire(key [, event [, dom]])` looks for an event handler in the scope for the given key (supports nested keys and falls back to parent scopes), and call that event handler passing the optional arguments. If no event handler is found this function has no effect.
+* `controller()` returns the controller.
+* `controller(object)` sets the controller to the given object. Consistent’s `$` object is added to this object. The return value is the scope.
+* `controller(name)` returns the value, usually an event handler function, with the given name in the scope’s controller. Supports nested names. If the value is a function, it is wrapped in an anonymous function that ensures `this` is bound to the controller when it is called.
+* `controller(name, function)` sets the function in the scope’s controller for the given name. Supports nested names.
+* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node). If no controller function is found this function has no effect.
 
-* `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false. The value function prefix (by default empty) is added to the last component of the key and must not be included in the `key` parameter.
-* `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys. Adds the value function prefix to the last component of the key.
+* `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false.
+* `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys.
 
 #### Watch
 * `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
@@ -1038,24 +1139,26 @@ The scope exposes some properties inside the `$` object, e.g. `scope.$.index`.
 
 ### Consistent functions
 
-* `Consistent([options])` returns a new scope. If the options are provided the scope is initialised with them.
-* `Consistent(parentScope [, options])` returns a new scope and sets its parent scope. If the options are provided the scope is initialised with them.
+* `Consistent([options] [, controllerConstructor])` returns a new scope. If the options are provided the scope is initialised with them. If the controller function is provider, a new controller is created from it.
+* `Consistent(parentScope [, options] [, controllerFunction])` returns a new scope and sets its parent scope. If the options are provided the scope is initialised with them. If the controller function is provider, a new controller is created from it.
 * `Consistent(node)` returns the scope the DOM node is bound to, or null.
+* `Consistent(name)` returns the named scope with the given name, or null. As for `Consistent.findScopeByName(name)`.
+* `Consistent.findScopeByName(name)` returns the named scope with the given name, or null.
 * `Consistent.isScope(object)` returns true if the given object is a Consistent scope.
 
 ### jQuery plugin
 
 * `$.consistent` is synonymous with the `Consistent` function above and can be used in the same way.
 * `$(selector).consistent()` checks the selected elements to see if they have been bound to a scope. If they’ve all been bound to the same scope, it returns that scope. If they’ve been bound to different scopes (or some have been bound and some haven’t) this throws an exception. If they haven’t been bound to a scope a new scope is created, the elements are bound and the scope is returned.
-* `$(selector).consistent(options)` creates a new scope with the given options, binds the selected elements to it and returns the scope.
 * `$(selector).consistent(scope [, options])` binds the selected nodes to the given scope, with the options if provided and returns the scope.
+* `$(selector).consistent([options] [, controllerConstructor])` creates a new scope with the given arguments, binds the selected elements to it and returns the scope.
 
 What Consistent doesn’t do
 --------------------------
 
 Consistent doesn’t create DOM nodes. There are great tools for creating DOM nodes, such as simply using jQuery or using a templating engine such as Mustache or Hogan (which I’ve used in the examples). You can easily create new DOM nodes and then bind a new Consistent scope to them. Note that Consistent does in fact create DOM nodes if you create them in repeat blocks or templates; however see the [templating section](#templating) for advice about that.
 
-Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.model()` functions, respectively.
+Consistent doesn’t do any Ajax. Consistent scopes can be easily populated from an Ajax JSON response, and their data can be easily exported for sending to a server. Look at the `scope.$.merge(object)` and `scope.$.snapshot()` functions, respectively.
 
 Troubleshooting
 ---------------

@@ -98,12 +98,12 @@ $(function() {
 
 	var rootScope = $.consistent();
 	/* Click handler to toggle the status */
-	rootScope.$handleClick = function(ev, dom) {
+	rootScope.$.controller("handleClick", function(ev, dom) {
 		/* The scope argument is criticial, as this reflects the scope that the event occurred in */
 		this.$.apply(function() {
 			this.status = this.status == "on" ? "off" : "on";
 		});
-	};
+	});
 
 	/* Watch on status to update the derived properties */
 	rootScope.$.watch("status", function() {

@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Merge tests', function() {
+describe('Snapshot tests', function() {
 
 	it("Snapshot", function() {
 		var scope = Consistent();
@@ -41,90 +41,81 @@ describe('Merge tests', function() {
 		expect(snapshot.a).toBe(9);
 	});
 
-	it("Model value function", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function", function() {
+	// 	var scope = Consistent();
 
-		scope.a = function() { return 9; }
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		var model = scope.$.model();
-		expect(model.a).toBe(9);
-	});
+	// 	var snapshot = scope.$.snapshot();
+	// 	expect(snapshot.$a).not.toBeDefined();
+	// });
 
-	it("Snapshot event handler function", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function 2", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		var snapshot = scope.$.snapshot();
-		expect(snapshot.$a).not.toBeDefined();
-	});
+	// 	var snapshot = scope.$.snapshot();
 
-	it("Snapshot event handler function 2", function() {
-		var scope = Consistent();
+	// 	/* Event handler function is returned in the snapshot as a */
+	// 	expect(snapshot.a).toBe(scope.$a);
+	// });
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// it("Snapshot event handler function 3", function() {
+	// 	var scope = Consistent();
 
-		var snapshot = scope.$.snapshot();
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		/* Event handler function is returned in the snapshot as a */
-		expect(snapshot.a).toBe(scope.$a);
-	});
+	// 	expect(scope.$a).toBe(scope.$a);
+	// });
 
-	it("Snapshot event handler function 3", function() {
-		var scope = Consistent();
+	// it("Snapshot event handler function 4", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ev) {
+	// 		return true;
+	// 	};
 
-		expect(scope.$a).toBe(scope.$a);
-	});
+	// 	expect(typeof scope.$a).toBe("function");
+	// });
 
-	it("Snapshot event handler function 4", function() {
-		var scope = Consistent();
+	// it("Model event handler function", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = function(ev) {
-			return true;
-		};
+	// 	scope.$a = function(ec) {}
 
-		expect(typeof scope.$a).toBe("function");
-	});
+	// 	var model = scope.$.model();
+	// 	expect(model.$a).not.toBeDefined();
 
-	it("Model event handler function", function() {
-		var scope = Consistent();
+	// 	/* Event handler function is not returned in the model */
+	// 	expect(model.a).not.toBeDefined();
+	// });
 
-		scope.$a = function(ec) {}
+	// it("Snapshot event handler prefix", function() {
+	// 	var scope = Consistent();
 
-		var model = scope.$.model();
-		expect(model.$a).not.toBeDefined();
+	// 	scope.$a = "abc";
 
-		/* Event handler function is not returned in the model */
-		expect(model.a).not.toBeDefined();
-	});
+	// 	var snapshot = scope.$.snapshot();
+	// 	expect(snapshot.$a).not.toBeDefined();
+	// 	expect(snapshot.a).toBe("abc");
+	// });
 
-	it("Snapshot event handler prefix", function() {
-		var scope = Consistent();
+	// it("Model event handler prefix", function() {
+	// 	var scope = Consistent();
 
-		scope.$a = "abc";
+	// 	scope.$a = "abc";
 
-		var snapshot = scope.$.snapshot();
-		expect(snapshot.$a).not.toBeDefined();
-		expect(snapshot.a).toBe("abc");
-	});
-
-	it("Model event handler prefix", function() {
-		var scope = Consistent();
-
-		scope.$a = "abc";
-
-		var model = scope.$.model();
-		expect(model.$a).not.toBeDefined();
-		expect(model.a).not.toBeDefined();
-	});
+	// 	var model = scope.$.model();
+	// 	expect(model.$a).not.toBeDefined();
+	// 	expect(model.a).not.toBeDefined();
+	// });
 
 	it("Snapshot value function in parent", function() {
 		var parentScope = Consistent();
@@ -141,21 +132,6 @@ describe('Merge tests', function() {
 		expect(parentSnapshot.a).toBe(false);
 	});
 
-	it("Model value function in parent", function() {
-		var parentScope = Consistent();
-		var scope = Consistent(parentScope);
-
-		parentScope.a = function() { return this === scope; }
-
-		var model = scope.$.model();
-
-		/* In a value function, this is the originating scope */
-		expect(model.a).toBe(true);
-
-		var parentModel = parentScope.$.model();
-		expect(parentModel.a).toBe(false);
-	});
-
 	it("Snapshot multiple parents", function() {
 		var grandScope = Consistent();
 		var parentScope = Consistent(grandScope);
@@ -165,7 +141,6 @@ describe('Merge tests', function() {
 		grandScope.b = function() { return "grand b"; }
 		grandScope.c = "grand c";
 		grandScope.d = "grand d";
-		grandScope.$e = function(ev) {};
 		parentScope.a = function() { return this === scope; }
 		parentScope.b = "parent b";
 		scope.c = "child c";
@@ -181,39 +156,6 @@ describe('Merge tests', function() {
 		expect(snapshot.b).toBe("parent b");
 		expect(snapshot.c).toBe("child c");
 		expect(snapshot.d).toBe("grand d");
-
-		/* Event handler functions included */
-		expect(snapshot.e).toBe(grandScope.$e);
-	});
-
-	it("Model multiple parents", function() {
-		var grandScope = Consistent();
-		var parentScope = Consistent(grandScope);
-		var scope = Consistent(parentScope);
-
-		grandScope.a = function() { return "nope"; }
-		grandScope.b = function() { return "grand b"; }
-		grandScope.c = "grand c";
-		grandScope.d = "grand d";
-		grandScope.$e = function(ev) {};
-		parentScope.a = function() { return this === scope; }
-		parentScope.b = "parent b";
-		scope.c = "child c";
-
-		var model = scope.$.model();
-
-		/* In a value function, "this" is the originating scope */
-		expect(model.a).toBe(true);
-
-		var parentModel = parentScope.$.model();
-		expect(parentModel.a).toBe(false);
-
-		expect(model.b).toBe("parent b");
-		expect(model.c).toBe("child c");
-		expect(model.d).toBe("grand d");
-
-		/* Event handler functions included */
-		expect(model.e).not.toBeDefined();
 	});
 
 	/* Cycles */

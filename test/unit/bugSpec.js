@@ -7,7 +7,7 @@ describe('Bugs', function() {
 	 * https://github.com/karlvr/consistent.js/pull/6
 	 */
 	it("Snapshot with valueFunctionPrefix", function() {
-		var template = $('<tr ct-repeat="subscriptions"><td><input type="checkbox" name="state" ct="active" ct-on="toggleState" ct-hide="toggling" /></td></tr>');
+		var template = $('<tr ct-repeat="subscriptions"><td><input type="checkbox" name="state" ct="active" ct-do="toggleState" ct-hide="toggling" /></td></tr>');
 		var scope = template.consistent({valueFunctionPrefix: "get"});
 		scope.getActive = function() {
 			return this.state == 'active';
@@ -37,7 +37,7 @@ describe('Bugs', function() {
 	 * though the snapshot originates in the child scope.
 	 */
 	it("Snapshot with valueFunctionPrefix with child contexts", function() {
-		var template = $('<tr ct-repeat="subscriptions"><td><input type="checkbox" name="state" ct="active" ct-on="toggleState" ct-hide="toggling" /></td></tr>');
+		var template = $('<tr ct-repeat="subscriptions"><td><input type="checkbox" name="state" ct="active" ct-do="toggleState" ct-hide="toggling" /></td></tr>');
 		var scope = template.consistent({valueFunctionPrefix: "get"});
 		scope.getActive = function() {
 			return this.state == 'active';

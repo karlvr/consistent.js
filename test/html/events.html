@@ -4,19 +4,19 @@
 </head>
 <body>
 	<div id="container">
-		<h1 ct-on="handleTitleClick">Default title</h1>
-		<button ct-on="handleButtonClick">Button</button>
+		<h1 ct-do="handleTitleClick">Default title</h1>
+		<button ct-do="handleButtonClick">Button</button>
 
-		<section ct-on="events.handleSectionClick"></section>
+		<section ct-do="events.handleSectionClick"></section>
 
 		<nav ct-on-click="handleNavClick"></nav>
 		<input ct-on-focus="handleContentFocus">
 
-		<abbr ct-on="handleAbbrClick" ct-on-focus="handleAbbrFocus"></abbr>
+		<abbr ct-do="handleAbbrClick" ct-on-focus="handleAbbrFocus"></abbr>
 	</div>
 
 	<div id="bad">
-		<button ct-on="$handleButtonClick">Button</button>
+		<button ct-do="$handleButtonClick">Button</button>
 	</div>
 
 	<form id="form">
