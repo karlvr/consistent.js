@@ -1543,6 +1543,10 @@
 				}
 			},
 
+			scope: function() {
+				return this._scope();
+			},
+
 			controller: function(newControllerOrFunctionName) {
 				if (newControllerOrFunctionName === undefined) {
 					/* controller() - returns the controller */
@@ -1958,7 +1962,7 @@
 		this._repeatNodeScope = false;
 
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
-		this._controller = { scope: this._scope };
+		this._controller = { "$": this._scope.$ };
 
 		var self = this;
 		this._scope.$._manager = function() {
@@ -2677,13 +2681,13 @@
 	};
 
 	ConsistentScopeManager.prototype.replaceScope = function(newScope) {
-		// TODO the controller needs to know about the new scope
 		newScope.$ = this._scope.$;
 		this._scope = newScope;
 		return newScope;
 	};
 
 	ConsistentScopeManager.prototype.replaceController = function(newController) {
+		newController.$ = this._scope.$;
 		this._controller = newController;
 	};
 
