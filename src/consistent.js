@@ -34,35 +34,42 @@
 	 * * A dom node; returns the scope that bound that node, or null.
 	 */
 	var Consistent = window.Consistent = function() {
-		/* Parse arguments */
-		var arg0 = arguments[0];
-		if (arg0 !== undefined) {
-			if (Consistent.isScope(arg0)) {
-				/* Parent scope */
-				if (arguments[1] !== undefined) {
-					/* with options */
-					return Consistent.createScope(arg0, arguments[1]);
-				} else {
-					return Consistent.createScope(arg0, null);
-				}
-			} else if (arg0.nodeName !== undefined) {
-				/* DOM node */
-				return Consistent.findScopeForNode(arg0);
-			} else if (typeof arg0 === "function") {
-				/* Controller function */
-				return Consistent.createScope(null, null, arg0);
-			} else if (typeof arg0 === "object") {
-				/* Options only */
-				return Consistent.createScope(null, arg0);
-			} else if (typeof arg0 === "string") {
-				return Consistent.findScopeByName(arg0);
-			} else {
-				throw exception("Unexpected argument to Consistent(): " + arg0);
-			}
-		} else {
+		if (arguments.length === 0) {
 			/* No arguments */
-			return Consistent.createScope(null, null);
+			return Consistent.createScope();
 		}
+
+		var arg0 = arguments[0];
+		if (typeof arg0 === "string") {
+			return Consistent.findScopeByName(arg0);
+		} else if (arg0.nodeName !== undefined) {
+			/* DOM node */
+			return Consistent.findScopeForNode(arg0);
+		}
+
+		var parentScope;
+		var options;
+		var controller;
+		var argIndex = 0;
+
+		if (Consistent.isScope(arg0)) {
+			/* Parent scope */
+			parentScope = arg0;
+			argIndex++;
+		}
+		if (typeof arguments[argIndex] === "object") {
+			options = arguments[argIndex];
+			argIndex++;
+		}
+		if (typeof arguments[argIndex] === "function") {
+			controller = arguments[argIndex];
+			argIndex++;
+		}
+		if (arguments[argIndex] !== undefined) {
+			throw exception("Unexpected argument to Consistent(): " + arg0);
+		}
+
+		return Consistent.createScope(parentScope, options, controller);
 	};
 
 	var scopeManagers = {};
@@ -146,7 +153,7 @@
 				scopeManagersByName[scopeManager._name] = scopeManager;
 			}
 			var scope = scopeManager._scope;
-			if (controller !== undefined) {
+			if (controller) {
 				if (typeof controller === "function") {
 					scopeManager.replaceController(new controller(scope));
 				} else {
