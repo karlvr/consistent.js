@@ -48,12 +48,12 @@ $(function() {
 	scope.myFavouritePrime = 25;
 	scope.clicked = false;
 	scope.times = 0;
-	scope.$haveClickedHandler = function(ev) {
+	scope.$.controller("haveClickedHandler", function(ev) {
 		alert("You've already clicked above");
-	};
-	scope.$haventClickedHandler = function(ev) {
+	});
+	scope.$.controller("haventClickedHandler", function(ev) {
 		alert("You haven't yet clicked above");
-	};
+	});
 	scope.$.apply();
 });
 </script>

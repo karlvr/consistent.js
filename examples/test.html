@@ -34,7 +34,7 @@ p.world {
 </p>
 
 <!-- Undefined -->
-<p class="consistent" ct="undefinedKey">This text should not be changed to "undefined"</p>
+<p class="consistent" ct="undefinedKey">This line should not be changed to "undefined"</p>
 <p class="consistent" ct="nullKey">This text should be hidden as it is set to null</p>
 
 <!-- Template by id -->
@@ -70,11 +70,11 @@ $(function() {
 		console.log("Snapshot faulty", exp);
 	}
 
-	myScope.$clickHandler = function(ev) {
+	myScope.$.controller("clickHandler", function(ev) {
 		myScope.clickCount++;
 		myScope.$.apply();
 		ev.preventDefault();
-	};
+	});
 
 	$('.consistent').consistent(myScope);
 	myScope.$.apply();

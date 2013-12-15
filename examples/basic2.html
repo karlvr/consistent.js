@@ -30,11 +30,12 @@ $(function() {
 	}
 
 	BasicController.prototype.doNext = function(ev) {
-		var scope = this.scope;
+		var scope = this.$.scope();
 		scope.title = "Second page";
 		scope.author = "Till Eulenspiegel";
 		scope.body = "<p>Phasellus pulvinar sollicitudin felis, vel tincidunt mauris elementum ac.</p><p>Curabitur sit amet vulputate justo, eu iaculis neque.</p>";
 		this.doNext = function() {
+			var scope = this.$.scope();
 			scope.title = "Last page";
 			scope.body = "<p>Nullam velit lacus, condimentum sit amet turpis fermentum, vehicula congue est.</p>";
 			scope.showDoNext = false;

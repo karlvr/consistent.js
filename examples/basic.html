@@ -29,12 +29,13 @@ $(function() {
 	scope.title = "First page";
 	scope.author = "Nathanial Hornblower";
 	scope.body = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><p>Integer scelerisque vestibulum turpis nec ultrices.</p>";
-	scope.$.setEventHandler("doNext", function() {
-		var scope = this.scope;
+	scope.$.controller("doNext", function() {
+		var scope = this.$.scope();
 		scope.title = "Second page";
 		scope.author = "Till Eulenspiegel";
 		scope.body = "<p>Phasellus pulvinar sollicitudin felis, vel tincidunt mauris elementum ac.</p><p>Curabitur sit amet vulputate justo, eu iaculis neque.</p>";
 		this.doNext = function() {
+			var scope = this.$.scope();
 			scope.title = "Last page";
 			scope.body = "<p>Nullam velit lacus, condimentum sit amet turpis fermentum, vehicula congue est.</p>";
 			scope.showDoNext = false;

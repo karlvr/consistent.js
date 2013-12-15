@@ -56,12 +56,12 @@ $(function() {
 		{ name: "Carl" },
 		{ name: "Donald" }
 	];
-	scope.$delete = function(ev, dom) {
+	scope.$.controller("delete", function(ev, dom) {
 		/* this is the local scope created for each repeated block */
-		var i = scope.people.indexOf(this);
+		var i = scope.people.indexOf(this.$.scope());
 		scope.people.splice(i, 1);
 		this.$.apply();
-	};
+	});
 
 	scope.$.apply();
 	dontFade = false;

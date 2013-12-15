@@ -52,23 +52,23 @@ $(function() {
 		}
 	});
 
+	scope.$.controller("registerClick", function(ev, dom) {
+		this.$.apply(function() {
+			this.numberOfClicks++;
+		});
+	});
+
+	scope.$.controller("resetClicks", function(ev, dom) {
+		this.$.apply(function() {
+			this.numberOfClicks = 0;
+		});
+	});
+
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
 
 		this.hasClickedTooManyTimes = function() {
 			return this.numberOfClicks >= 3;
-		};
-
-		this.$registerClick = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks++;
-			});
-		};
-
-		this.$resetClicks = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks = 0;
-			});
 		};
 	});
 

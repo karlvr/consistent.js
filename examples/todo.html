@@ -40,13 +40,13 @@ $(function() {
 		{ text: "learn consistent", done: true },
 		{ text: "build a consistent app", done: false }
 	];
-	scope.$addTodo = function(ev) {
+	scope.$.controller("addTodo", function(ev) {
 		scope.$.apply(function() {
 			scope.todos.push({ text: scope.todoText, done: false });
 			scope.todoText = "";
 		});
 		ev.preventDefault();
-	};
+	});
 	scope.remaining = function() {
 		var count = 0;
 		for (var i = 0; i < scope.todos.length; i++) {
@@ -54,18 +54,18 @@ $(function() {
 		}
 		return count;
 	};
-	scope.$archive = function(ev) {
+	scope.$.controller("archive", function(ev) {
 		scope.$.apply(function() {
 			var oldTodos = scope.todos;
 			scope.todos = [];
-			for (var i = 0; i < scope.todos.length; i++) {
-				if (!scope.todos[i].done) {
-					scope.todos.push(scope.todos[i]);
+			for (var i = 0; i < oldTodos.length; i++) {
+				if (!oldTodos[i].done) {
+					scope.todos.push(oldTodos[i]);
 				}
 			}
 		});
 		ev.preventDefault();
-	};
+	});
 	scope.$.apply();
 });
 </script>

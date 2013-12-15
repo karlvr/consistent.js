@@ -25,27 +25,27 @@ Example of using scope.$.roots() to find nodes in a scope and manipulate them ma
 <script>
 $(function() {
 	var scope = $("#container").consistent();
+	scope.$.controller("registerClick", function(ev, dom) {
+		this.$.apply(function() {
+			this.numberOfClicks++;
+			if (this.numberOfClicks >= 3) {
+				$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
+				this.clickMeDisabled = "disabled";
+			}
+		});
+	});
+
+	scope.$.controller("resetClicks", function(ev, dom) {
+		this.$.apply(function() {
+			this.numberOfClicks = 0;
+			$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
+			this.clickMeDisabled = null;
+		});
+	});
+	
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
 		$(this.$.roots()).find(".tooManyClicks").hide();
-
-		this.$registerClick = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks++;
-				if (this.numberOfClicks >= 3) {
-					$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
-					this.clickMeDisabled = "disabled";
-				}
-			});
-		};
-
-		this.$resetClicks = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks = 0;
-				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
-				this.clickMeDisabled = null;
-			});
-		};
 	});
 });
 
