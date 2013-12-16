@@ -426,6 +426,11 @@
 		}
 
 		var result = merge.apply(null, arguments);
+		/* We replace the $ property from the first merge, with the result of merging all of the $s
+		 * themselves. Note that this isn't a deep merge, but we have to specifically do the merge of
+		 * the $s so we merge their contents. If we didn't do this each $ property in the arguments
+		 * would clobber the next.
+		 */
 		result.$ = merge.apply(null, $s);
 		return result;
 	}
@@ -1569,12 +1574,21 @@
 			},
 			merge: function(object, keys) {
 				var scope = this._scope();
+				var temp;
 				if (typeof object === "boolean") {
-					/* merge(true, object) */
-					return merge(object, scope, keys);
+					/* merge(boolean, object) 
+					 * Note below that "object" is the boolean, and "keys" is the object supplied to be merged into us.
+					 * We need to do our first merge to remove any "$" property from the incoming object, and we
+					 * must do that deep, if this merge is deep, so that we preserve any cyclic structures etc.
+					 */
+					temp = merge(object, {}, keys);
+					delete temp["$"];
+					return merge(object, scope, temp);
 				} else if (keys === undefined) {
 					/* merge(object) */
-					return merge(scope, object);
+					temp = merge({}, object);
+					delete temp["$"];
+					return merge(scope, temp);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
