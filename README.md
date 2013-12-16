@@ -683,12 +683,12 @@ Note this doesn’t work for any properties that are using templates.
 Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler functions are called when `apply` is called on the scope, **before** the DOM has been updated.
 
 ```javascript
-scope.$.watch("title", function(scope, key, newValue, oldValue) {
+scope.$.watch("title", function(scope, property, newValue, oldValue) {
 	this.shortTitle = this.title.substring(0, 10);
 });
 
-scope.$.watch(function(scope, changedKeys, snapshot, oldSnapshot) {
-	this.changeSummary = "The following keys were changed: " + changedKeys;
+scope.$.watch(function(scope, changedProperties, snapshot, oldSnapshot) {
+	this.changeSummary = "The following properties were changed: " + changedProperties;
 });
 ```
 
@@ -696,13 +696,30 @@ The snapshots passed to the watch handler function for the whole scope are creat
 
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
-Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
+Value functions are watched based on their returned value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
 
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
 The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes.
 
-### Populating the scope from another object
+#### Nested properties
+
+In the case of nested properties, the property argument will be the path to the property, separated by `.`s.
+
+Watch handlers registered for a property name will be called for any nested properties, e.g. if you register a watch on `todos`, the watch handler will fire when anything inside the `todos` object, or array, is changed.
+
+```javascript
+scope.todos = [ "Learn Portugese", "Wash dog", "Wash car" ];
+scope.$.watch("todos", function(scope, property) {
+	console.log("Todos changed");
+});
+scope.$.apply(); // Fires the watch handler as the todos array is added to the scope
+
+scope.todos[0] = "Wash cat";
+scope.$.apply(); // Fires the watch handler again as todos has changed.
+```
+
+### Populating the scope from an object
 
 Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope using the `merge` function.
 
@@ -711,11 +728,12 @@ var scope = $("#item").consistent();
 $.ajax({
 	success: function(data) {
 		scope.$.merge(data);
+		scope.$.apply();
 	}
 })
 ```
 
-Note that the merge is a shallow merge. For each key in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.
+Note that the merge is a shallow merge. For each property in the given object it adds it to the scope, replacing and values that are already there. If your scope has nested objects, they are replaced rather than merged.
 
 ### Exporting the scope to a Javascript object
 
@@ -781,7 +799,7 @@ scope.person = {
 scope.$.apply();
 ```
 
-Watch handler functions will be called with the `key` as the nested property name, eg. `person.fullName`. For convenience the scope declares two functions for working with nested property names.
+Watch handler functions will be called with the `property` attribute set to the nested property name, eg. `person.fullName`. For convenience the scope declares two functions for working with nested property names.
 
 ```javascript
 var nestedPropertyName = "person.fullName";
@@ -791,7 +809,7 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass `false` for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass `false` for the optional `includeParents` parameter, e.g. `get(property, false)` instead.
 
 ### Parent scopes
 
@@ -976,7 +994,7 @@ To solve this issue you can pass options to the scope to change the way Consiste
 
 By default there are no prefixes. If you apply prefixes, you still refer to the thing without the prefix. It only when you add it to the scope or controller directly that you need to include the prefix.
 
-When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the key to be camel-cased and will look for an event handler function specified as `ct-do="click"` in the key `doClick`.
+When you set an event handler prefix ending with a letter, e.g. "do", Consistent will expect the property to be camel-cased and will look for an event handler function specified as `ct-do="click"` in the property `doClick`.
 
 You can change the value function prefix by setting the option `valueFunctionPrefix`. When there is a `valueFunctionPrefix` set, Consistent will only call functions that match the prefix. Any functions that don’t match the value function prefix will be left untouched. The result of the value will appear in the snapshot without its prefix.
 
@@ -1005,13 +1023,13 @@ scope.$.controller().doClick = function() {
 
 Note that we accessed the controller directly so we had to include the prefix. If we use the `scope.$.controller(name, function)` appraoch we do not include the prefix as Consistent will include it automatically.
 
-See [Merging only specified keys](#merging-only-specified-keys) below for an alternative to this approach.
+See [Merging only specified properties](#merging-only-specified-properties) below for an alternative to this approach.
 
-### Merging only specified keys
+### Merging only specified properties
 
-The `merge` function provides an easy way to merge properties from existing objects into the scope. It also has an optional argument, `keys`, which is an array of strings. This enables you to pick and choose which properties from your existing objects you merge into the scope.
+The `merge` function provides an easy way to merge properties from existing objects into the scope. It also has an optional argument, `properties`, which is an array of strings. This enables you to pick and choose which properties from your existing objects you merge into the scope.
 
-The keys array supports nested properties using `.` separators, e.g. `person.name`.
+The properties array supports nested properties using `.` separators, e.g. `person.name`.
 
 ```javascript
 var object = {
@@ -1076,8 +1094,8 @@ The `NAME` segment in the following list represents the name of the attribute or
 * `ct-tmpl-attr-NAME` a template that will be rendered with the scope as its context, and then used to set the value of the given attribute on this element.
 * `ct-tmpl-id-attr-NAME` the id of a DOM element that contains template text.
 
-* `ct-attrs` the name of an object property in the scope with keys and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
-* `ct-properties` the name of an object property in the scope with keys and values mapping to properties, including support for nested properties.
+* `ct-attrs` the name of an object property in the scope with properties and values mapping to attribute names and values. Note that for setting the attribute `class` you should instead use `className` as `class` is sometimes a reserved word.
+* `ct-properties` the name of an object property in the scope with properties and values mapping to properties, including support for nested properties.
 
 * `ct-class` the name of a property in the scope to use to set the value of the `class` attribute on this element. Supports string and array values.
 * `ct-add-class` the name of a property in the scope to use to add classes to the existing `class` attribute on this element. Supports string and array values.
@@ -1110,7 +1128,7 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `apply([options, ] [function, ] [includeChildren])` applies the scope to the DOM. If the optional `options` are provided they augment each node’s options before applying. If the function argument is provided, the function is called with `this` set to the scope before the scope is applied and the `options` as an argument. If the scope has child scopes, they are applied after the scope is applied. If the scope has a parent scope, it will also be applied. If `includeChildren` is false, child scopes will not be applied. Note that child scopes created for repeated blocks are always applied.
 * `applyLater([options, ] [function, ] [includeChildren])` as for `apply` but rather than applying immediately it creates a `setTimeout` with a 0 time so it will be called after the current Javascript event handling finishes. The function, if supplied, is called immediately. It is safe to call this multiple times, the scope will only be applied once.
 * `needsApply()` returns true if the scope has been changed and needs to be applied to the DOM. Changes include properties changed in the scope or new nodes bound to the scope.
-* `update([dom [, includeChildren]])` updates the scope by reading keys and values from the DOM. If the optional `dom` parameter is provided, only update the given node or array of nodes. If `includeChildren` is true, the update cascades to child nodes.
+* `update([dom [, includeChildren]])` updates the scope by reading property values from the DOM. If the optional `dom` parameter is provided, only update the given node or array of nodes. If `includeChildren` is true, the update cascades to child nodes.
 * `bind(dom [, options])` binds the given DOM node to the scope. See the options section for the optional options argument. The `dom` parameter may also be an array of nodes.
 * `unbind(dom)` unbinds the given DOM node from the scope. The `dom` parameter may also be an array of nodes.
 * `nodes([includeParents])` returns an array of DOM nodes that have been bound to this scope and have bindings. Includes nodes in child scopes unless the optional `includeParents` parameter is false.
@@ -1118,28 +1136,28 @@ All scope functions are nested inside the `$` object, and therefore you call the
 
 #### Scope
 * `snapshot([includeParents])` returns a Javascript object containing the scope’s model properties, excluding the Consistent `$` object, and evaluating value functions and replacing with their current values. Includes properties in parent scopes unless the optional `includeParents` parameter is false.
-* `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the keys in object, replacing any existing objects, whereas a deep merge will merge objects.
-* `merge(object, keys)` merges the properties named in the keys array from the given object into the scope. The keys argument may be an array of key names or a single key, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
+* `merge([deep, ] object)` merges properties from the given object into the scope. If deep is provided it is a boolean indicating whether to do a deep merge. A normal merge simply copies across all of the properties in `object`, replacing any existing objects, whereas a deep merge will merge objects.
+* `merge(object, properties)` merges the properties named in the `properties` array from the given object into the scope. The properties argument may be an array of property names or a single property, and may include nested properties using dot notation, e.g. `[ "name", "address.street" ]`.
 * `clear()` removes all properties from the scope. This only leaves Consistent’s `$` object.
 
 * `scope()` returns the scope itself.
 * `scope(object)` replaces the scope with the given object. The given object is actually used as the scope, and Consistent’s `$` object is added into this object. The return value is the object given.
 
-* `get(key [, includeParents])` returns the value in the scope for the given key. If the scope contains a value function for the given key (after adding the value function prefix, if any), the value function is evaluated and its result returned. If the scope contains an event handler for the given key (after adding the event handler prefix), the event handler function is returned. Supports nested keys (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given key itself, unless the optional `includeParents` parameter is false. If no property with the given key is found it returns undefined.
-* `set(key, value)` sets the value in the scope for the given key. Supports nested keys. If the target key exists and contains a value function, the value function is called passing the value as the only argument. If no property exists in the scope for the given key, parent scopes are searched for a value function to call. If no value functions are found, a new property is created in the scope with the given value.
+* `get(property [, includeParents])` returns the value in the scope for the given property. If the scope contains a value function for the given property (after adding the value function prefix, if any), the value function is evaluated and its result returned. If the scope contains an event handler for the given property (after adding the event handler prefix), the event handler function is returned. Supports nested properties (i.e. that contain dot notation) and falls back to parent scopes if the scope doesn’t have a property for the given property itself, unless the optional `includeParents` parameter is false. If no property with the given property is found it returns undefined.
+* `set(property, value)` sets the value in the scope for the given property. Supports nested properties. If the target property exists and contains a value function, the value function is called passing the value as the only argument. If no property exists in the scope for the given property, parent scopes are searched for a value function to call. If no value functions are found, a new property is created in the scope with the given value.
 
 * `controller()` returns the controller.
 * `controller(object)` sets the controller to the given object. Consistent’s `$` object is added to this object. The return value is the scope.
 * `controller(name)` returns the value, usually an event handler function, with the given name in the scope’s controller. Supports nested names. If the value is a function, it is wrapped in an anonymous function that ensures `this` is bound to the controller when it is called.
 * `controller(name, function)` sets the function in the scope’s controller for the given name. Supports nested names.
-* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node), and returning the result. Supports nested keys and falls back to parent scopes’ controllers. Note that the first argument to the controller functions is always the scope in which the event occurred. If no controller function is found this function has no effect and returns undefined.
+* `fire(name [, arguments...]])` looks for a function in the scope’s controller for the given name (supports nested names), and call that function passing the optional additional arguments (in the case of event handler functions, these are the Javascript event object and the DOM node), and returning the result. Supports nested properties and falls back to parent scopes’ controllers. Note that the first argument to the controller functions is always the scope in which the event occurred. If no controller function is found this function has no effect and returns undefined.
 
-* `getValueFunction(key [, includeParents])` returns the value function in the scope for the given key. Supports nested keys and falls back to parent scopes, unless the optional `includeParents` parameter is false.
-* `setValueFunction(key, function)` sets the value function in the scope for the given key. Supports nested keys.
+* `getValueFunction(property [, includeParents])` returns the value function in the scope for the given property. Supports nested properties and falls back to parent scopes, unless the optional `includeParents` parameter is false.
+* `setValueFunction(property, function)` sets the value function in the scope for the given property. Supports nested properties.
 
 #### Watch
-* `watch([key,] function)` adds the given handler function as a watch function to the key, if provided, otherwise to the whole scope.
-* `unwatch([key,] function)` unbinds the watch function.
+* `watch([property,] function)` adds the given handler function as a watch function to the property, if provided, otherwise to the whole scope.
+* `unwatch([property,] function)` unbinds the watch function.
 
 #### Expressions and Statements
 * `evaluate(expression)` evaluates the given expression string in the context of the scope.

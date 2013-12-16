@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.12.0
+ * Consistent.js 0.12.1
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -343,12 +343,11 @@
 			return -1;
 		};
 	}
+	Consistent.arrayIndexOf = arrayIndexOf;
 
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
 	 * copy.
-	 * Note that merge does not merge keys that are "$". This is because Consistent puts its functionality in the
-	 * $ object and there are pointers in there that cause cycles.
 	 */
 	function merge() {
 		/* Support cycles */
@@ -383,11 +382,6 @@
 				merged.push(target);
 
 				for (var name in source) {
-					/* Do not merge any key "$" */
-					if (name === "$") {
-						continue;
-					}
-
 					var value = source[name];
 					if (value !== undefined) {
 						if (deep && typeof value === "object" && value !== null) {
@@ -431,6 +425,11 @@
 		}
 
 		var result = merge.apply(null, arguments);
+		/* We replace the $ property from the first merge, with the result of merging all of the $s
+		 * themselves. Note that this isn't a deep merge, but we have to specifically do the merge of
+		 * the $s so we merge their contents. If we didn't do this each $ property in the arguments
+		 * would clobber the next.
+		 */
 		result.$ = merge.apply(null, $s);
 		return result;
 	}
@@ -445,6 +444,29 @@
 		} else {
 			return name;
 		}
+	}
+
+	/**
+	 * Makes nested properties more presentable. Changes array index properties from array.0
+	 * to array[0].
+	 */
+	function presentNestedProperty(property) {
+		return property.replace(/\.([0-9]+)(\.|$)/g, "[$1]$2");
+	}
+
+	function presentNestedProperties(properties) {
+		var result = [];
+		for (var i = 0; i < properties.length; i++) {
+			result.push(presentNestedProperty(properties[i]));
+		}
+		return result;
+	}
+
+	/**
+	 * Undoes the work on presentNestedProperty.
+	 */
+	function unpresentNestedProperty(property) {
+		return property.replace(/\[([0-9]+)\]/g, ".$1");
 	}
 
 	function getNestedProperty(object, property) {
@@ -1422,7 +1444,7 @@
 			seen = [];
 		}
 		if (arrayIndexOf(seen, snapshot) !== -1) {
-			return;
+			return true;
 		}
 		seen.push(snapshot);
 
@@ -1431,6 +1453,7 @@
 		var propertyName;
 
 		var skip = [];
+		var invalid = 0;
 		for (var name in snapshot) {
 			if (arrayIndexOf(skip, name) !== -1) {
 				continue;
@@ -1457,10 +1480,41 @@
 					}
 				}
 			} else if (typeof value === "object" && value !== null) {
-				/* Go deep recursively processing snapshot */
-				processSnapshot(value, baseScope, scope, seen);
+				if (Consistent.isScope(value)) {
+					/* The snapshot contains a scope. We create a snapshot of the scope to go in our snapshot.
+					 * But only if the base scope is the owner of this snapshot. If we've come from a child scope
+					 * then we blank these out to prevent child scopes getting themselves in their snapshot.
+					 * See snapshotSpec.js's Snapshot with nested scopes with value functions that respond to scope
+					 * test.
+					 */
+					if (baseScope === scope) {
+						/* Note that even though "value" is a copy of the original scope, created by the deep merge
+						 * in the snapshot function, when we call value.$.snapshot(), the snapshot function gets the
+						 * scope by calling its _scope(), which returns the original. So we will be executing any
+						 * value functions with the original scope.
+						 */
+						snapshot[name] = value.$.snapshot();
+					} else {
+						delete snapshot[name];
+						invalid++;
+					}
+				} else {
+					/* Go deep recursively processing snapshot */
+					var keep = processSnapshot(value, baseScope, scope, seen);
+					if (!keep) {
+						delete snapshot[name];
+					}
+				}
 			}
 		}
+
+		if (invalid > 0 && isArray(snapshot) && invalid === snapshot.length) {
+			/* If snapshot is an array and we've declared all of its contents invalid, then
+			 * we remove the whole array from the snapshot.
+			 */
+			return false;
+		}
+		return true;
 	}
 
 	Consistent.defaultEmptyScope = {
@@ -1547,12 +1601,21 @@
 			},
 			merge: function(object, keys) {
 				var scope = this._scope();
+				var temp;
 				if (typeof object === "boolean") {
-					/* merge(true, object) */
-					return merge(object, scope, keys);
+					/* merge(boolean, object) 
+					 * Note below that "object" is the boolean, and "keys" is the object supplied to be merged into us.
+					 * We need to do our first merge to remove any "$" property from the incoming object, and we
+					 * must do that deep, if this merge is deep, so that we preserve any cyclic structures etc.
+					 */
+					temp = merge(object, {}, keys);
+					delete temp.$;
+					return merge(object, scope, temp);
 				} else if (keys === undefined) {
 					/* merge(object) */
-					return merge(scope, object);
+					temp = merge({}, object);
+					delete temp.$;
+					return merge(scope, temp);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
@@ -1647,11 +1710,14 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
+				delete temp.$;
+
 				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
+
 				return temp;
 			},
 
@@ -1713,7 +1779,8 @@
 				var valueFunctionPrefix = this.options().valueFunctionPrefix;
 				var scope = this._scope();
 
-				var value = getNestedProperty(scope, key);
+				var unpresentedKey = unpresentNestedProperty(key);
+				var value = getNestedProperty(scope, unpresentedKey);
 				if (value !== undefined) {
 					if (!valueFunctionPrefix && typeof value === "function") {
 						return value.call(scope, childScope !== undefined ? childScope : scope);
@@ -1723,7 +1790,7 @@
 				} else {
 					var prefixedPropertyName;
 					if (valueFunctionPrefix) {
-						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						prefixedPropertyName = addPrefixToPropertyName(unpresentedKey, valueFunctionPrefix);
 						value = getNestedProperty(scope, prefixedPropertyName);
 						if (typeof value === "function") {
 							return value.call(scope, scope);
@@ -1917,8 +1984,7 @@
 		if (bObject !== null) {
 			for (key in aObject) {
 				if (aObject[key] !== bObject[key]) {
-					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
-						aObject[key] && bObject[key]) {
+					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" && aObject[key] && bObject[key]) {
 						/* Nested objects */
 						differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
 					} else {
@@ -2300,6 +2366,7 @@
 				}
 
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
+				keys = expandNestedKeys(keys);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (arrayIndexOf(dirty, key) === -1) {
@@ -2327,6 +2394,30 @@
 		} else {
 			return false;
 		}
+
+		function expandNestedKeys(keys) {
+			var result = [].concat(keys);
+			for (var i = 0; i < keys.length; i++) {
+				var key = keys[i];
+
+				while (true) {
+					/* If the key is a nested property, then strip off the last part and look for watchers again */
+					var lastNestingSeparator = key.lastIndexOf(".");
+					if (lastNestingSeparator !== -1) {
+						key = key.substring(0, lastNestingSeparator);
+
+						if (arrayIndexOf(result, key) === -1) {
+							result.push(key);
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			return result;
+		}
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue, scope, notifyingState) {
@@ -2350,17 +2441,17 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(notifying[watcherId].cleanValue, newValue)) {
-					watcher.call(this._scope, scope, key, newValue, oldValue);
+					watcher.call(this._scope, scope, presentNestedProperty(key), newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
-					notifying[watcherId] = { cleanValue: scope.$.get(key) };
+					notifying[watcherId] = { cleanValue: getNestedProperty(scope.$.snapshot(), key) };
 					notified = true;
 				}
 			}
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
 		return notified;
@@ -2387,7 +2478,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
-					watchers[i].call(this._scope, scope, keys, scopeSnapshot, oldScopeSnapshot);
+					watchers[i].call(this._scope, scope, presentNestedProperties(keys), scopeSnapshot, oldScopeSnapshot);
 
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
@@ -2397,7 +2488,7 @@
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;
@@ -2680,6 +2771,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];
@@ -2695,6 +2788,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];

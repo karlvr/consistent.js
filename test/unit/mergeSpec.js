@@ -172,7 +172,7 @@ describe('Merge tests', function() {
 		expect(scope.cycle.b).toBe(scope.b);
 	});
 
-	it ("Raw cyclic merge test", function() {
+	it("Raw cyclic merge test", function() {
 		var result = {};
 		Consistent.merge(true, result, cyclic1);
 
@@ -189,5 +189,14 @@ describe('Merge tests', function() {
 
 		/* Functions are copied */
 		expect(result.cycle.c).toBe(cyclic1.c);
+	});
+
+	it("Merge doesn't merge in $ properties", function() {
+		var scope = Consistent();
+		var merger = { a: 3, $: 5 };
+		scope.$.merge(merger);
+
+		expect(scope.a).toBe(3);
+		expect(scope.$).not.toBe(5);
 	});
 });

@@ -213,4 +213,107 @@ describe('Snapshot tests', function() {
 		expect(snapshot.cycle.cycle).toBe(snapshot.cycle);
 	});
 
+	/**
+	 * This simulates a repeating block. This tests how we handle nested scopes in snapshot.
+	 */
+	it("Snapshot with nested scopes", function() {
+		var changedKeys = [];
+
+		var scope = Consistent();
+		scope.todos = [ new Consistent(scope), new Consistent(scope), new Consistent(scope) ];
+
+		scope.todos[0].test = 7;
+
+		var snapshot = scope.$.snapshot();
+		expect(snapshot.todos[0].$).not.toBeDefined();
+		expect(snapshot.todos[0].test).toBe(7);
+	});
+
+	/**
+	 * This simulates a repeating block. This tests how we handle nested scopes in snapshot.
+	 */
+	it("Snapshot with nested scopes with value functions", function() {
+		var changedKeys = [];
+
+		var scope = Consistent();
+		scope.todos = [ new Consistent(scope), new Consistent(scope), new Consistent(scope) ];
+
+		scope.todos[0].test = function() {
+			return 7;
+		};
+
+		var snapshot = scope.$.snapshot();
+		expect(snapshot.todos[0].$).not.toBeDefined();
+		expect(snapshot.todos[0].test).toBe(7);
+	});
+
+	/**
+	 * This simulates a repeating block. This tests how we handle nested scopes in snapshot.
+	 */
+	it("Snapshot with nested scopes with value functions that respond to scope", function() {
+		var scope = Consistent();
+		scope.a = 3;
+		scope.b = 11;
+		scope.d = function(localScope) {
+			return localScope.$.get("a") * localScope.$.get("b");
+		};
+		scope.todos = [ Consistent(scope), Consistent(scope), Consistent(scope) ];
+
+		scope.todos[0].a = 5;
+		scope.todos[0].test = function(localScope) {
+			return 7 * localScope.a;
+		};
+		scope.todos[1].c = 13;
+
+		var snapshot = scope.$.snapshot();
+		expect(snapshot.a).toBe(3);
+		expect(snapshot.b).toBe(11);
+		expect(snapshot.d).toBe(33);
+
+		expect(snapshot.todos[0].$).not.toBeDefined();
+		expect(snapshot.todos[0].test).toBe(35);
+		expect(snapshot.todos[0].a).toBe(5);
+		expect(snapshot.todos[0].b).toBe(11);
+		expect(snapshot.todos[0].d).toBe(55);
+		expect(snapshot.todos[0].todos).not.toBeDefined(); // While the other properties are inherited, the todos array is not because it conatins scopes
+		
+		// Check for no cross-polination between scopes
+		expect(snapshot.todos[0].c).not.toBeDefined();
+		expect(snapshot.c).not.toBeDefined();
+		expect(snapshot.test).not.toBeDefined();
+
+		// todos[1] gets its own properties and inherited ones
+		expect(snapshot.todos[1].c).toBe(13);
+		expect(snapshot.todos[1].a).toBe(3);
+		expect(snapshot.todos[1].b).toBe(11);
+		expect(snapshot.todos[1].d).toBe(33);
+		expect(snapshot.todos[1].todos).not.toBeDefined();
+
+		var childSnapshot = scope.todos[0].$.snapshot();
+		expect(childSnapshot.a).toBe(5);
+		expect(childSnapshot.b).toBe(11);
+		expect(childSnapshot.d).toBe(55);
+		expect(childSnapshot.test).toBe(35);
+		expect(childSnapshot.todos).not.toBeDefined(); // because todos is deleted from the snapshot as the snapshot is coming from the child
+	});
+
+	/* Test that when a child snapshot is made as part of a parent snapshot, that the value functions are
+	 * called with the scope object that we expect. This is to make sure that even though we are making a 
+	 * copy (snapshot) of the child scope, when we execute value functions it's on the original.
+	 */
+	it("Snapshot with child scopes contains snapshots of original child scope, not a copy", function() {
+		var scope = Consistent();
+		scope.todos = [ Consistent(scope), Consistent(scope), Consistent(scope) ];
+
+		function index(localScope) {
+			return Consistent.arrayIndexOf(scope.todos, localScope);
+		};
+		scope.index = index;
+
+		var snapshot = scope.$.snapshot();
+		expect(snapshot.todos[0].index).toBe(0);
+		expect(snapshot.todos[1].index).toBe(1);
+		expect(snapshot.todos[2].index).toBe(2);
+	});
+
 });

@@ -37,13 +37,14 @@
 <script>
 $(function() {
 	var scope = $("#container").consistent();
-	scope.index = function() {
-		/* Note that although this function is defined on the scope in the scope variable.
-		 * This is set to the child scope when the value function is evaluated.
+	scope.index = function(localScope) {
+		/* Note that this function is defined on the parent scope. When it is called it receives
+		 * a first argument identifying the scope it is being called from, so it can answer for
+		 * that scope. This is how child scopes inherit value functions.
 		 * The $.index property is a special property that Consistent sets on scopes representing
 		 * a repeated block.
 		 */
-		return this.$.index + 1;
+		return localScope.$.index + 1;
 	};
 	scope.items = [
 		{ name: "Albert", description: randomDescription() },

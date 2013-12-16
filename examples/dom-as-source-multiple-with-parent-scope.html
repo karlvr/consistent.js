@@ -106,14 +106,14 @@ $(function() {
 	});
 
 	/* Watch on status to update the derived properties */
-	rootScope.$.watch("status", function() {
-		/* _this_ is set to the scope that received the change, rather than the rootScope */
-		if (this.status == "on") {
-			this.displayClass = "highlighted";
-			this.buttonLabel = "Turn Off";
+	rootScope.$.watch("status", function(childScope) {
+		/* childScope is the scope that received the change, rather than the rootScope */
+		if (childScope.status == "on") {
+			childScope.displayClass = "highlighted";
+			childScope.buttonLabel = "Turn Off";
 		} else {
-			this.displayClass = "lowlighted";
-			this.buttonLabel = "Turn On";
+			childScope.displayClass = "lowlighted";
+			childScope.buttonLabel = "Turn On";
 		}
 		/* No need to apply inside a watcher callback */
 	});

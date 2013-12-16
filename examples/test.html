@@ -88,7 +88,7 @@ $(function() {
 		myScope.$.apply();
 	});
 
-	myScope.$.watch("hello", function(key, value, oldValue) {
+	myScope.$.watch("hello", function(localScope, key, value, oldValue) {
 		if (value == "fade") {
 			$(myScope.$.nodes()).fadeOut();
 		} else {

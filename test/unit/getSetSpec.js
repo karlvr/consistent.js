@@ -169,4 +169,31 @@ describe('Get/set tests', function() {
 		expect(scope.$.get("a")).toBe(21);
 	});
 
+	it("Get with nested properties", function() {
+		var scope = Consistent();
+		scope.a = {
+			b: 3,
+			c: 5
+		};
+
+		expect(scope.$.get("a.b")).toBe(3);
+		expect(scope.$.get("a.c")).toBe(5);
+	});
+
+	it("Get with nested array properties", function() {
+		var scope = Consistent();
+		scope.a = [ 3, 5 ];
+
+		expect(scope.$.get("a.0")).toBe(3);
+		expect(scope.$.get("a.1")).toBe(5);
+	});
+
+	it("Get with nested array properties with nicer presentation", function() {
+		var scope = Consistent();
+		scope.a = [ 3, 5 ];
+
+		expect(scope.$.get("a[0]")).toBe(3);
+		expect(scope.$.get("a[1]")).toBe(5);
+	});
+
 });
