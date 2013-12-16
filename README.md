@@ -791,7 +791,7 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass true for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass `false` for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
 
 ### Parent scopes
 
