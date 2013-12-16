@@ -266,31 +266,33 @@ describe('Snapshot tests', function() {
 		scope.todos[1].c = 13;
 
 		var snapshot = scope.$.snapshot();
+		expect(snapshot.a).toBe(3);
+		expect(snapshot.b).toBe(11);
+		expect(snapshot.d).toBe(33);
+
 		expect(snapshot.todos[0].$).not.toBeDefined();
 		expect(snapshot.todos[0].test).toBe(35);
 		expect(snapshot.todos[0].a).toBe(5);
-		expect(snapshot.todos[0].b).not.toBeDefined(); // as the snapshot from "scope" of the child scope will not include inherited properties
-		expect(snapshot.todos[0].d).not.toBeDefined();
-		expect(snapshot.todos[0].todos).not.toBeDefined();
+		expect(snapshot.todos[0].b).toBe(11);
+		expect(snapshot.todos[0].d).toBe(55);
+		expect(snapshot.todos[0].todos).not.toBeDefined(); // While the other properties are inherited, the todos array is not because it conatins scopes
 		
 		// Check for no cross-polination between scopes
 		expect(snapshot.todos[0].c).not.toBeDefined();
 		expect(snapshot.c).not.toBeDefined();
 		expect(snapshot.test).not.toBeDefined();
 
-		// todos[1] gets its own propreties but no inherited ones
+		// todos[1] gets its own properties and inherited ones
 		expect(snapshot.todos[1].c).toBe(13);
-		expect(snapshot.todos[1].a).not.toBeDefined();
-		expect(snapshot.todos[1].b).not.toBeDefined();
+		expect(snapshot.todos[1].a).toBe(3);
+		expect(snapshot.todos[1].b).toBe(11);
+		expect(snapshot.todos[1].d).toBe(33);
 		expect(snapshot.todos[1].todos).not.toBeDefined();
-		
-		// Value function from scope isn't included in snapshot of children as it is recursive
-		expect(snapshot.d).toBe(33);
-		expect(snapshot.todos[0].d).not.toBeDefined();
 
 		var childSnapshot = scope.todos[0].$.snapshot();
 		expect(childSnapshot.a).toBe(5);
-		expect(childSnapshot.b).toBe(11); // it is inherited this time
+		expect(childSnapshot.b).toBe(11);
+		expect(childSnapshot.d).toBe(55);
 		expect(childSnapshot.test).toBe(35);
 		expect(childSnapshot.todos).not.toBeDefined(); // because todos is deleted from the snapshot as the snapshot is coming from the child
 	});
@@ -306,13 +308,7 @@ describe('Snapshot tests', function() {
 		function index(localScope) {
 			return Consistent.arrayIndexOf(scope.todos, localScope);
 		};
-
-		/* We have to put these in each child scope, as calling snapshot on the parent will cause the children not
-		 * to include value functions from the parent.
-		 */
-		scope.todos[0].index = index;
-		scope.todos[1].index = index;
-		scope.todos[2].index = index;
+		scope.index = index;
 
 		var snapshot = scope.$.snapshot();
 		expect(snapshot.todos[0].index).toBe(0);

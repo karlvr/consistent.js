@@ -1707,14 +1707,6 @@
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
-				if (this._snapshotting) {
-					/* Prevent recursive snapshotting. This occurs when a scope includes child scopes in itself,
-					 * such as when we create repeated blocks - as they are built from an array in this scope,
-					 * and those objects in the array become child scopes.
-					 */
-					return {};
-				}
-				this._snapshotting = true;
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
@@ -1726,7 +1718,6 @@
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
 
-				delete this._snapshotting;
 				return temp;
 			},
 
