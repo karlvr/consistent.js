@@ -1941,8 +1941,7 @@
 		if (bObject !== null) {
 			for (key in aObject) {
 				if (aObject[key] !== bObject[key]) {
-					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
-						aObject[key] && bObject[key]) {
+					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" && aObject[key] && bObject[key]) {
 						/* Nested objects */
 						differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
 					} else {
@@ -2324,6 +2323,7 @@
 				}
 
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
+				keys = expandNestedKeys(keys);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (arrayIndexOf(dirty, key) === -1) {
@@ -2351,6 +2351,30 @@
 		} else {
 			return false;
 		}
+
+		function expandNestedKeys(keys) {
+			var result = [].concat(keys);
+			for (var i = 0; i < keys.length; i++) {
+				var key = keys[i];
+
+				while (true) {
+					/* If the key is a nested property, then strip off the last part and look for watchers again */
+					var lastNestingSeparator = key.lastIndexOf(".");
+					if (lastNestingSeparator !== -1) {
+						key = key.substring(0, lastNestingSeparator);
+
+						if (arrayIndexOf(result, key) === -1) {
+							result.push(key);
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			return result;
+		}
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue, scope, notifyingState) {
@@ -2377,14 +2401,14 @@
 					watcher.call(this._scope, scope, presentNestedProperty(key), newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
-					notifying[watcherId] = { cleanValue: scope.$.get(key) };
+					notifying[watcherId] = { cleanValue: getNestedProperty(scope.$.snapshot(), key) };
 					notified = true;
 				}
 			}
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
 		return notified;
@@ -2421,7 +2445,7 @@
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;

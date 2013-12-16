@@ -696,13 +696,30 @@ The snapshots passed to the watch handler function for the whole scope are creat
 
 Notice that you do not need to call `apply` if you change the scope inside a watch handler. A watch handler may be called multiple times in a single `apply` if the scope is changed by _other_ watch handlers.
 
-Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
+Value functions are watched based on their returned value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
 
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
 The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes.
 
-### Populating the scope from another object
+#### Nested properties
+
+In the case of nested properties, the key argument will be the path to the property, separated by `.`s.
+
+Watch handlers registered for a property name will be called for any nested properties, e.g. if you register a watch on `todos`, the watch handler will fire when anything inside the `todos` object, or array, is changed.
+
+```javascript
+scope.todos = [ "Learn Portugese", "Wash dog", "Wash car" ];
+scope.$.watch("todos", function(scope, key) {
+	console.log("Todos changed");
+});
+scope.$.apply(); // Fires the watch handler as the todos array is added to the scope
+
+scope.todos[0] = "Wash cat";
+scope.$.apply(); // Fires the watch handler again as todos has changed.
+```
+
+### Populating the scope from an object
 
 Often you’ll receive data from an Ajax JSON response as a Javascript object. You can merge these into the scope using the `merge` function.
 
@@ -711,6 +728,7 @@ var scope = $("#item").consistent();
 $.ajax({
 	success: function(data) {
 		scope.$.merge(data);
+		scope.$.apply();
 	}
 })
 ```
