@@ -1,5 +1,5 @@
 /*! 
- * Consistent.js jQuery plugin 0.11.1
+ * Consistent.js jQuery plugin 0.12.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
