@@ -1582,12 +1582,12 @@
 					 * must do that deep, if this merge is deep, so that we preserve any cyclic structures etc.
 					 */
 					temp = merge(object, {}, keys);
-					delete temp["$"];
+					delete temp.$;
 					return merge(object, scope, temp);
 				} else if (keys === undefined) {
 					/* merge(object) */
 					temp = merge({}, object);
-					delete temp["$"];
+					delete temp.$;
 					return merge(scope, temp);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
@@ -1691,7 +1691,7 @@
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				delete temp["$"];
+				delete temp.$;
 
 				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
