@@ -1751,6 +1751,9 @@
 					 */
 					var valueFunction = this.getValueFunction(key);
 					if (valueFunction !== undefined) {
+						/* Note that we do not need to set this, as getValueFunction forces this to be bound
+						 * to the declaring scope.
+						 */
 						valueFunction.call(null, scope, value);
 						return scope;
 					}
@@ -1760,8 +1763,8 @@
 				if (typeof current !== "function") {
 					setNestedProperty(scope, key, value);
 				} else if (!this.options().valueFunctionPrefix) {
-					/* Value function */
-					current.call(null, scope, value);
+					/* Value function - note we must set this as we are calling it directly */
+					current.call(scope, scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
