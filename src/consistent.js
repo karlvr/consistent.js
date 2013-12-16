@@ -383,11 +383,6 @@
 				merged.push(target);
 
 				for (var name in source) {
-					/* Do not merge any key "$" */
-					if (name === "$") {
-						continue;
-					}
-
 					var value = source[name];
 					if (value !== undefined) {
 						if (deep && typeof value === "object" && value !== null) {
@@ -1480,8 +1475,12 @@
 					}
 				}
 			} else if (typeof value === "object" && value !== null) {
-				/* Go deep recursively processing snapshot */
-				processSnapshot(value, baseScope, scope, seen);
+				if (Consistent.isScope(value)) {
+					snapshot[name] = value.$.snapshot();
+				} else {
+					/* Go deep recursively processing snapshot */
+					processSnapshot(value, baseScope, scope, seen);
+				}
 			}
 		}
 	}
@@ -1667,14 +1666,26 @@
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
 					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
+				if (this._snapshotting) {
+					/* Prevent recursive snapshotting. This occurs when a scope includes child scopes in itself,
+					 * such as when we create repeated blocks - as they are built from an array in this scope,
+					 * and those objects in the array become child scopes.
+					 */
+					return {};
+				}
+				this._snapshotting = true;
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
+				delete temp["$"];
+
 				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
+
+				delete this._snapshotting;
 				return temp;
 			},
 
