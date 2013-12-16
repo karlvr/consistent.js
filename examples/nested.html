@@ -32,7 +32,7 @@ $(function() {
 		};
 	}
 
-	scope.$.watch(function(keys) {
+	scope.$.watch(function(localScope, keys) {
 		console.log("Keys changed: " + keys);
 		if (keys[0] === "person.name") {
 			personNameChanged = true;
@@ -41,11 +41,11 @@ $(function() {
 		}
 	});
 
-	scope.$.watch("person.name", function(key, newValue, oldValue) {
+	scope.$.watch("person.name", function(localScope, key, newValue, oldValue) {
 		console.log(key, " changed from ", oldValue, " to ", newValue);
 	});
 
-	scope.$.watch("person", function(key, newValue, oldValue) {
+	scope.$.watch("person", function(localScope, key, newValue, oldValue) {
 		console.log(key, " changed from ", oldValue, " to ", newValue);
 	});
 

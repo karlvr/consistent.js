@@ -21,7 +21,7 @@ $(function() {
 	var scope = $('#container').consistent();
 
 	/* Watch all scope changes */
-	scope.$.watch(function(keys, snapshot, oldSnapshot) {
+	scope.$.watch(function(localScope, keys, snapshot, oldSnapshot) {
 		this.status = "Changed " + keys;
 	});
 
@@ -54,7 +54,7 @@ $(function() {
 	var scope = $("#container2").consistent();
 
 	/* Watch all scope changes */
-	scope.$.watch(function(keys, snapshot, oldSnapshot) {
+	scope.$.watch(function(localScope, keys, snapshot, oldSnapshot) {
 		this.status = "Changed " + keys;
 	});
 
