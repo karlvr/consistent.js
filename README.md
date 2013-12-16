@@ -683,11 +683,11 @@ Note this doesn’t work for any properties that are using templates.
 Register a handler function to watch for changes to a particular property, or to the scope as a whole. Watch handler functions are called when `apply` is called on the scope, **before** the DOM has been updated.
 
 ```javascript
-scope.$.watch("title", function(key, newValue, oldValue) {
+scope.$.watch("title", function(scope, key, newValue, oldValue) {
 	this.shortTitle = this.title.substring(0, 10);
 });
 
-scope.$.watch(function(changedKeys, snapshot, oldSnapshot) {
+scope.$.watch(function(scope, changedKeys, snapshot, oldSnapshot) {
 	this.changeSummary = "The following keys were changed: " + changedKeys;
 });
 ```
@@ -699,6 +699,8 @@ Notice that you do not need to call `apply` if you change the scope inside a wat
 Value functions are watched based on their value. If the value returned by a value function changes between one apply and the next, the watch handler function will be called.
 
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
+
+The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes.
 
 ### Populating the scope from another object
 
@@ -789,13 +791,13 @@ scope.$.set(nestedPropertyName, value);
 
 If the appropriate intermediate objects don’t exist, when calling `set`, they are created and added to the scope for you.
 
-Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass true for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
+Note that `get` will fall back to a parent scope, if there is one. See below for Parent scopes. If you don’t want to fall back to a parent scope pass `false` for the optional `includeParents` parameter, e.g. `get(key, false)` instead.
 
 ### Parent scopes
 
 You can create parent and child scopes. Child scopes will look to their parent if they don’t contain a value for a given property, and so on up the parent chain. When a snapshot is created of a scope, it will include all of the properties in its parent, and its parent’s parent, and so on. As snapshots are used to apply the scope to the DOM, the combined properties of all of the scopes are available to be applied to the DOM.
 
-When `apply()` is called on a child scope, it automatically calls `apply()` on its parent scope.
+When `apply()` is called on a child scope, and the child scope needs to be applied, it automatically calls `apply()` on its parent scope after applying itself. Similarly, when `apply()` is called on a parent scope, and the parent scope needs to be applied, it automatically calls `apply()` on its child scopes after applying itself. Note that in both of these cases, if the scope doesn’t need to be applied, i.e. there are no changes, it does not cascade to parents or children. So always call `apply()` on the scope that you’ve changed.
 
 ```javascript
 var rootScope = Consistent(); /* Create the root scope */
@@ -849,7 +851,7 @@ rootScope.$.controller("handleClick", function(childScope, ev, dom) {
 
 #### Watch handler functions
 
-Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will be the child scope, rather than the scope in which the watch function is defined.
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will always be the scope where the watch function is declared, however the first argument will be the child scope. In this way the watch function can access both the scope where the change occurred and the scope where it was declared.
 
 
 ### Getting the nodes bound to a scope

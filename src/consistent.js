@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.11.1
+ * Consistent.js 0.12.0
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -2350,7 +2350,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(notifying[watcherId].cleanValue, newValue)) {
-					watcher.call(scope, key, newValue, oldValue);
+					watcher.call(this._scope, scope, key, newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanValue: scope.$.get(key) };
@@ -2387,7 +2387,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
-					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
+					watchers[i].call(this._scope, scope, keys, scopeSnapshot, oldScopeSnapshot);
 
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
