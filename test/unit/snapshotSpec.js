@@ -293,14 +293,7 @@ describe('Snapshot tests', function() {
 		expect(childSnapshot.a).toBe(5);
 		expect(childSnapshot.b).toBe(11); // it is inherited this time
 		expect(childSnapshot.test).toBe(35);
-		expect(childSnapshot.todos).toBeDefined();
-
-		// Child snapshot contains a blank snapshot of itself to prevent recursion
-		expect(childSnapshot.todos[0]).toBeDefined();
-		expect(childSnapshot.todos[0].a).not.toBeDefined();
-
-		// However its siblings are defined
-		expect(childSnapshot.todos[1].c).toBe(13);
+		expect(childSnapshot.todos).not.toBeDefined(); // because todos is deleted from the snapshot as the snapshot is coming from the child
 	});
 
 });

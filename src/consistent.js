@@ -1445,7 +1445,7 @@
 			seen = [];
 		}
 		if (arrayIndexOf(seen, snapshot) !== -1) {
-			return;
+			return true;
 		}
 		seen.push(snapshot);
 
@@ -1454,6 +1454,7 @@
 		var propertyName;
 
 		var skip = [];
+		var invalid = 0;
 		for (var name in snapshot) {
 			if (arrayIndexOf(skip, name) !== -1) {
 				continue;
@@ -1481,13 +1482,35 @@
 				}
 			} else if (typeof value === "object" && value !== null) {
 				if (Consistent.isScope(value)) {
-					snapshot[name] = value.$.snapshot();
+					/* The snapshot contains a scope. We create a snapshot of the scope to go in our snapshot.
+					 * But only if the base scope is the owner of this snapshot. If we've come from a child scope
+					 * then we blank these out to prevent child scopes getting themselves in their snapshot.
+					 * See snapshotSpec.js's Snapshot with nested scopes with value functions that respond to scope
+					 * test.
+					 */
+					if (baseScope === scope) {
+						snapshot[name] = value.$.snapshot();
+					} else {
+						delete snapshot[name];
+						invalid++;
+					}
 				} else {
 					/* Go deep recursively processing snapshot */
-					processSnapshot(value, baseScope, scope, seen);
+					var keep = processSnapshot(value, baseScope, scope, seen);
+					if (!keep) {
+						delete snapshot[name];
+					}
 				}
 			}
 		}
+
+		if (invalid > 0 && isArray(snapshot) && invalid === snapshot.length) {
+			/* If snapshot is an array and we've declared all of its contents invalid, then
+			 * we remove the whole array from the snapshot.
+			 */
+			return false;
+		}
+		return true;
 	}
 
 	Consistent.defaultEmptyScope = {
