@@ -347,8 +347,6 @@
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
 	 * copy.
-	 * Note that merge does not merge keys that are "$". This is because Consistent puts its functionality in the
-	 * $ object and there are pointers in there that cause cycles.
 	 */
 	function merge() {
 		/* Support cycles */
