@@ -343,6 +343,7 @@
 			return -1;
 		};
 	}
+	Consistent.arrayIndexOf = arrayIndexOf;
 
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
@@ -1487,6 +1488,11 @@
 					 * test.
 					 */
 					if (baseScope === scope) {
+						/* Note that even though "value" is a copy of the original scope, created by the deep merge
+						 * in the snapshot function, when we call value.$.snapshot(), the snapshot function gets the
+						 * scope by calling its _scope(), which returns the original. So we will be executing any
+						 * value functions with the original scope.
+						 */
 						snapshot[name] = value.$.snapshot();
 					} else {
 						delete snapshot[name];

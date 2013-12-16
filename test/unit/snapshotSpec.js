@@ -251,15 +251,13 @@ describe('Snapshot tests', function() {
 	 * This simulates a repeating block. This tests how we handle nested scopes in snapshot.
 	 */
 	it("Snapshot with nested scopes with value functions that respond to scope", function() {
-		var changedKeys = [];
-
 		var scope = Consistent();
 		scope.a = 3;
 		scope.b = 11;
 		scope.d = function(localScope) {
 			return localScope.$.get("a") * localScope.$.get("b");
 		};
-		scope.todos = [ new Consistent(scope), new Consistent(scope), new Consistent(scope) ];
+		scope.todos = [ Consistent(scope), Consistent(scope), Consistent(scope) ];
 
 		scope.todos[0].a = 5;
 		scope.todos[0].test = function(localScope) {
@@ -272,6 +270,7 @@ describe('Snapshot tests', function() {
 		expect(snapshot.todos[0].test).toBe(35);
 		expect(snapshot.todos[0].a).toBe(5);
 		expect(snapshot.todos[0].b).not.toBeDefined(); // as the snapshot from "scope" of the child scope will not include inherited properties
+		expect(snapshot.todos[0].d).not.toBeDefined();
 		expect(snapshot.todos[0].todos).not.toBeDefined();
 		
 		// Check for no cross-polination between scopes
@@ -294,6 +293,31 @@ describe('Snapshot tests', function() {
 		expect(childSnapshot.b).toBe(11); // it is inherited this time
 		expect(childSnapshot.test).toBe(35);
 		expect(childSnapshot.todos).not.toBeDefined(); // because todos is deleted from the snapshot as the snapshot is coming from the child
+	});
+
+	/* Test that when a child snapshot is made as part of a parent snapshot, that the value functions are
+	 * called with the scope object that we expect. This is to make sure that even though we are making a 
+	 * copy (snapshot) of the child scope, when we execute value functions it's on the original.
+	 */
+	it("Snapshot with child scopes contains snapshots of original child scope, not a copy", function() {
+		var scope = Consistent();
+		scope.todos = [ Consistent(scope), Consistent(scope), Consistent(scope) ];
+
+		function index(localScope) {
+			return Consistent.arrayIndexOf(scope.todos, localScope);
+		};
+
+		/* We have to put these in each child scope, as calling snapshot on the parent will cause the children not
+		 * to include value functions from the parent.
+		 */
+		scope.todos[0].index = index;
+		scope.todos[1].index = index;
+		scope.todos[2].index = index;
+
+		var snapshot = scope.$.snapshot();
+		expect(snapshot.todos[0].index).toBe(0);
+		expect(snapshot.todos[1].index).toBe(1);
+		expect(snapshot.todos[2].index).toBe(2);
 	});
 
 });
