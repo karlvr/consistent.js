@@ -447,6 +447,29 @@
 		}
 	}
 
+	/**
+	 * Makes nested properties more presentable. Changes array index properties from array.0
+	 * to array[0].
+	 */
+	function presentNestedProperty(property) {
+		return property.replace(/\.([0-9]+)(\.|$)/g, "[$1]$2");
+	}
+
+	function presentNestedProperties(properties) {
+		var result = [];
+		for (var i = 0; i < properties.length; i++) {
+			result.push(presentNestedProperty(properties[i]));
+		}
+		return result;
+	}
+
+	/**
+	 * Undoes the work on presentNestedProperty.
+	 */
+	function unpresentNestedProperty(property) {
+		return property.replace(/\[([0-9]+)\]/g, ".$1");
+	}
+
 	function getNestedProperty(object, property) {
 		var parts = property.split(".");
 		var current = object;
@@ -1713,7 +1736,8 @@
 				var valueFunctionPrefix = this.options().valueFunctionPrefix;
 				var scope = this._scope();
 
-				var value = getNestedProperty(scope, key);
+				var unpresentedKey = unpresentNestedProperty(key);
+				var value = getNestedProperty(scope, unpresentedKey);
 				if (value !== undefined) {
 					if (!valueFunctionPrefix && typeof value === "function") {
 						return value.call(scope, childScope !== undefined ? childScope : scope);
@@ -1723,7 +1747,7 @@
 				} else {
 					var prefixedPropertyName;
 					if (valueFunctionPrefix) {
-						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						prefixedPropertyName = addPrefixToPropertyName(unpresentedKey, valueFunctionPrefix);
 						value = getNestedProperty(scope, prefixedPropertyName);
 						if (typeof value === "function") {
 							return value.call(scope, scope);
@@ -2350,7 +2374,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(notifying[watcherId].cleanValue, newValue)) {
-					watcher.call(this._scope, scope, key, newValue, oldValue);
+					watcher.call(this._scope, scope, presentNestedProperty(key), newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanValue: scope.$.get(key) };
@@ -2387,7 +2411,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
-					watchers[i].call(this._scope, scope, keys, scopeSnapshot, oldScopeSnapshot);
+					watchers[i].call(this._scope, scope, presentNestedProperties(keys), scopeSnapshot, oldScopeSnapshot);
 
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
@@ -2680,6 +2704,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];
@@ -2695,6 +2721,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];
