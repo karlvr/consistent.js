@@ -61,7 +61,7 @@
 				scope = arg0;
 				options = arguments.length > 1 ? arguments[1] : null;
 			} else {
-				scope = Consistent.apply(window, arguments);
+				scope = Consistent.apply(null, arguments);
 				options = null; /* No bind specific options */
 			}
 		}
