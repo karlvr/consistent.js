@@ -448,9 +448,11 @@ Multiple statements can be combined using the `;` separator.
 
 ### Automatic scope creation
 
-The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to form, and Consistent will create them automatically when the DOM is ready.
+The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to be created using declarations in your markup, and Consistent will automatically create them.
 
-Note: Consistent uses the jQuery plugin to fire the onDOMReady event. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes();` yourself.
+Consistent uses its jQuery plugin to auto create scopes when the onDOMReady event fires. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes()` yourself at the appropriate time.
+
+If you want to trigger the auto scope creation yourself, set `Consistent.settings.autoCreateScopes = false` before the onDOMReady event, then call `Consistent.autoCreateScopes()` when you’re ready.
 
 The simplest way to declare a scope is to add an empty `ct-scope` attribute. This tells Consistent to create a scope with the given root node, and to call `scope.$.update()` followed by `scope.$.apply()`. This will populate the scope from the DOM and then apply the state back to the DOM. You can get the scope in Javascript by finding the scope from the DOM node.
 
