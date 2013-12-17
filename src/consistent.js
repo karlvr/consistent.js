@@ -202,6 +202,9 @@
 					var controller;
 					if (controllerName) {
 						controller = getNestedProperty(window, controllerName);
+						if (!controller) {
+							throw exception("Cannot find controller class: " + controllerName);
+						}
 					}
 
 					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null, controller);
