@@ -42,13 +42,13 @@ $(function() {
 			success: function(data) {
 				var scope = Consistent(rootScope);
 				scope.$.merge(data);
-				scope.$select = function(ev) {
+				scope.$.controller("select", function(localScope, ev) {
 					ev.preventDefault();
 
 					scope.$.parent().$.apply(function() {
 						this.selected = scope.title;
 					});
-				};
+				});
 				$(template).appendTo("#container").consistent(scope).$.apply();
 				scopes.push(scope);
 			},

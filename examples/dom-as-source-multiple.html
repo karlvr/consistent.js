@@ -102,11 +102,11 @@ $(function() {
 			scope = scopesByObjectId[objectId] = $(this).consistent();
 
 			/* Click handler to toggle the status */
-			scope.$handleClick = function(ev) {
-				scope.$.apply(function() {
+			scope.$.controller("handleClick", function() {
+				this.$.apply(function() {
 					this.status = this.status == "on" ? "off" : "on";
 				});
-			};
+			});
 
 			/* Watch on status to update the derived properties */
 			scope.$.watch("status", function() {

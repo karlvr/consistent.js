@@ -15,33 +15,34 @@ Example of using ct-show, ct-on, ct-disabled and value functions to create an in
 
 <div id="container">
 	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
-	<button ct-on="registerClick" ct-disabled="hasClickedTooManyTimes">Click me</button>
+	<button ct-do="registerClick" ct-disabled="hasClickedTooManyTimes">Click me</button>
 	<div ct-show="hasClickedTooManyTimes">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button ct-on="resetClicks">Reset clicks</button>
+	    <button ct-do="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
 <script>
 $(function() {
 	var scope = $("#container").consistent();
+
+	scope.$.controller("registerClick", function() {
+		this.$.apply(function() {
+			this.numberOfClicks++;
+		});
+	});
+
+	scope.$.controller("resetClicks", function() {
+		this.$.apply(function() {
+			this.numberOfClicks = 0;
+		});
+	});
+
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
 
 		this.hasClickedTooManyTimes = function() {
 			return this.numberOfClicks >= 3;
-		};
-
-		this.$registerClick = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks++;
-			});
-		};
-
-		this.$resetClicks = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks = 0;
-			});
 		};
 	});
 });

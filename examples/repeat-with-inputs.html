@@ -19,7 +19,7 @@ inside repeating blocks.
 	<ul>
 		<li ct-repeat="people">
 			<input type="text" name="name">
-			<button ct-on="delete">Delete</button>
+			<button ct-do="delete">Delete</button>
 		</li>
 	</ul>
 </div>
@@ -56,12 +56,11 @@ $(function() {
 		{ name: "Carl" },
 		{ name: "Donald" }
 	];
-	scope.$delete = function(ev, dom) {
-		/* this is the local scope created for each repeated block */
-		var i = scope.people.indexOf(this);
+	scope.$.controller("delete", function(childScope, ev, dom) {
+		var i = scope.people.indexOf(childScope);
 		scope.people.splice(i, 1);
 		this.$.apply();
-	};
+	});
 
 	scope.$.apply();
 	dontFade = false;

@@ -16,37 +16,38 @@ See the click-counter.html example for a better way to show and hide elements.
 
 <div id="container">
 	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
-	<button ct-on="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
+	<button ct-do="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
 	<div ct-prop-style-display="tooManyClicksDisplay">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button ct-on="resetClicks">Reset clicks</button>
+	    <button ct-do="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
 <script>
 $(function() {
 	var scope = $("#container").consistent();
+
+	scope.$.controller("registerClick", function() {
+		this.$.apply(function() {
+			this.numberOfClicks++;
+			if (this.numberOfClicks >= 3) {
+				this.tooManyClicksDisplay = "";
+				this.clickMeDisabled = "disabled";
+			}
+		});
+	});
+
+	scope.$.controller("resetClicks", function() {
+		this.$.apply(function() {
+			this.numberOfClicks = 0;
+			this.tooManyClicksDisplay = "none";
+			this.clickMeDisabled = null;
+		});
+	});
+
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
 		this.tooManyClicksDisplay = "none";
-
-		this.$registerClick = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks++;
-				if (this.numberOfClicks >= 3) {
-					this.tooManyClicksDisplay = "";
-					this.clickMeDisabled = "disabled";
-				}
-			});
-		};
-
-		this.$resetClicks = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks = 0;
-				this.tooManyClicksDisplay = "none";
-				this.clickMeDisabled = null;
-			});
-		};
 	});
 });
 

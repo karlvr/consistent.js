@@ -18,14 +18,14 @@
 	<h2>Todo</h2>
 	<div id="todo">
 		<span ct-tmpl="{{remaining}} of {{todos.length}} remaining"></span>
-		[ <a href="#" ct-on="archive">archive</a> ]
+		[ <a href="#" ct-do="archive">archive</a> ]
 		<ul class="unstyled">
 			<li ct-repeat="todos">
 				<input type="checkbox" name="done">
 				<span ct="text" ct-tmpl-attr-class="done-{{done}}"></span>
 			</li>
 		</ul>
-		<form ct-on="addTodo">
+		<form ct-do="addTodo">
 			<input type="text" ct="todoText" size="30" placeholder="add new todo here">
 			<input type="submit" value="add">
 		</form>
@@ -40,32 +40,32 @@ $(function() {
 		{ text: "learn consistent", done: true },
 		{ text: "build a consistent app", done: false }
 	];
-	scope.$addTodo = function(ev) {
-		scope.$.apply(function() {
-			scope.todos.push({ text: scope.todoText, done: false });
-			scope.todoText = "";
+	scope.$.controller("addTodo", function(localScope, ev) {
+		this.$.apply(function() {
+			this.todos.push({ text: this.todoText, done: false });
+			this.todoText = "";
 		});
 		ev.preventDefault();
-	};
+	});
 	scope.remaining = function() {
 		var count = 0;
-		for (var i = 0; i < scope.todos.length; i++) {
-			count += scope.todos[i].done ? 0 : 1;
+		for (var i = 0; i < this.todos.length; i++) {
+			count += this.todos[i].done ? 0 : 1;
 		}
 		return count;
 	};
-	scope.$archive = function(ev) {
-		scope.$.apply(function() {
-			var oldTodos = scope.todos;
-			scope.todos = [];
-			for (var i = 0; i < scope.todos.length; i++) {
-				if (!scope.todos[i].done) {
-					scope.todos.push(scope.todos[i]);
+	scope.$.controller("archive", function(localScope, ev) {
+		this.$.apply(function() {
+			var oldTodos = this.todos;
+			this.todos = [];
+			for (var i = 0; i < oldTodos.length; i++) {
+				if (!oldTodos[i].done) {
+					this.todos.push(oldTodos[i]);
 				}
 			}
 		});
 		ev.preventDefault();
-	};
+	});
 	scope.$.apply();
 });
 </script>

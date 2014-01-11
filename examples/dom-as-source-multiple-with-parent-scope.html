@@ -98,22 +98,22 @@ $(function() {
 
 	var rootScope = $.consistent();
 	/* Click handler to toggle the status */
-	rootScope.$handleClick = function(ev, dom) {
+	rootScope.$.controller("handleClick", function(localScope) {
 		/* The scope argument is criticial, as this reflects the scope that the event occurred in */
-		this.$.apply(function() {
+		localScope.$.apply(function() {
 			this.status = this.status == "on" ? "off" : "on";
 		});
-	};
+	});
 
 	/* Watch on status to update the derived properties */
-	rootScope.$.watch("status", function() {
-		/* _this_ is set to the scope that received the change, rather than the rootScope */
-		if (this.status == "on") {
-			this.displayClass = "highlighted";
-			this.buttonLabel = "Turn Off";
+	rootScope.$.watch("status", function(childScope) {
+		/* childScope is the scope that received the change, rather than the rootScope */
+		if (childScope.status == "on") {
+			childScope.displayClass = "highlighted";
+			childScope.buttonLabel = "Turn Off";
 		} else {
-			this.displayClass = "lowlighted";
-			this.buttonLabel = "Turn On";
+			childScope.displayClass = "lowlighted";
+			childScope.buttonLabel = "Turn On";
 		}
 		/* No need to apply inside a watcher callback */
 	});

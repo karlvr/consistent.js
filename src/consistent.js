@@ -1,9 +1,9 @@
 /*!
- * Consistent.js 0.9.7
+ * Consistent.js 0.12.1
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
-/*jslint browser: true, white: true, unparam: true */
+/*jshint newcap: false, smarttabs: true */
 /*
     Copyright 2013 Karl von Randow
 
@@ -18,7 +18,7 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-*/
+  */
 
 /**
  * Set global configuration:
@@ -26,7 +26,9 @@
  */
 (function(window, undefined) {
 	"use strict";
-	
+
+	var document = window.document;
+
 	/**
 	 * Single point of entry for Consistent.
 	 * Arguments can be:
@@ -35,33 +37,43 @@
 	 * * An object containing key value pairs, used for the configuration of the new scope.
 	 * * A dom node; returns the scope that bound that node, or null.
 	 */
-	var Consistent = window.Consistent = function() {
-		/* Parse arguments */
-		var arg0 = arguments[0];
-		if (arg0 !== undefined) {
-			if (Consistent.isScope(arg0)) {
-				/* Parent scope */
-				if (arguments[1] !== undefined) {
-					/* with options */
-					return Consistent.createScope(arg0, arguments[1]);
-				} else {
-					return Consistent.createScope(arg0, null);
-				}
-			} else if (arg0.nodeName !== undefined) {
-				/* DOM node */
-				return Consistent.findScopeForNode(arg0);
-			} else if (typeof arg0 === "object") {
-				/* Options only */
-				return Consistent.createScope(null, arg0);
-			} else if (typeof arg0 === "string") {
-				return Consistent.findScopeByName(arg0);
-			} else {
-				throw exception("Unexpected argument to Consistent(): " + arg0);
-			}
-		} else {
+	var Consistent = window.Consistent = function(arg0) {
+		if (arguments.length === 0) {
 			/* No arguments */
-			return Consistent.createScope(null, null);
+			return Consistent.createScope();
 		}
+
+		if (typeof arg0 === "string") {
+			return Consistent.findScopeByName(arg0);
+		}
+		if (arg0.nodeName !== undefined) {
+			/* DOM node */
+			return Consistent.findScopeForNode(arg0);
+		}
+
+		var parentScope;
+		var options;
+		var controller;
+		var argIndex = 0;
+
+		if (Consistent.isScope(arg0)) {
+			/* Parent scope */
+			parentScope = arg0;
+			argIndex++;
+		}
+		if (typeof arguments[argIndex] === "object") {
+			options = arguments[argIndex];
+			argIndex++;
+		}
+		if (typeof arguments[argIndex] === "function") {
+			controller = arguments[argIndex];
+			argIndex++;
+		}
+		if (arguments[argIndex] !== undefined) {
+			throw exception("Unexpected argument to Consistent(): " + arg0);
+		}
+
+		return Consistent.createScope(parentScope, options, controller);
 	};
 
 	var scopeManagers = {};
@@ -107,7 +119,7 @@
 				classAttribute: [ "data-ct-class", "ct-class" ],
 				classAddAttribute: [ "data-ct-add-class", "ct-add-class" ],
 
-				on: [ "data-ct-on", "ct-on" ],
+				on: [ "data-ct-do", "ct-do" ],
 				onPrefix: [ "data-ct-on-", "ct-on-" ],
 
 				repeat: [ "data-ct-repeat", "ct-repeat" ],
@@ -117,6 +129,7 @@
 				scope: [ "data-ct-scope", "ct-scope" ],
 				init: [ "data-ct-init", "ct-init" ],
 				initFunc: [ "data-ct-init-func", "ct-init-func" ],
+				controller: [ "data-ct-controller", "ct-controller" ],
 
 				warningPrefix: [ "data-ct-", "ct-" ]
 			},
@@ -134,7 +147,7 @@
 			return object !== undefined && object.$ !== undefined && object.$._type === SCOPE_TYPE;
 		},
 
-		createScope: function(parentScope, options) {
+		createScope: function(parentScope, options, controller) {
 			/* Create scope */
 			options = mergeOptions({}, Consistent.defaultOptions, options);
 
@@ -143,73 +156,105 @@
 			if (scopeManager._name) {
 				scopeManagersByName[scopeManager._name] = scopeManager;
 			}
-			return scopeManager._scope;
+			var scope = scopeManager._scope;
+			if (controller) {
+				if (typeof controller === "function") {
+					scopeManager.replaceController(new controller(scope));
+				} else {
+					throw exception("Invalid argument type for controller: " + typeof controller);
+				}
+			}
+			return scope;
 		},
 
 		autoCreateScopes: function() {
 			var root = document;
-			var declarationAttributes = Consistent.settings.attributes.scope;
+			var scopeDeclarationAttributes = Consistent.settings.attributes.scope;
+			var controllerDeclarationAttributes = Consistent.settings.attributes.controller;
 			var initDeclarationAttributes = Consistent.settings.attributes.init;
 			var initFuncDeclarationAttributes = Consistent.settings.attributes.initFunc;
-			var n = declarationAttributes.length;
+			var n = scopeDeclarationAttributes.length;
+			var m = controllerDeclarationAttributes.length;
 			var o = initDeclarationAttributes.length;
 			var p = initFuncDeclarationAttributes.length;
 
 			visit(root);
 
 			function visit(dom) {
-				var scopeName;
+				var scopeName, controllerName;
 				var i;
-				if (dom.getAttribute) {
+				if (dom.hasAttribute) {
+					/* This is a node that can have attributes, so look for our declarations */
 					for (i = 0; i < n; i++) {
-						scopeName = dom.getAttribute(declarationAttributes[i]);
-						if (typeof scopeName === "string") {
+						if (dom.hasAttribute(scopeDeclarationAttributes[i])) {
+							scopeName = dom.getAttribute(scopeDeclarationAttributes[i]);
+							break;
+						}
+					}
+					for (i = 0; i < m; i++) {
+						if (dom.hasAttribute(controllerDeclarationAttributes[i])) {
+							controllerName = dom.getAttribute(controllerDeclarationAttributes[i]);
 							break;
 						}
 					}
 				}
-				if (typeof scopeName === "string") {
-					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null);
+				if (typeof scopeName === "string" || controllerName) {
+					var controller;
+					if (controllerName) {
+						controller = getNestedProperty(window, controllerName);
+						if (!controller) {
+							throw exception("Cannot find controller class: " + controllerName);
+						}
+					}
+
+					var scope = Consistent.createScope(null, scopeName ? { name: scopeName } : null, controller);
 					scope.$.bind(dom);
 
-					var initHandled = false;
-					var func;
+					var initValue;
 					for (i = 0; i < o; i++) {
-						var initValue = dom.getAttribute(initDeclarationAttributes[i]);
+						initValue = dom.getAttribute(initDeclarationAttributes[i]);
 						if (initValue) {
-							if (initValue === "update") {
-								/* Fall through and do the default behaviour */
-								break;
-							} else if (initValue === "none") {
-								initHandled = true;
-								break;
-							} else if (initValue) {
-								/* If the string isn't empty then we evaluate it as a function */
-								initHandled = true;
-								func = Consistent.statementToFunction(initValue);
-								evaluateStatement(func, scope);
-								scope.$.apply();
-								break;
-							}
+							break;
 						}
 					}
 
-					if (!initHandled) {
-						for (i = 0; i < p; i++) {
-							var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
-							if (initFuncValue) {
-								func = getNestedProperty(window, initFuncValue);
-								if (func) {
-									func.call(scope);
-								} else {
-									throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
-								}
+					var initFunc;
+					for (i = 0; i < p; i++) {
+						var initFuncValue = dom.getAttribute(initFuncDeclarationAttributes[i]);
+						if (initFuncValue) {
+							initFunc = getNestedProperty(window, initFuncValue);
+							if (typeof initFunc !== "function") {
+								throw exception("Consistent scope init function attribute referenced a function that was not found: " + initFuncValue);
 							}
+							break;
 						}
 					}
 
-					if (!initHandled) {
+					if (!initValue) {
+						if (!initFunc && !controller) {
+							scope.$.update();
+						}
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+						scope.$.apply();
+					} else if (initValue === "update") {
 						scope.$.update();
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+						scope.$.apply();
+					} else if (initValue === "none") {
+						if (initFunc) {
+							initFunc.call(scope);
+						}
+					} else if (initValue) {
+						/* If the string isn't empty then we evaluate it as a function */
+						var func = Consistent.statementToFunction(initValue);
+						evaluateStatement(func, scope);
+						if (initFunc) {
+							initFunc.call(scope);
+						}
 						scope.$.apply();
 					}
 				} else {
@@ -301,12 +346,11 @@
 			return -1;
 		};
 	}
+	Consistent.arrayIndexOf = arrayIndexOf;
 
 	/**
 	 * Merge objects passed as arguments. If the first parameter is a boolean that specifies whether to do a deep
 	 * copy.
-	 * Note that merge does not merge keys that are "$". This is because Consistent puts its functionality in the
-	 * $ object and there are pointers in there that cause cycles.
 	 */
 	function merge() {
 		/* Support cycles */
@@ -341,11 +385,6 @@
 				merged.push(target);
 
 				for (var name in source) {
-					/* Do not merge any key "$" */
-					if (name === "$") {
-						continue;
-					}
-
 					var value = source[name];
 					if (value !== undefined) {
 						if (deep && typeof value === "object" && value !== null) {
@@ -367,7 +406,7 @@
 			return target;
 		}
 
-		return _merge.apply(this, arguments);
+		return _merge.apply(null, arguments);
 	}
 
 	/**
@@ -388,8 +427,13 @@
 			$s[0] = {};
 		}
 
-		var result = merge.apply(this, arguments);
-		result.$ = merge.apply(this, $s);
+		var result = merge.apply(null, arguments);
+		/* We replace the $ property from the first merge, with the result of merging all of the $s
+		 * themselves. Note that this isn't a deep merge, but we have to specifically do the merge of
+		 * the $s so we merge their contents. If we didn't do this each $ property in the arguments
+		 * would clobber the next.
+		 */
+		result.$ = merge.apply(null, $s);
 		return result;
 	}
 
@@ -403,6 +447,29 @@
 		} else {
 			return name;
 		}
+	}
+
+	/**
+	 * Makes nested properties more presentable. Changes array index properties from array.0
+	 * to array[0].
+	 */
+	function presentNestedProperty(property) {
+		return property.replace(/\.([0-9]+)(\.|$)/g, "[$1]$2");
+	}
+
+	function presentNestedProperties(properties) {
+		var result = [];
+		for (var i = 0; i < properties.length; i++) {
+			result.push(presentNestedProperty(properties[i]));
+		}
+		return result;
+	}
+
+	/**
+	 * Undoes the work on presentNestedProperty.
+	 */
+	function unpresentNestedProperty(property) {
+		return property.replace(/\[([0-9]+)\]/g, ".$1");
 	}
 
 	function getNestedProperty(object, property) {
@@ -507,7 +574,7 @@
 		templateEngine: null,
 		autoListenToChange: true,
 		autoListenToKeyEvents: true,
-		eventHandlerPrefix: "$",
+		eventHandlerPrefix: "",
 		valueFunctionPrefix: "",
 
 		$: {
@@ -1215,7 +1282,8 @@
 					}
 					case "scope": 
 					case "init":
-					case "initFunc": {
+					case "initFunc":
+					case "controller": {
 						/* NOOP, this is used in autoCreateScopes */
 						break;
 					}
@@ -1372,53 +1440,37 @@
 	/* Scope */
 
 	/**
-	 * Remove event handler functions and evaluate value functions. Recursive to handle nested
-	 * objects in the scope.
+	 * Evaluate value functions. Recursive to handle nested objects in the scope.
 	 */
-	function processSnapshot(snapshot, dontRemoveEventHandlers, baseScope, scope, seen) {
+	function processSnapshot(snapshot, baseScope, scope, seen) {
 		if (seen === undefined) {
 			seen = [];
 		}
 		if (arrayIndexOf(seen, snapshot) !== -1) {
-			return;
+			return true;
 		}
 		seen.push(snapshot);
 
 		var options = scope.$.options();
-		var eventHandlerPrefix = options.eventHandlerPrefix;
 		var valueFunctionPrefix = options.valueFunctionPrefix;
 		var propertyName;
 
 		var skip = [];
+		var invalid = 0;
 		for (var name in snapshot) {
 			if (arrayIndexOf(skip, name) !== -1) {
 				continue;
 			}
 
-			if (name.indexOf(eventHandlerPrefix) === 0) {
-				/* Remove handler functions, or anything beginning with that prefix (not just functions) */
-				if (dontRemoveEventHandlers) {
-					propertyName = propertyNameFromPrefixed(name, eventHandlerPrefix);
-					if (propertyName === name || snapshot[propertyName] === undefined) {
-						snapshot[propertyName] = snapshot[name];
-					}
-					if (propertyName !== name) {
-						delete snapshot[name];
-						/* Skip the new property if we encounter it in this loop, which
-						 * can happen in IE6, maybe other browsers.
-						 */
-						skip.push(propertyName);
-					}
-				} else {
-					delete snapshot[name];
-				}
-			} else if (typeof snapshot[name] === "function") {
+			var value = snapshot[name];
+
+			if (typeof value === "function") {
 				/* Evaluate value functions */
 				if (!valueFunctionPrefix) {
-					snapshot[name] = snapshot[name].call(baseScope);
+					snapshot[name] = value.call(scope, baseScope);
 				} else if (name.indexOf(valueFunctionPrefix) === 0) {
 					propertyName = propertyNameFromPrefixed(name, valueFunctionPrefix);
-					snapshot[propertyName] = snapshot[name].call(baseScope);
+					snapshot[propertyName] = value.call(scope, baseScope);
 
 					/* Delete the original value function */
 					delete snapshot[name];
@@ -1430,11 +1482,42 @@
 						skip.push(propertyName);
 					}
 				}
-			} else if (typeof snapshot[name] === "object" && snapshot[name] !== null) {
-				/* Go deep recursively processing snapshot */
-				processSnapshot(snapshot[name], dontRemoveEventHandlers, baseScope, scope, seen);
+			} else if (typeof value === "object" && value !== null) {
+				if (Consistent.isScope(value)) {
+					/* The snapshot contains a scope. We create a snapshot of the scope to go in our snapshot.
+					 * But only if the base scope is the owner of this snapshot. If we've come from a child scope
+					 * then we blank these out to prevent child scopes getting themselves in their snapshot.
+					 * See snapshotSpec.js's Snapshot with nested scopes with value functions that respond to scope
+					 * test.
+					 */
+					if (baseScope === scope) {
+						/* Note that even though "value" is a copy of the original scope, created by the deep merge
+						 * in the snapshot function, when we call value.$.snapshot(), the snapshot function gets the
+						 * scope by calling its _scope(), which returns the original. So we will be executing any
+						 * value functions with the original scope.
+						 */
+						snapshot[name] = value.$.snapshot();
+					} else {
+						delete snapshot[name];
+						invalid++;
+					}
+				} else {
+					/* Go deep recursively processing snapshot */
+					var keep = processSnapshot(value, baseScope, scope, seen);
+					if (!keep) {
+						delete snapshot[name];
+					}
+				}
 			}
 		}
+
+		if (invalid > 0 && isArray(snapshot) && invalid === snapshot.length) {
+			/* If snapshot is an array and we've declared all of its contents invalid, then
+			 * we remove the whole array from the snapshot.
+			 */
+			return false;
+		}
+		return true;
 	}
 
 	Consistent.defaultEmptyScope = {
@@ -1443,6 +1526,9 @@
 
 			/* Function returning the root of the scope */
 			_scope: null,
+
+			/* Function returning the controller */
+			_controller: null,
 
 			/* Function returning the manager */
 			_manager: null,
@@ -1518,12 +1604,21 @@
 			},
 			merge: function(object, keys) {
 				var scope = this._scope();
+				var temp;
 				if (typeof object === "boolean") {
-					/* merge(true, object) */
-					return merge(object, scope, keys);
+					/* merge(boolean, object) 
+					 * Note below that "object" is the boolean, and "keys" is the object supplied to be merged into us.
+					 * We need to do our first merge to remove any "$" property from the incoming object, and we
+					 * must do that deep, if this merge is deep, so that we preserve any cyclic structures etc.
+					 */
+					temp = merge(object, {}, keys);
+					delete temp.$;
+					return merge(object, scope, temp);
 				} else if (keys === undefined) {
 					/* merge(object) */
-					return merge(scope, object);
+					temp = merge({}, object);
+					delete temp.$;
+					return merge(scope, temp);
 				} else if (isArray(keys)) {
 					/* merge(object, keys) */
 					for (var i = 0; i < keys.length; i++) {
@@ -1538,9 +1633,6 @@
 					throw exception("Invalid keys argument to merge: " + keys);
 				}
 			},
-			replace: function(object) {
-				return this._manager().replaceScope(object);
-			},
 			clear: function() {
 				var scope = this._scope();
 				for (var i in scope) {
@@ -1550,27 +1642,61 @@
 				}
 			},
 
-			/**
-			 * Return a plain object with a snapshot of the model values from the scope, excluding the $ object
-			 * that contains Consistent functionality, any properties beginning with the event handler prefix,
-			 * and replacing any value functions with their current value.
-			 * If there is a parent scope, the values from that scope are merged in.
-			 * @param includeParents If false, only include the local scope properties
-			 * @param childScope internal use
-			 */
-			model: function(includeParents, childScope) {
-				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+			scope: function(newScope) {
+				if (newScope === undefined) {
+					return this._scope();
+				} else if (typeof newScope === "object") {
+					return this._manager().replaceScope(newScope);
+				} else {
+					throw exception("Invalid argument type to scope(newScope): " + typeof newScope);
 				}
+			},
 
-				var scope = this._scope();
-				var temp = merge(true, {}, scope);
-				processSnapshot(temp, false, childScope !== undefined ? childScope : scope, scope);
+			controller: function(newControllerOrFunctionName) {
+				if (newControllerOrFunctionName === undefined) {
+					/* controller() - returns the controller */
+					return this._controller();
+				} else if (typeof newControllerOrFunctionName === "object") {
+					/* controller(object) - sets the controller */
+					this._manager().replaceController(newControllerOrFunctionName);
+					return this._scope();
+				} else if (typeof newControllerOrFunctionName === "string") {
+					/* controller(string) - gets or sets a function in the controller */
+					var name = addPrefixToPropertyName(newControllerOrFunctionName, this.options().eventHandlerPrefix);
+					var funcOrIncludeParents = arguments[1];
 
-				if (includeParents !== false && this.parent()) {
-					temp = merge(this.parent().$.model(includeParents, childScope !== undefined ? childScope : scope), temp);
+					if (typeof funcOrIncludeParents === "function") {
+						/* controller(string, function) - sets a function in the controller */
+						setNestedProperty(this._controller(), name, funcOrIncludeParents);
+						return this._scope();
+					} else {
+						/* controller(string [, boolean]) - gets a function from the controller, with optional include parents */
+						var includeParents = true;
+						if (typeof funcOrIncludeParents === "boolean") {
+							includeParents = funcOrIncludeParents;
+						} else if (funcOrIncludeParents !== undefined) {
+							throw exception("Invalid argument type for get or set controller function: " + typeof func);
+						}
+
+						var controller = this._controller();
+						var value = getNestedProperty(controller, name);
+						if (value !== undefined) {
+							if (typeof value === "function") {
+								return function() {
+									return value.apply(controller, arguments);
+								};
+							} else {
+								return value;
+							}
+						} else if (includeParents && this.parent()) {
+							return this.parent().$.controller(newControllerOrFunctionName);
+						} else {
+							return undefined;
+						}
+					}
+				} else {
+					throw exception("Invalid argument type for controller(): " + typeof newController);
 				}
-				return temp;
 			},
 
 			/**
@@ -1582,22 +1708,25 @@
 			 */
 			snapshot: function(includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
 				var temp = merge(true, {}, scope);
-				processSnapshot(temp, true, childScope !== undefined ? childScope : scope, scope);
+				delete temp.$;
+
+				processSnapshot(temp, childScope !== undefined ? childScope : scope, scope);
 
 				if (includeParents !== false && this.parent()) {
 					temp = merge(this.parent().$.snapshot(includeParents, childScope !== undefined ? childScope : scope), temp);
 				}
+
 				return temp;
 			},
 
 			nodes: function(includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var result = this._manager()._domNodes;
@@ -1637,9 +1766,10 @@
 				this._manager().unwatch(key, handler);
 				return this._scope();
 			},
-			get: function(key, includeParents) {
+
+			get: function(key, includeParents, childScope) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 				if (key === "$" || key.substring(0, 2) === "$.") {
 					/* Do not allow access to $ object via get. The $ object is not part
@@ -1652,33 +1782,27 @@
 				var valueFunctionPrefix = this.options().valueFunctionPrefix;
 				var scope = this._scope();
 
-				var value = getNestedProperty(scope, key);
+				var unpresentedKey = unpresentNestedProperty(key);
+				var value = getNestedProperty(scope, unpresentedKey);
 				if (value !== undefined) {
 					if (!valueFunctionPrefix && typeof value === "function") {
-						return value.call(scope);
+						return value.call(scope, childScope !== undefined ? childScope : scope);
 					} else {
 						return value;
 					}
 				} else {
 					var prefixedPropertyName;
 					if (valueFunctionPrefix) {
-						prefixedPropertyName = addPrefixToPropertyName(key, valueFunctionPrefix);
+						prefixedPropertyName = addPrefixToPropertyName(unpresentedKey, valueFunctionPrefix);
 						value = getNestedProperty(scope, prefixedPropertyName);
 						if (typeof value === "function") {
-							return value.call(scope);
+							return value.call(scope, scope);
 						}
-					}
-
-					/* If it matches an event handler, simply return it */
-					prefixedPropertyName = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
-					value = getNestedProperty(scope, prefixedPropertyName);
-					if (typeof value === "function") {
-						return value;
 					}
 				}
 				
 				if (includeParents !== false && this.parent()) {
-					return this.parent().$.get(key);
+					return this.parent().$.get(key, includeParents, childScope !== undefined ? childScope : scope);
 				} else {
 					return undefined;
 				}
@@ -1697,7 +1821,10 @@
 					 */
 					var valueFunction = this.getValueFunction(key);
 					if (valueFunction !== undefined) {
-						valueFunction.call(scope, value);
+						/* Note that we do not need to set this, as getValueFunction forces this to be bound
+						 * to the declaring scope.
+						 */
+						valueFunction.call(null, scope, value);
 						return scope;
 					}
 				}
@@ -1706,8 +1833,8 @@
 				if (typeof current !== "function") {
 					setNestedProperty(scope, key, value);
 				} else if (!this.options().valueFunctionPrefix) {
-					/* Value function */
-					current.call(scope, value);
+					/* Value function - note we must set this as we are calling it directly */
+					current.call(scope, scope, value);
 				} else {
 					/* Overwrite the function with a scalar value. It is not valid to reference value functions
 					 * by their name including prefix, as the snapshot does not contain values like that
@@ -1717,49 +1844,23 @@
 				return scope;
 			},
 
-			getEventHandler: function(key, includeParents) {
-				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
-				}
-
+			fire: function(name) {
+				var func = this.controller(name);
 				var scope = this._scope();
-				var eventHandlerPrefix = this.options().eventHandlerPrefix;
-				/* Note that we're not concerned about event handler functions being
-				 * shadowed by other properties, as we always access event handlers
-				 * specifically. The same is not true for value functions.
-				 */
-
-				var value = getNestedProperty(scope, addPrefixToPropertyName(key, eventHandlerPrefix));
-				if (value !== undefined) {
-					if (typeof value === "function") {
-						return value;
-					} else {
-						return undefined;
-					}
-				} else if (includeParents !== false && this.parent()) {
-					return this.parent().$.getEventHandler(key);
+				if (func !== undefined) {
+					/* Call the function, note that "this" is forced to be the controller by the controller()
+					 * implementation.
+					 */
+					var newArguments = [ scope ].concat(Array.prototype.slice.call(arguments, 1));
+					return func.apply(null, newArguments);
 				} else {
 					return undefined;
 				}
 			},
-			setEventHandler: function(key, value) {
-				key = addPrefixToPropertyName(key, this.options().eventHandlerPrefix);
-				var scope = this._scope();
-				setNestedProperty(scope, key, value);
-				return scope;
-			},
-			fire: function(name, ev, dom) {
-				var func = this.getEventHandler(name);
-				var scope = this._scope();
-				if (func !== undefined) {
-					func.call(scope, ev, dom);
-				}
-				return scope;
-			},
 
 			getValueFunction: function(key, includeParents) {
 				if (includeParents !== undefined && typeof includeParents !== "boolean") {
-					throw exception("Invalid type for includeParents: " + typeof includeParents);
+					throw exception("Invalid argument type for includeParents: " + typeof includeParents);
 				}
 
 				var scope = this._scope();
@@ -1774,7 +1875,9 @@
 				var value = getNestedProperty(scope, addPrefixToPropertyName(key, valueFunctionPrefix));
 				if (value !== undefined) {
 					if (typeof value === "function") {
-						return value;
+						return function() {
+							return value.apply(scope, arguments);
+						};
 					} else {
 						return undefined;
 					}
@@ -1790,6 +1893,7 @@
 				setNestedProperty(scope, key, value);
 				return scope;
 			},
+
 			options: function(dom) {
 				return this._manager().getOptions(dom);
 			},
@@ -1883,8 +1987,7 @@
 		if (bObject !== null) {
 			for (key in aObject) {
 				if (aObject[key] !== bObject[key]) {
-					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" &&
-						aObject[key] && bObject[key]) {
+					if (typeof aObject[key] === "object" && typeof bObject[key] === "object" && aObject[key] && bObject[key]) {
 						/* Nested objects */
 						differentKeys(aObject[key], bObject[key], prefix + key + ".", depth + 1, result, seen);
 					} else {
@@ -1931,7 +2034,7 @@
 		}
 	}
 
-	ConsistentScopeManager.prototype = new Object();
+	ConsistentScopeManager.prototype = {};
 
 	var scopeId = 0;
 	var functionId = 0;
@@ -1962,13 +2065,18 @@
 		this._applying = false;
 		this._repeatNodeScope = false;
 
-		var self = this;
 		this._scope = mergeOptions({}, Consistent.defaultEmptyScope);
+		this._controller = { "$": this._scope.$ };
+
+		var self = this;
 		this._scope.$._manager = function() {
 			return self;
 		};
 		this._scope.$._scope = function() {
 			return self._scope;
+		};
+		this._scope.$._controller = function() {
+			return self._controller;
 		};
 
 		this._cleanScopeSnapshot = this._scope.$.snapshot();
@@ -2096,7 +2204,7 @@
 				var childScope = Consistent(this._scope, this._options);
 				childScope.$._manager()._repeatNodeScope = true;
 				childScope.$.bind(domNodes);
-				childScope = childScope.$.replace(object);
+				childScope = childScope.$.scope(object);
 
 				item = {
 					object: object,
@@ -2261,6 +2369,7 @@
 				}
 
 				var keys = differentKeys(nextCleanScopeSnapshot, currentCleanScopeSnapshot);
+				keys = expandNestedKeys(keys);
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					if (arrayIndexOf(dirty, key) === -1) {
@@ -2288,6 +2397,30 @@
 		} else {
 			return false;
 		}
+
+		function expandNestedKeys(keys) {
+			var result = [].concat(keys);
+			for (var i = 0; i < keys.length; i++) {
+				var key = keys[i];
+
+				while (true) {
+					/* If the key is a nested property, then strip off the last part and look for watchers again */
+					var lastNestingSeparator = key.lastIndexOf(".");
+					if (lastNestingSeparator !== -1) {
+						key = key.substring(0, lastNestingSeparator);
+
+						if (arrayIndexOf(result, key) === -1) {
+							result.push(key);
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			return result;
+		}
 	};
 
 	ConsistentScopeManager.prototype._notifyWatchers = function(key, newValue, oldValue, scope, notifyingState) {
@@ -2311,17 +2444,17 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(notifying[watcherId].cleanValue, newValue)) {
-					watcher.call(scope, key, newValue, oldValue);
+					watcher.call(this._scope, scope, presentNestedProperty(key), newValue, oldValue);
 
 					/* Record clean value from the actual scope, as that will contain any changes this function made */
-					notifying[watcherId] = { cleanValue: scope.$.get(key) };
+					notifying[watcherId] = { cleanValue: getNestedProperty(scope.$.snapshot(), key) };
 					notified = true;
 				}
 			}
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchers(key, newValue, oldValue, scope, notifyingState);
 		}
 
 		return notified;
@@ -2348,7 +2481,7 @@
 				 * called this watcher. So it won't be notified of its own changes.
 				 */
 				if (notifying[watcherId] === undefined || !isEqual(scopeSnapshot, notifying[watcherId].cleanScopeSnapshot)) {
-					watchers[i].call(scope, keys, scopeSnapshot, oldScopeSnapshot);
+					watchers[i].call(this._scope, scope, presentNestedProperties(keys), scopeSnapshot, oldScopeSnapshot);
 
 					/* Record clean snapshot from the actual scope, as that will contain any changes this function made */
 					notifying[watcherId] = { cleanScopeSnapshot: scope.$.snapshot() };
@@ -2358,7 +2491,7 @@
 		}
 
 		if (this._parentScopeManager) {
-			this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
+			notified |= this._parentScopeManager._notifyWatchAlls(keys, scope, scopeSnapshot, oldScopeSnapshot, notifyingState);
 		}
 
 		return notified;
@@ -2509,6 +2642,7 @@
 
 					/* Bind events */
 					for (var eventName in nodeOptions.bindings.events) {
+						/*jshint loopfunc: true */
 						(function(eventName, keys) {
 							var listener = function(ev) {
 								var i;
@@ -2540,20 +2674,21 @@
 											self._scope.$.apply();
 											continue;
 										} else {
+											// TODO we don't have a clear path to returning a function to go on to call
 											func = result;
 										}
 									}
 
 									if (func === undefined) {
 										/* Lookup event handler in the scope */
-										func = self._scope.$.getEventHandler(key);
+										func = self._scope.$.controller(key);
 									}
 									if (func !== undefined) {
 										/* If the func is defined but "falsey" then we simply don't invoke the function,
 										 * but this is not an error.
 										 */
 										if (func) {
-											result = func.call(self._scope, ev, dom);
+											result = func(self._scope, ev, dom);
 											if (result === false)
 												break;
 										}
@@ -2639,6 +2774,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];
@@ -2654,6 +2791,8 @@
 			/* Watch all */
 			callback = key;
 			key = WATCH_ALL_KEY;
+		} else {
+			key = unpresentNestedProperty(key);
 		}
 
 		var watchers = this._watchers[key];
@@ -2682,6 +2821,11 @@
 		return newScope;
 	};
 
+	ConsistentScopeManager.prototype.replaceController = function(newController) {
+		newController.$ = this._scope.$;
+		this._controller = newController;
+	};
+
 	ConsistentScopeManager.prototype.destroy = function() {
 		this.unbind(this._rootDomNodes);
 	};
@@ -2693,7 +2837,7 @@
 		return new ConsistentException(message);
 	}
 
-	ConsistentException.prototype = new Object();
+	ConsistentException.prototype = {};
 
 	function ConsistentException(message) {
 		this.name = "ConsistentException";

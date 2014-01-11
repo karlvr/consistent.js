@@ -25,11 +25,11 @@ $(function() {
 	/* Configure a template engine for Consistent to use, to support the ct-tmpl attribute. */
 	Consistent.defaultOptions.templateEngine = Hogan;
 
-	var scope = $("body").consistent();
-	scope.title = "First page";
-	scope.author = "Nathanial Hornblower";
-	scope.body = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><p>Integer scelerisque vestibulum turpis nec ultrices.</p>";
-	scope.$.controller("doNext", function() {
+	function BasicController(scope) {
+		this.scope = scope;
+	}
+
+	BasicController.prototype.doNext = function(ev) {
 		var scope = this.$.scope();
 		scope.title = "Second page";
 		scope.author = "Till Eulenspiegel";
@@ -42,7 +42,12 @@ $(function() {
 			scope.$.apply();
 		};
 		scope.$.apply();
-	});
+	};
+
+	var scope = $("body").consistent(BasicController);
+	scope.title = "First page";
+	scope.author = "Nathanial Hornblower";
+	scope.body = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><p>Integer scelerisque vestibulum turpis nec ultrices.</p>";
 	scope.$.apply();
 });
 </script>

@@ -15,37 +15,37 @@ Example of using scope.$.roots() to find nodes in a scope and manipulate them ma
 
 <div id="container">
 	<div>You’ve clicked <span ct="numberOfClicks">&nbsp;</span> times</div>
-	<button ct-on="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
+	<button ct-do="registerClick" ct-attr-disabled="clickMeDisabled">Click me</button>
 	<div class="tooManyClicks">
 	    That’s too many clicks! Please stop before you wear out your fingers.
-	    <button ct-on="resetClicks">Reset clicks</button>
+	    <button ct-do="resetClicks">Reset clicks</button>
 	</div>
 </div>
 
 <script>
 $(function() {
 	var scope = $("#container").consistent();
+	scope.$.controller("registerClick", function() {
+		this.$.apply(function() {
+			this.numberOfClicks++;
+			if (this.numberOfClicks >= 3) {
+				$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
+				this.clickMeDisabled = "disabled";
+			}
+		});
+	});
+
+	scope.$.controller("resetClicks", function() {
+		this.$.apply(function() {
+			this.numberOfClicks = 0;
+			$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
+			this.clickMeDisabled = null;
+		});
+	});
+	
 	scope.$.apply(function() {
 		this.numberOfClicks = 0;
 		$(this.$.roots()).find(".tooManyClicks").hide();
-
-		this.$registerClick = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks++;
-				if (this.numberOfClicks >= 3) {
-					$(this.$.roots()).find(".tooManyClicks").fadeIn(2000);
-					this.clickMeDisabled = "disabled";
-				}
-			});
-		};
-
-		this.$resetClicks = function(ev, dom) {
-			this.$.apply(function() {
-				this.numberOfClicks = 0;
-				$(this.$.roots()).find(".tooManyClicks").fadeOut(1000);
-				this.clickMeDisabled = null;
-			});
-		};
 	});
 });
 
