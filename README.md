@@ -16,7 +16,7 @@ The scope contains a `$` property in which Consistent keeps its functions and sc
 
 The scope may contain scalar values, such as booleans, strings and numbers, and also value functions that return a calculated value.
 
-The scope has a _controller_ object that contains any event handler functions you create. The controller can be a custom class, or you can functions ad hoc.
+The scope has a _controller_ object that contains any event handler functions you create. The controller can be a custom class, or you can add functions to the default empty controller.
 
 Consistent includes a jQuery plugin, and the examples below show this approach. Consistent does not however require jQuery and can be used without it.
 
@@ -258,7 +258,7 @@ You can of course bind the selected option as well, e.g. `scope.product = "bucke
 
 ### Events
 
-Consistent can add event listeners to DOM nodes which call functions in the scope’s controller. The _controller_ is an object that holds the scope’s event handler functions.
+Consistent can add event listeners to DOM nodes which call functions in the scope’s controller. The _controller_ is an object that holds the scope’s event handler functions. See the _Controllers_ section below for more information on controllers.
 
 ```html
 <a href="#" ct-on-click="handleClick">Click me</a>
@@ -274,7 +274,23 @@ scope.$.controller("handleClick", function(scope, ev) {
 });
 ```
 
-The event handler function is called with `this` as the controller. The controller contains the same `$` object as the scope. The event handler function arguments are:
+#### Shortcut
+
+There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on-...`, but binds a default event based on the type of element. It chooses the `click` event for most elements, e.g.:
+
+```html
+<a href="#" ct-do="handleClick">Click me</a>
+```
+
+But the following special cases apply:
+  * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
+  * `<form>` elements bind the `submit` event
+
+#### Event handler functions
+
+Event handler functions are called with `this` set to the controller object.
+
+The event handler function arguments are:
   * The scope in which the event occurred
   * The Javsacript event object
   * The DOM element that is the source of the event
@@ -300,32 +316,20 @@ scope.$.controller("handleClick", function(scope) {
 });
 ```
 
-Note that we don’t need to call `apply` after defining the event handler in the scope, as we don’t need to change the DOM. Event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; just make sure the handler functions are defined by the time they are invoked.
+Note that we don’t need to call `apply` on the scope after adding handlers to the controller, as event listeners are added when the DOM nodes are bound to the scope based on the declarations in the DOM; just make sure the handler functions are defined by the time they are invoked.
 
-The `scope` parameter is the scope in which the event occurred. This may not be the controller’s scope, it may be a child scope. In the event handler you can decide whether you want to operate on the child scope or not. You can always get a reference to the controller’s scope using `this.$.scope()`.
+The `scope` parameter is the scope in which the event occurred. This may not be the controller’s scope, it may be a child scope. In the event handler you can decide whether you want to operate on the child scope or not. You can always get a reference to the controller’s scope using `this.$.scope()`, see _Controllers_ below.
 
-#### Shortcut
-
-There is a shortcut for binding events, the `ct-do` declaration. It behaves like `ct-on-...`, but binds a default event based on the type of element. It chooses the `click` event for most elements, e.g.:
-
-```html
-<a href="#" ct-do="handleClick">Click me</a>
-```
-
-But the following special cases apply:
-  * `<input>`, `<textarea>` and `<select>` elements bind the `change` event
-  * `<form>` elements bind the `submit` event
 
 ### Controllers
 
 Each scope has a controller. When you create a scope you can specify a constructor function to create the controller, otherwise an empty object is used.
 
-The `$` object form the scope is always added to the controller, so the controller can access and control the scope. The best way for the controller to access the scope is using `this.$.scope()`. The controller can tell the scope to apply by simply calling `this.$.apply()`.
+The `$` object from the scope is always added to the controller, so the controller can access and control the scope. The best way for the controller to access the scope is using `this.$.scope()`. The controller can tell the scope to apply by simply calling `this.$.apply()`.
 
 You can access the controller using the `scope.$.controller()` function. To add a function to the controller, use the `scope.$.controller(name, function)` function, e.g. `scope.$.controller("handleClick", function() { ... });`.
 
-You can add anything to the controller. It is a good place to encapsulate all of the code related to the DOM and concept represented by the scope.
-
+You can add anything to the controller. It is a good place to encapsulate all of the code and state related to the scope, but that is not involved in binding to the DOM.
 
 #### Custom controller classes
 
@@ -448,9 +452,11 @@ Multiple statements can be combined using the `;` separator.
 
 ### Automatic scope creation
 
-The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to form, and Consistent will create them automatically when the DOM is ready.
+The above examples all create the scope explicitly in Javascript. You can also declare where you want scopes to be created using declarations in your markup, and Consistent will automatically create them.
 
-Note: Consistent uses the jQuery plugin to fire the onDOMReady event. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes();` yourself.
+Consistent uses its jQuery plugin to auto create scopes when the onDOMReady event fires. If you are not using Consistent with the jQuery plugin, you will need to call `Consistent.autoCreateScopes()` yourself at the appropriate time.
+
+If you want to trigger the auto scope creation yourself, set `Consistent.settings.autoCreateScopes = false` before the onDOMReady event, then call `Consistent.autoCreateScopes()` when you’re ready.
 
 The simplest way to declare a scope is to add an empty `ct-scope` attribute. This tells Consistent to create a scope with the given root node, and to call `scope.$.update()` followed by `scope.$.apply()`. This will populate the scope from the DOM and then apply the state back to the DOM. You can get the scope in Javascript by finding the scope from the DOM node.
 
