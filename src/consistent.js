@@ -864,7 +864,7 @@
 					value = this.getValue(dom);
 					if (value !== undefined) {
 						if (dom.nodeName === "INPUT" && dom.type === "checkbox") {
-							/* Special checkbox support */
+							/* Special checkbox support - value is true or false */
 							var scopeValue = scope.$.get(bindings.key);
 							if (isArray(scopeValue)) {
 								i = arrayIndexOf(scopeValue, dom.value);
@@ -895,6 +895,9 @@
 								 * our checkbox's value, then graduate to an array in the scope.
 								 */
 								scope.$.set(bindings.key, [ scopeValue, dom.value ]);
+							} else if (!value && scopeValue === dom.value) {
+								/* The scope contains this checkbox's value but it's just been turned off. Remove from the scope. */
+								scope.$.set(bindings.key, undefined);
 							}
 						} else {
 							scope.$.set(bindings.key, value);
