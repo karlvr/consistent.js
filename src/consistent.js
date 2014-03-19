@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.12.2
+ * Consistent.js 0.12.3
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -540,7 +540,7 @@
 	/** Helper function to get the value of an <option> tag. IE doesn't set the value if there isn't one in the DOM. */
 	function inputOptionValue(option) {
 		var optionValue = option.value;
-		if (!optionValue) {
+		if (optionValue === null) {
 			optionValue = option.text;
 		}
 		return optionValue;
