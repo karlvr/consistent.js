@@ -31,6 +31,9 @@ Or use a minified and combined version. The minified and combined script for Con
 <script src="lib/consistent-for-jquery.min.js"></script>
 ```
 
+Consistent is designed with security in mind. Be sure to read the [Security](#security) section, so you understand the potential attacks and
+how Consistent mitigates them.
+
 ## License
 
 Consistent is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
@@ -778,6 +781,36 @@ $.ajax({
 	data: scope.$.snapshot()
 });
 ```
+
+Security
+--------
+
+Security is critically important for any web application. The major security vulnerability for Javascript frameworks like Consistent is
+[XSS](http://en.wikipedia.org/wiki/Cross-site_scripting) or cross-site scripting. This occurs when a user is able to inject content into
+a web page, and that content is then executed by the browser in some form. Sometimes that execution can be harmful, other times it can just
+be unwanted. We want to prevent all of it.
+
+Web frameworks escape `&lt;&gt;&amp;` in unsafe content, to prevent an attacker from being able to insert arbitrary markup
+into your page. As the developer you also need to make sure you don't allow any user generated content into unsafe HTML attributes, such as `onclick`,
+and when you allow user generated content into a safe HTML attribute, you need to make sure you escape quotes so an attacker can't end the current
+attribute value and create a new, unsafe, attribute.
+
+With the addition of Javascript frameworks that perform additional parsing of your page, you need to understand where this parsing occurs and
+whether there are additional risks.
+
+Consistent is driven by the contents of `ct` and `ct-*` attributes on HTML tags. This is by design, so that security with Consistent
+is achieved using the same techniques already in use. Prevent attackers from creating HTML elements and attributes.
+
+If you allow users to create some HTML markup, such as a whitelist of "safe" elements, you need to make sure the users cannot add attributes,
+or can only add whitelisted attributes. I don't believe blacklisting attributes is a safe approach, but if you do, you need to ensure that 
+the Consistent attributes are included.
+
+Consistent does support templated content in external elements (see [Templating](#templating)), therefore you need to avoid outputting unsafe
+content in these areas, or ensure that you escape the content correctly for the templating engine in use.
+
+Consistent does not parse the text content of your HTML page, so there is no need to escape anything additional, as you should
+already be doing, in those areas. Consistent does not parse the values of any attributes except `ct` and `ct-*`, so there is no need to escape
+anything additional in other attribute values.
 
 
 Principles
