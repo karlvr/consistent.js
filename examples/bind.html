@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Example of binding new nodes to an existing scope.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+
+<h1>Bind</h1>
+
+<div ct-scope="testScope">
+	<p ct="hello">Not working</p>
+	<p><button ct-do="gotoExample">Test that the event handler works in the root scope</button></p>
+	<p><button ct-do="addMore">Add and bind dynamic markup</button></p>
+</div>
+
+
+<script>
+$(function() {
+	var scope = Consistent.findScope('testScope');
+	scope.hello = "The scope has been applied.";
+	scope.$.apply();
+
+	scope.$.controller('gotoExample', function(scope, e, node) {
+		alert("Event handler is working.");
+	});
+
+	scope.$.controller('addMore', function(scope) {
+		var root = scope.$.roots()[0]; /* The div for the scope */
+
+		var $newDOM = $('<div><a href="#" ct-do="gotoExample">Test dynamically bound event handler</a></div>');
+
+		var result = $(root).append($newDOM);
+		console.log($newDOM);
+
+		console.log($newDOM.parent());
+
+		$newDOM.consistent(scope);
+	});
+});
+
+</script>
+
+</body>
+</html>
