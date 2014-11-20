@@ -790,7 +790,7 @@ Security is critically important for any web application. The major security vul
 a web page, and that content is then executed by the browser in some form. Sometimes that execution can be harmful, other times it can just
 be unwanted. We want to prevent all of it.
 
-Web frameworks escape `&lt;&gt;&amp;` in unsafe content, to prevent an attacker from being able to insert arbitrary markup
+Web frameworks escape `<>&` in unsafe content, to prevent an attacker from being able to insert arbitrary markup
 into your page. As the developer you also need to make sure you don't allow any user generated content into unsafe HTML attributes, such as `onclick`,
 and when you allow user generated content into a safe HTML attribute, you need to make sure you escape quotes so an attacker can't end the current
 attribute value and create a new, unsafe, attribute.
