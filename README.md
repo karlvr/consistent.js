@@ -157,7 +157,9 @@ scope.numberOfPeople = function() {
 scope.$.apply();
 ```
 
-The value function gets called with `this` set to the scope it is declared in, and one argument; the scope where the request for the value originates, which is important when using parent and child scopes. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
+The value function gets called with `this` set to the scope it is declared in, and the first argument is the scope where the request for the value originates, which is important when using parent and child scopes. If the value function returns `undefined` then no changes will be made to the DOM, as for other undefined scope properties.
+
+#### Updating value functions
 
 When the scope is populated from the DOM using the `scope.$.update` function, or when a scope property is set manually using the `scope.$.set` function, and the scope contains a value function for the affected property; the value function is called with two arguments, the scope where the “set” originates, and the new value. Your value function can simply ignore this form if it doesn’t support updates.
 
@@ -690,11 +692,11 @@ Register a handler function to watch for changes to a particular property, or to
 
 ```javascript
 scope.$.watch("title", function(scope, property, newValue, oldValue) {
-	this.shortTitle = this.title.substring(0, 10);
+	scope.shortTitle = this.title.substring(0, 10);
 });
 
 scope.$.watch(function(scope, changedProperties, snapshot, oldSnapshot) {
-	this.changeSummary = "The following properties were changed: " + changedProperties;
+	scope.changeSummary = "The following properties were changed: " + changedProperties;
 });
 ```
 
@@ -706,7 +708,7 @@ Value functions are watched based on their returned value. If the value returned
 
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
-The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes.
+The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes. `this` is set to the scope where the watch is declared.
 
 #### Nested properties
 
@@ -848,7 +850,7 @@ Then if you add a title to the childScope and apply it again, it will override t
 
 #### Value functions
 
-When a snapshot is created, the value functions are executed and the snapshot will contain their value rather than the function. When a value function in a parent scope is executed for a child scope, the first argument to the value function will be the child scope. Value functions can therefore decide whether to access the scope in which they were declared (`this`), or the scope in which they are accessed (the first argument).
+When a snapshot is created, the value functions are executed and the snapshot will contain their return value rather than the function itself. When a value function in a parent scope is executed for a child scope, the first argument to the value function will be the child scope. Value functions can therefore decide whether to access the scope in which they were declared (`this`), or the scope in which they are accessed (the first argument).
 
 ```javascript
 rootScope.title = function(childScope) {
@@ -859,7 +861,7 @@ childScope.myTitle = "Title from the child";
 
 #### Event handlers
 
-If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Unlike value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers’ first argument is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
+If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Similar to value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers’ first argument is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
 
 ```html
 <div id="item">
@@ -875,7 +877,7 @@ rootScope.$.controller("handleClick", function(childScope, ev, dom) {
 
 #### Watch handler functions
 
-Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will always be the scope where the watch function is declared, however the first argument will be the child scope. In this way the watch function can access both the scope where the change occurred and the scope where it was declared.
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will always be the scope where the watch function is declared, and the first argument will be the scope where the change occurred; in this case, the child scope. In this way the watch function can access both the scope where the change occurred and the scope where the watch function was declared.
 
 
 ### Getting the nodes bound to a scope
