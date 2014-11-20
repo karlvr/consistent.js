@@ -41,6 +41,7 @@ p.world {
 <p class="consistent" ct-tmpl-id="myTemplate">Text should have changed</p>
 <script id="myTemplate" type="text/x-hogan-template">
 	<strong>Template by id worked</strong>
+	hello={{hello}}
 </script>
 <p class="consistent" ct-tmpl-id-attr-class="myClassTemplate">Should be pink when hello=world</p>
 <script id="myClassTemplate" type="text/x-hogan-template">{{hello}}</script>
