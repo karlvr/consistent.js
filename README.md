@@ -117,6 +117,12 @@ Note that Consistent will re-render the templates and thus recreate the DOM node
 
 If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
 
+Security warning: The text inside the `<script>` element above is parsed by the templating engine used by Consistent. Therefore if you inject
+unsafe content, such as user generated content, you need to ensure that it is properly escaped so that it is not interpreted by the templating engine.
+In the case of Hogan you <strong>cannot easily escape</strong> content. You need to ensure that unsafe content does not contain `{{`s. Fortunately
+this issue only exists for Consistent in this referenced template case, as all other parsed areas are inside `ct` and `ct-*` attributes. 
+Please read the [Security](#security) section, and please keep this issue in mind.
+
 ### Visibility
 
 Consistent can show and hide nodes based on the scope.
