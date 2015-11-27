@@ -31,6 +31,9 @@ Or use a minified and combined version. The minified and combined script for Con
 <script src="lib/consistent-for-jquery.min.js"></script>
 ```
 
+Consistent is designed with security in mind. Be sure to read the [Security](#security) section, so you understand the potential attacks and
+how Consistent mitigates them.
+
 ## License
 
 Consistent is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
@@ -114,6 +117,12 @@ Note that Consistent will re-render the templates and thus recreate the DOM node
 
 If you need to create a large DOM structure and then have it bound to a scope, consider creating it first using templating and then binding it with Consistent.
 
+Security warning: The text inside the `<script>` element above is parsed by the templating engine used by Consistent. Therefore if you inject
+unsafe content, such as user generated content, you need to ensure that it is properly escaped so that it is not interpreted by the templating engine.
+In the case of Hogan you <strong>cannot easily escape</strong> content. You need to ensure that unsafe content does not contain `{{`s. Fortunately
+this issue only exists for Consistent in this referenced template case, as all other parsed areas are inside `ct` and `ct-*` attributes. 
+Please read the [Security](#security) section, and please keep this issue in mind.
+
 ### Visibility
 
 Consistent can show and hide nodes based on the scope.
@@ -157,7 +166,9 @@ scope.numberOfPeople = function() {
 scope.$.apply();
 ```
 
-The value function gets called with `this` set to the scope it is declared in, and one argument; the scope where the request for the value originates, which is important when using parent and child scopes. As for other scope properties, if the value function returns `undefined` then no changes will be made to the DOM.
+The value function gets called with `this` set to the scope it is declared in, and the first argument is the scope where the request for the value originates, which is important when using parent and child scopes. If the value function returns `undefined` then no changes will be made to the DOM, as for other undefined scope properties.
+
+#### Updating value functions
 
 When the scope is populated from the DOM using the `scope.$.update` function, or when a scope property is set manually using the `scope.$.set` function, and the scope contains a value function for the affected property; the value function is called with two arguments, the scope where the “set” originates, and the new value. Your value function can simply ignore this form if it doesn’t support updates.
 
@@ -690,11 +701,11 @@ Register a handler function to watch for changes to a particular property, or to
 
 ```javascript
 scope.$.watch("title", function(scope, property, newValue, oldValue) {
-	this.shortTitle = this.title.substring(0, 10);
+	scope.shortTitle = this.title.substring(0, 10);
 });
 
 scope.$.watch(function(scope, changedProperties, snapshot, oldSnapshot) {
-	this.changeSummary = "The following properties were changed: " + changedProperties;
+	scope.changeSummary = "The following properties were changed: " + changedProperties;
 });
 ```
 
@@ -706,7 +717,7 @@ Value functions are watched based on their returned value. If the value returned
 
 It is possible for watch handlers to cause an infinite loop, if the scope does not reach a steady state. This is especially likely if you use value functions that return a new value each time they are evaluated. Consistent detects excessive looping through the watch handler list and throws an exception to break it. The number of loops is set in `Consistent.settings.maxWatcherLoops`; the default should be good enough.
 
-The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes.
+The `scope` parameter contains the scope in which the property changed. This is important when using parent and child scopes. `this` is set to the scope where the watch is declared.
 
 #### Nested properties
 
@@ -776,6 +787,36 @@ $.ajax({
 	data: scope.$.snapshot()
 });
 ```
+
+Security
+--------
+
+Security is critically important for any web application. The major security vulnerability for Javascript frameworks like Consistent is
+[XSS](http://en.wikipedia.org/wiki/Cross-site_scripting) or cross-site scripting. This occurs when a user is able to inject content into
+a web page, and that content is then executed by the browser in some form. Sometimes that execution can be harmful, other times it can just
+be unwanted. We want to prevent all of it.
+
+Web frameworks escape `<>&` in unsafe content, to prevent an attacker from being able to insert arbitrary markup
+into your page. As the developer you also need to make sure you don't allow any user generated content into unsafe HTML attributes, such as `onclick`,
+and when you allow user generated content into a safe HTML attribute, you need to make sure you escape quotes so an attacker can't end the current
+attribute value and create a new, unsafe, attribute.
+
+With the addition of Javascript frameworks that perform additional parsing of your page, you need to understand where this parsing occurs and
+whether there are additional risks.
+
+Consistent is driven by the contents of `ct` and `ct-*` attributes on HTML tags. This is by design, so that security with Consistent
+is achieved using the same techniques already in use. Prevent attackers from creating HTML elements and attributes.
+
+If you allow users to create some HTML markup, such as a whitelist of "safe" elements, you need to make sure the users cannot add attributes,
+or can only add whitelisted attributes. I don't believe blacklisting attributes is a safe approach, but if you do, you need to ensure that 
+the Consistent attributes are included.
+
+Consistent does support templated content in external elements (see [Templating](#templating)), therefore you need to avoid outputting unsafe
+content in these areas, or ensure that you escape the content correctly for the templating engine in use.
+
+Consistent does not parse the text content of your HTML page, so there is no need to escape anything additional, as you should
+already be doing, in those areas. Consistent does not parse the values of any attributes except `ct` and `ct-*`, so there is no need to escape
+anything additional in other attribute values.
 
 
 Principles
@@ -848,7 +889,7 @@ Then if you add a title to the childScope and apply it again, it will override t
 
 #### Value functions
 
-When a snapshot is created, the value functions are executed and the snapshot will contain their value rather than the function. When a value function in a parent scope is executed for a child scope, the first argument to the value function will be the child scope. Value functions can therefore decide whether to access the scope in which they were declared (`this`), or the scope in which they are accessed (the first argument).
+When a snapshot is created, the value functions are executed and the snapshot will contain their return value rather than the function itself. When a value function in a parent scope is executed for a child scope, the first argument to the value function will be the child scope. Value functions can therefore decide whether to access the scope in which they were declared (`this`), or the scope in which they are accessed (the first argument).
 
 ```javascript
 rootScope.title = function(childScope) {
@@ -859,7 +900,7 @@ childScope.myTitle = "Title from the child";
 
 #### Event handlers
 
-If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Unlike value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers’ first argument is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
+If a scope’s controller doesn’t contain the named event handler, the parent scope’s controller will be searched, and so on up the parent chain. Similar to value functions, event handlers are always invoked with `this` set to the controller in which they are declared. Event handlers’ first argument is the scope in which the event occurred. The function can use that value, if necessary, to operate on the scope where the event occurred.
 
 ```html
 <div id="item">
@@ -875,7 +916,7 @@ rootScope.$.controller("handleClick", function(childScope, ev, dom) {
 
 #### Watch handler functions
 
-Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will always be the scope where the watch function is declared, however the first argument will be the child scope. In this way the watch function can access both the scope where the change occurred and the scope where it was declared.
+Watch handler functions added to parent scopes will be fired for changes in child scopes. Note that `this` inside the watch function will always be the scope where the watch function is declared, and the first argument will be the scope where the change occurred; in this case, the child scope. In this way the watch function can access both the scope where the change occurred and the scope where the watch function was declared.
 
 
 ### Getting the nodes bound to a scope

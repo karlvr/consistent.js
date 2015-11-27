@@ -1824,7 +1824,7 @@
 					 */
 					var valueFunction = this.getValueFunction(key);
 					if (valueFunction !== undefined) {
-						/* Note that we do not need to set this, as getValueFunction forces this to be bound
+						/* Note that we do not need to set `this`, as getValueFunction forces this to be bound
 						 * to the declaring scope.
 						 */
 						valueFunction.call(null, scope, value);
