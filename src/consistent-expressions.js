@@ -1,5 +1,5 @@
 /*!
- * Consistent.js Expressions 0.12.3
+ * Consistent.js Expressions 0.12.4
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
