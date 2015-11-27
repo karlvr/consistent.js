@@ -44,7 +44,7 @@
 		}
 
 		if (typeof arg0 === "string") {
-			return Consistent.findScopeByName(arg0);
+			return Consistent.findScope(arg0);
 		}
 		if (arg0.nodeName !== undefined) {
 			/* DOM node */
