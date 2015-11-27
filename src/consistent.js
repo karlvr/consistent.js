@@ -1,5 +1,5 @@
 /*!
- * Consistent.js 0.12.3
+ * Consistent.js 0.12.4
  * @author Karl von Randow
  * @license Apache License, Version 2.0
  */
@@ -44,7 +44,7 @@
 		}
 
 		if (typeof arg0 === "string") {
-			return Consistent.findScopeByName(arg0);
+			return Consistent.findScope(arg0);
 		}
 		if (arg0.nodeName !== undefined) {
 			/* DOM node */

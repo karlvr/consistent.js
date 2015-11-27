@@ -17,6 +17,8 @@ PLUGINS_GZIPPED=$(PLUGINS_MINIFIED:.min.js=.min.js.gz)
 
 UGLIFY_FLAGS=-m --comments '/\/*!/'
 
+KARMA=/usr/local/share/npm/bin/karma
+
 all: lib
 
 clean:
@@ -46,13 +48,13 @@ lint:
 	find src -name "*.js" -exec jshint --verbose \{\} \;
 
 test:
-	karma start test/karma/karma.conf.js --single-run
+	$(KARMA) start test/karma/karma.conf.js --single-run
 
 test1:
-	karma start test/karma/karma.conf.js --single-run --browsers PhantomJS
+	$(KARMA) start test/karma/karma.conf.js --single-run --browsers PhantomJS
 
 citest:
-	karma start test/karma/karma.conf.js
+	$(KARMA) start test/karma/karma.conf.js
 
 testie6:
 	testem -f test/testem/testem.json -l bs_ie_6
