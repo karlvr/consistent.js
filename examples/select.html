@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Example of changing and selecting select elements.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<form>
+	<h2>Select with value and options</h2>
+	<p><select name="interests" multiple="multiple" ct-options="availableInterests" size="10"></select></p>
+
+	<h2>Select with just options</h2>
+	<p>Demonstrates that even if we don't control selection, we still preserve it best we can when the options change.</p>
+	<p><select multiple="multiple" ct-options="availableInterests" size="10"></select></p>
+
+	<h2>Select with single select</h2>
+	<p><select name="interest" ct-options="availableInterests" size="10"></select></p>
+
+	<h2>Select with duplicate options</h2>
+	<p>Demonstrates that we don't preserve the selected index when there are duplicate options.</p>
+	<p><select ct-options="dupes" size="10"></select></p>
+</form>
+
+<button id="change">Change Selection</button>
+<button id="changeOptions">Change Options</button>
+<button id="update">Update</button>
+
+<script>
+$(function() {
+	var scope = $("form").consistent();
+	scope.interest = "Juggling";
+	scope.interests = [ "Reading", "Fishing" ];
+	scope.availableInterests = ["Reading", "Sport", "Fishing", "Juggling", "Movies", "Walking"];
+	scope.dupes = [ "Reading", "Reading", "Reading" ];
+
+	scope.$.apply();
+
+	var changeIndex = 0;
+
+	$("#change").click(function() {
+		scope.interests = changeIndex % 2 == 0 ? "Walking" : [ "Reading", "Movies" ];
+		scope.interest = changeIndex % 2 == 0 ? "Walking" : "Movies";
+
+		changeIndex++;
+		scope.$.apply();
+	});
+
+	var optionsIndex = 0;
+	$("#changeOptions").click(function() {
+		scope.availableInterests = optionsIndex++ % 2 == 0 ? ["Reading", "Sport", "Fishing", "Juggling", "Movies", "Walking"]
+		: ["Reading", "Sport", "Fishing", "Juggling", "Archery", "Walking"];
+		scope.$.apply();
+	});
+
+	$("#update").click(function() {
+		scope.$.update();
+	});
+});
+</script>
+
+</body>
+</html>
