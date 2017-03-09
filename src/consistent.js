@@ -126,6 +126,7 @@
 				repeatContainerId: [ "data-ct-repeat-container-id", "ct-repeat-container-id" ],
 
 				noBind: [ "data-ct-nobind", "ct-nobind" ],
+				update: [ "data-ct-update", "ct-update" ],
 				scope: [ "data-ct-scope", "ct-scope" ],
 				init: [ "data-ct-init", "ct-init" ],
 				initFunc: [ "data-ct-init-func", "ct-init-func" ],
@@ -849,6 +850,11 @@
 				var value, i;
 				var bindings = options.bindings;
 
+				var updateOptions = bindings.update;
+				if (updateOptions === "disabled") {
+					return;
+				}
+
 				/* Select options */
 				if (updatableBinding(bindings.selectOptions)) {
 					var selectOptions = dom.options;
@@ -1287,6 +1293,14 @@
 					}
 					case "noBind": {
 						bindings.noBind = (!value || value === "true");
+						break;
+					}
+					case "update": {
+						if (value === "auto" || value === "auto-nokey" || value === "noauto" || value === "disabled") {
+							bindings.update = value;
+						} else {
+							throw exception("Invalid value for consistent update attribute, expected auto, auto-nokey, noauto, or disabled, saw: " + value);
+						}
 						break;
 					}
 					case "scope": 
@@ -2621,7 +2635,8 @@
 
 					/* Bind special Consistent events before declared events */
 					var nodeName = dom.nodeName;
-					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
+					var updateOption = nodeOptions.bindings.update;
+					if ((!updateOption || updateOption === "auto" || updateOption === "auto-nokey") && nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
 						/* For input, textarea and select nodes we bind to their change event */
 						var listener = function(ev) {
 							enhanceEvent(ev);
@@ -2636,7 +2651,7 @@
 
 						nodeOptions.$._changeListener = listener;
 					}
-					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
+					if ((!updateOption || updateOption === "auto") && nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
 						/* For input and textarea nodes we bind to their key events */
 						var listener = function(ev) {
 							enhanceEvent(ev);

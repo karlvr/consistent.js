@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Example of form population.
+-->
+<html>
+<head>
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../src/consistent.js"></script>
+<script src="../src/jquery.consistent.js"></script>
+</head>
+<body>
+<h1>Consistent.js</h1>
+
+<form>
+	<p>Automatically updating: <input type="text" name="fullName" ct-update="auto"></p>
+	<p>Manually updating: <input type="text" name="fullName2" ct-update="noauto"></p>
+	<p>Never updating: <input type="text" name="fullName3" ct-update="disabled"></p>
+	
+	<p>Scope value:</p>
+	<textarea id="result" cols="40" rows="7"></textarea>
+
+	<button ct-do="update">Manual Update</button>
+</form>
+
+<script>
+$(function() {
+	var scope = $("form").consistent();
+	scope.fullName = "Nathanial Hornblower";
+	scope.fullName2 = "Donald Duck";
+	scope.fullName3 = "Jarvis";
+	scope.$.controller("update", function(scope, ev) {
+		ev.preventDefault();
+		scope.$.update();
+		showScope();
+	});
+	scope.$.apply();
+
+	scope.$.watch(function() {
+		showScope();
+	});
+
+	function showScope() {
+		$('#result').val(JSON.stringify(scope.$.snapshot()));
+	}
+
+	showScope();
+});
+</script>
+
+</body>
+</html>

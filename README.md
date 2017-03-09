@@ -214,7 +214,19 @@ Checkboxes are usually represented by a boolean value in the scope. For groups o
 
 For `<select>` elements that can have multiple options selected, the scope property can be an array.
 
+#### Controlling updating
+
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates the scope with that element and then applies the scope. Note that the update is just for the element that fired the `change` event, it is not for all of the scope’s DOM nodes as it is if you call `scope.$.update()`. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
+
+You can control updating on an element by adding a `ct-update` attribute. Valid values are `auto` (the default), `auto-nokey`, `noauto`, `disabled`:
+* `auto` listen to the `change` event and update the scope
+* `auto-nokey` the same as auto, except don't update on key events
+* `noauto` don't listen to `change` events, but still update when the scope is updated
+* `disabled` don't listen to `change` events, and do not update when the scope is updated
+
+```html
+<input type="text" name="email" ct-update="auto">
+```
 
 #### Disabled and Read only
 
@@ -1165,6 +1177,7 @@ The `NAME` segment in the following list represents the name of the attribute or
 #### Miscellaneous
 
 * `ct-nobind` prevents Consistent from binding this element to a scope, and prevents Consistent from cascading the bind to this element’s children. This declaration can be used to fence off markup that should not acquire Consistent functionality (e.g. any unsafe user-generated markup). This attribute can be declared with no value, e.g. `<div ct-nobind>`, or with the value `"true"`.
+* `ct-update` controls Consistent's behaviour when updating the scope from this element. Valid values are `auto` (the default), `auto-nokey`, `noauto`, `disabled`.
 
 ### Scope functions
 
