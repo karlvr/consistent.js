@@ -2621,10 +2621,9 @@
 
 					/* Bind special Consistent events before declared events */
 					var nodeName = dom.nodeName;
-					var listener;
 					if (nodeOptions.autoListenToChange && (nodeName === "INPUT" || nodeName === "TEXTAREA" || nodeName === "SELECT")) {
 						/* For input, textarea and select nodes we bind to their change event */
-						listener = function(ev) {
+						var listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
 							self._nodesDirty = true; // TODO this is brute force, could be more narrow
@@ -2639,7 +2638,7 @@
 					}
 					if (nodeOptions.autoListenToKeyEvents && (nodeName === "INPUT" || nodeName === "TEXTAREA")) {
 						/* For input and textarea nodes we bind to their key events */
-						listener = function(ev) {
+						var listener = function(ev) {
 							enhanceEvent(ev);
 							nodeOptions.$.update(dom, self._scope, nodeOptions);
 							self._nodesDirty = true; // TODO this is brute force, could be more narrow
