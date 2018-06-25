@@ -716,6 +716,10 @@ scope.$.watch("title", function(scope, property, newValue, oldValue) {
 	scope.shortTitle = this.title.substring(0, 10);
 });
 
+scope.$.watch(["title", "title2"], function(scope, property, newValue, oldValue) {
+	scope.shortTitle = this.title.substring(0, 10);
+});
+
 scope.$.watch(function(scope, changedProperties, snapshot, oldSnapshot) {
 	scope.changeSummary = "The following properties were changed: " + changedProperties;
 });
@@ -1216,8 +1220,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `setValueFunction(property, function)` sets the value function in the scope for the given property. Supports nested properties.
 
 #### Watch
-* `watch([property,] function)` adds the given handler function as a watch function to the property, if provided, otherwise to the whole scope.
-* `unwatch([property,] function)` unbinds the watch function.
+* `watch([property,] function)` adds the given handler function as a watch function to the property, if provided, otherwise to the whole scope. The property argument can be an array of property names.
+* `unwatch([property,] function)` unbinds the watch function. The property argument can be an array of property names.
 
 #### Expressions and Statements
 * `evaluate(expression)` evaluates the given expression string in the context of the scope.

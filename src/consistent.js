@@ -2792,15 +2792,7 @@
 		}
 	};
 
-	ConsistentScopeManager.prototype.watch = function(key, callback) {
-		if (typeof key === "function" && callback === undefined) {
-			/* Watch all */
-			callback = key;
-			key = WATCH_ALL_KEY;
-		} else {
-			key = unpresentNestedProperty(key);
-		}
-
+	ConsistentScopeManager.prototype._addWatch = function(key, callback) {
 		var watchers = this._watchers[key];
 		if (watchers === undefined) {
 			watchers = [];
@@ -2809,19 +2801,37 @@
 		watchers.push(callback);
 	};
 
-	ConsistentScopeManager.prototype.unwatch = function(key, callback) {
+	ConsistentScopeManager.prototype.watch = function(key, callback) {
 		if (typeof key === "function" && callback === undefined) {
 			/* Watch all */
-			callback = key;
-			key = WATCH_ALL_KEY;
+			this._addWatch(WATCH_ALL_KEY, key);
+		} else if (isArray(key)) {
+			for (var i = 0; i < key.length; i++) {
+				this._addWatch(unpresentNestedProperty(key[i]), callback);
+			}
 		} else {
-			key = unpresentNestedProperty(key);
+			this._addWatch(unpresentNestedProperty(key), callback);
 		}
+	};
 
+	ConsistentScopeManager.prototype._removeWatch = function(key, callback) {
 		var watchers = this._watchers[key];
 		if (watchers !== undefined) {
 			var i = arrayIndexOf(watchers, callback);
 			watchers.splice(i, 1);
+		}
+	};
+
+	ConsistentScopeManager.prototype.unwatch = function(key, callback) {
+		if (typeof key === "function" && callback === undefined) {
+			/* Watch all */
+			this._removeWatch(WATCH_ALL_KEY, key);
+		} else if (isArray(key)) {
+			for (var i = 0; i < key.length; i++) {
+				this._removeWatch(unpresentNestedProperty(key[i]), callback);
+			}
+		} else {
+			this._removeWatch(unpresentNestedProperty(key), callback);
 		}
 	};
 
