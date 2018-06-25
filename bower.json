@@ -1,6 +1,6 @@
 {
   "name": "consistent.js",
-  "version": "0.13",
+  "version": "0.14",
   "main": "src/consistent.js",
   "ignore": [
     "**/.*",
