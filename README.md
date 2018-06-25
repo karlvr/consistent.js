@@ -131,15 +131,17 @@ Consistent can show and hide nodes based on the scope.
 <h1 ct-show="showTitle">My title</h1>
 ```
 
-You can also use `ct-hide` to hide the element when the scope property is true.
+You can also use `ct-hide` to hide the element when the scope property is truthy.
 
-Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
+Now create a scope and set the `showTitle` property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
 
 ```javascript
 var scope = $("h1").consistent();
 scope.showTitle = true;
 scope.$.apply();
 ```
+
+Note: There is an exception relating to handling of `undefined` with `ct-show` as of v0.14. If the scope property referenced in `ct-show` is undefined, Consistent will hide the element.
 
 #### Animation
 

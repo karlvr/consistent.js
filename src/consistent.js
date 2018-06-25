@@ -710,12 +710,10 @@
 				/* Visibility */
 				if (bindings.show) {
 					value = getPropertyOrEvaluateExpression(bindings.show);
-					if (value !== undefined) {
-						if (value) {
-							this.show(dom);
-						} else {
-							this.hide(dom);
-						}
+					if (value) {
+						this.show(dom);
+					} else {
+						this.hide(dom);
 					}
 				}
 				if (bindings.hide) {
