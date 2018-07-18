@@ -2657,8 +2657,14 @@
 							self._nodesDirty = true; // TODO this is brute force, could be more narrow
 							self._scope.$.apply();
 						};
-						addEventListener(dom, "keyup", listener, false);
-						nodeOptions.$._keyListener = listener;
+
+						if (typeof dom.oninput !== 'undefined') {
+							addEventListener(dom, "input", listener, false);
+							nodeOptions.$._inputListener = listener;
+						} else {
+							addEventListener(dom, "keyup", listener, false);
+							nodeOptions.$._keyListener = listener;
+						}
 					}
 
 					/* Bind events */
@@ -2774,6 +2780,9 @@
 			/* Unbind keys */
 			if (options.$._keyListener !== undefined) {
 				dom.removeEventListener("keyup", options.$._keyListener, false);
+			}
+			if (options.$._inputListener !== undefined) {
+				dom.removeEventListener("input", options.$._inputListener, false);
 			}
 
 			this._domNodes.splice(i, 1);
