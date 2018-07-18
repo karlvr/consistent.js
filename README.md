@@ -131,15 +131,17 @@ Consistent can show and hide nodes based on the scope.
 <h1 ct-show="showTitle">My title</h1>
 ```
 
-You can also use `ct-hide` to hide the element when the scope property is true.
+You can also use `ct-hide` to hide the element when the scope property is truthy.
 
-Now create a scope and set the showTitle property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
+Now create a scope and set the `showTitle` property. Consistent will show or hide the element using a `display:none` style. Consistent also restores the old value of `display` when re-showing, in case it was set to something specifically.
 
 ```javascript
 var scope = $("h1").consistent();
 scope.showTitle = true;
 scope.$.apply();
 ```
+
+Note: There is an exception relating to handling of `undefined` with `ct-show` as of v0.14. If the scope property referenced in `ct-show` is undefined, Consistent will hide the element.
 
 #### Animation
 
@@ -214,7 +216,19 @@ Checkboxes are usually represented by a boolean value in the scope. For groups o
 
 For `<select>` elements that can have multiple options selected, the scope property can be an array.
 
+#### Controlling updating
+
 Consistent automatically listens to the `change` event on form elements. When the `change` event fires, Consistent updates the scope with that element and then applies the scope. Note that the update is just for the element that fired the `change` event, it is not for all of the scope’s DOM nodes as it is if you call `scope.$.update()`. You can turn off this behaviour by setting `autoListenToChange` to false in the `options` object, either when the scope is created or when you bind the form elements.
+
+You can control updating on an element by adding a `ct-update` attribute. Valid values are `auto` (the default), `auto-nokey`, `noauto`, `disabled`:
+* `auto` listen to the `change` event and update the scope
+* `auto-nokey` the same as auto, except don't update on key events
+* `noauto` don't listen to `change` events, but still update when the scope is updated
+* `disabled` don't listen to `change` events, and do not update when the scope is updated
+
+```html
+<input type="text" name="email" ct-update="auto">
+```
 
 #### Disabled and Read only
 
@@ -704,6 +718,10 @@ scope.$.watch("title", function(scope, property, newValue, oldValue) {
 	scope.shortTitle = this.title.substring(0, 10);
 });
 
+scope.$.watch(["title", "title2"], function(scope, property, newValue, oldValue) {
+	scope.shortTitle = this.title.substring(0, 10);
+});
+
 scope.$.watch(function(scope, changedProperties, snapshot, oldSnapshot) {
 	scope.changeSummary = "The following properties were changed: " + changedProperties;
 });
@@ -1165,6 +1183,7 @@ The `NAME` segment in the following list represents the name of the attribute or
 #### Miscellaneous
 
 * `ct-nobind` prevents Consistent from binding this element to a scope, and prevents Consistent from cascading the bind to this element’s children. This declaration can be used to fence off markup that should not acquire Consistent functionality (e.g. any unsafe user-generated markup). This attribute can be declared with no value, e.g. `<div ct-nobind>`, or with the value `"true"`.
+* `ct-update` controls Consistent's behaviour when updating the scope from this element. Valid values are `auto` (the default), `auto-nokey`, `noauto`, `disabled`.
 
 ### Scope functions
 
@@ -1203,8 +1222,8 @@ All scope functions are nested inside the `$` object, and therefore you call the
 * `setValueFunction(property, function)` sets the value function in the scope for the given property. Supports nested properties.
 
 #### Watch
-* `watch([property,] function)` adds the given handler function as a watch function to the property, if provided, otherwise to the whole scope.
-* `unwatch([property,] function)` unbinds the watch function.
+* `watch([property,] function)` adds the given handler function as a watch function to the property, if provided, otherwise to the whole scope. The property argument can be an array of property names.
+* `unwatch([property,] function)` unbinds the watch function. The property argument can be an array of property names.
 
 #### Expressions and Statements
 * `evaluate(expression)` evaluates the given expression string in the context of the scope.

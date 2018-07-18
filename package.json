@@ -1,6 +1,6 @@
 {
   "name": "consistent.js",
-  "version": "0.12.5",
+  "version": "0.14.1",
   "description": "A small and simple Javascript framework to enable an abstract model to be synced with the DOM.",
   "author": "Karl von Randow",
   "license": "Apache License Version 2.0",
